@@ -1,8 +1,8 @@
 {
-    "name": "aura/sql",
-    "type": "aura-package",
-    "description": "A wrapper around PDO that provides connection adapters and convenience methods for MySQL, PostgreSQL, SQLite, and SQL Server.",
-    "keywords": [ "mysql", "pdo", "pgsql", "postgres", "postgresql", "sqlite", "sql server", "sqlserver" ],
+    "name": "aura/sql-query-bundle",
+    "type": "library",
+    "description": "Objet-oriented query builders for MySQL, Postgres, SQLite, and SQLServer, along with non-vendor-specific query objects; requires Aura.Sql library.",
+    "keywords": [ "mysql", "pdo", "pgsql", "postgres", "postgresql", "sqlite", "sql server", "sqlserver", "query", "select", "insert", "update", "delete" ],
     "homepage": "http://auraphp.github.com/Aura.Sql",
     "license": "BSD-2-Clause",
     "authors": [
@@ -13,11 +13,9 @@
     ],
     "require": {
         "php": ">=5.4.0",
-        "aura/installer-default": "1.0.0"
+        "aura/sql": "dev-aura.sql.pdo"
     },
     "autoload": {
-        "psr-0": {
-            "Aura\\Sql": "src/"
-        }
+        "files": ["autoload.php"]
     }
 }
