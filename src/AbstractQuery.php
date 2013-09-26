@@ -39,6 +39,24 @@ abstract class AbstractQuery
 
     /**
      * 
+     * The prefix to use when quoting identifier names.
+     * 
+     * @var string
+     * 
+     */
+    protected $quote_name_prefix = '"';
+
+    /**
+     * 
+     * The suffix to use when quoting identifier names.
+     * 
+     * @var string
+     * 
+     */
+    protected $quote_name_suffix = '"';
+
+    /**
+     * 
      * Converts this query object to a string.
      * 
      * @return string
@@ -150,6 +168,59 @@ abstract class AbstractQuery
     protected function resetFlags()
     {
         $this->flags = [];
+    }
+    
+    /**
+     * 
+     * Quotes a value and places into a piece of text at a placeholder; the
+     * placeholder is a question-mark.
+     * 
+     * @param string $text The text with placeholder(s).
+     * 
+     * @param mixed $bind The data value(s) to quote.
+     * 
+     * @return mixed An SQL-safe quoted value (or string of separated values)
+     * placed into the original text.
+     * 
+     * @see quote()
+     * 
+     */
+    protected function rebind($text, $bind)
+    {
+        // how many placeholders are there?
+        $count = substr_count($text, '?');
+        if (! $count) {
+            // no replacements needed
+            return $text;
+        }
+
+        // only one placeholder?
+        if ($count == 1) {
+            $bind = $this->quote($bind);
+            $text = str_replace('?', $bind, $text);
+            return $text;
+        }
+
+        // more than one placeholder
+        $offset = 0;
+        foreach ((array) $bind as $val) {
+
+            // find the next placeholder
+            $pos = strpos($text, '?', $offset);
+            if ($pos === false) {
+                // no more placeholders, exit the data loop
+                break;
+            }
+
+            // replace this question mark with a quoted value
+            $val  = $this->quote($val);
+            $text = substr_replace($text, $val, $pos, 1);
+
+            // update the offset to move us past the quoted value
+            $offset = $pos + strlen($val);
+        }
+
+        return $text;
     }
     
     /**

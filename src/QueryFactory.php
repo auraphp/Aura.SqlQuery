@@ -10,8 +10,6 @@
  */
 namespace Aura\Sql\Query;
 
-use Aura\Sql\Connection\AbstractConnection;
-
 /**
  * 
  * Creates query statement objects.
