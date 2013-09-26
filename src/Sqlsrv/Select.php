@@ -49,12 +49,13 @@ class Select extends AbstractSqlsrv
     {
         // neither limit nor offset?
         if (! $this->limit && ! $this->offset) {
+            // no changes
             return $stm;
         }
         
-        // limit but not offset?
+        // limit but no offset?
         if ($this->limit && ! $this->offset) {
-            // limit, but no offset, so we can use TOP
+            // use TOP
             return preg_replace(
                 '/^(SELECT( DISTINCT)?)/',
                 "$1 TOP $limit",

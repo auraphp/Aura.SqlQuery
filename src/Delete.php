@@ -8,7 +8,7 @@
  * @license http://opensource.org/licenses/bsd-license.php BSD
  *
  */
-namespace Aura\Sql\Query\Common;
+namespace Aura\Sql\Query;
 
 use Aura\Sql\Query\Traits;
 

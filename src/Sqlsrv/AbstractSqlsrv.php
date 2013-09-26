@@ -1,5 +1,5 @@
 <?php
-namespace Aura\Sql\Query\Common;
+namespace Aura\Sql\Query\Sqlsrv;
 
 use Aura\Sql\Query\AbstractQuery;
 

@@ -1,5 +1,5 @@
 <?php
-namespace Aura\Sql\Query\Common;
+namespace Aura\Sql\Query\Sqlite;
 
 use Aura\Sql\Query\AbstractQuery;
 
