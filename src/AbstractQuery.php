@@ -44,7 +44,7 @@ abstract class AbstractQuery
      * @var string
      * 
      */
-    protected $quote_name_prefix = '"';
+    protected $quote_name_prefix = null;
 
     /**
      * 
@@ -53,17 +53,29 @@ abstract class AbstractQuery
      * @var string
      * 
      */
-    protected $quote_name_suffix = '"';
+    protected $quote_name_suffix = null;
 
     /**
      * 
-     * Converts this query object to a string.
+     * Returns this query object as a string.
      * 
      * @return string
      * 
      */
-    abstract public function __toString();
+    public function __toString()
+    {
+        return $this->build();
+    }
 
+    /**
+     * 
+     * Builds this query object into a string.
+     * 
+     * @return string
+     * 
+     */
+    abstract protected function build();
+    
     /**
      * 
      * Returns an array as an indented comma-separated values string.
@@ -129,12 +141,10 @@ abstract class AbstractQuery
      * @return string
      * 
      */
-    protected function getFlagsAsString()
+    protected function buildFlags()
     {
         if ($this->flags) {
             return ' ' . implode(' ', array_keys($this->flags));
-        } else {
-            return '';
         }
     }
 

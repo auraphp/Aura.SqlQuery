@@ -10,7 +10,7 @@
  */
 namespace Aura\Sql\Query\Pgsql;
 
-use Aura\Sql\Query\ReturningTrait;
+use Aura\Sql\Query\Traits;
 
 /**
  *
@@ -19,9 +19,10 @@ use Aura\Sql\Query\ReturningTrait;
  * @package Aura.Sql
  *
  */
-class Delete extends \Aura\Sql\Query\Delete
+class Delete extends AbstractPgsql
 {
-    use ReturningTrait;
+    use Traits/DeleteTrait;
+    use Traits/ReturningTrait;
     
     /**
      * 
@@ -30,8 +31,11 @@ class Delete extends \Aura\Sql\Query\Delete
      * @return string
      * 
      */
-    public function __toString()
+    protected function build()
     {
-        return parent::__toString() . $this->getReturningClause();
+        return "DELETE FROM {$this->from}"
+             . $this->buildWhere()
+             . $this->buildReturning()
+             . PHP_EOL;
     }
 }

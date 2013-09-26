@@ -40,7 +40,7 @@ trait ValuesTrait
      */
     public function col($col)
     {
-        $key = $this->connection->quoteName($col);
+        $key = $this->quoteName($col);
         $this->values[$key] = ":$col";
         return $this;
     }
@@ -80,9 +80,27 @@ trait ValuesTrait
             $value = 'NULL';
         }
 
-        $key = $this->connection->quoteName($col);
-        $value = $this->connection->quoteNamesIn($value);
+        $key = $this->quoteName($col);
+        $value = $this->quoteNamesIn($value);
         $this->values[$key] = $value;
         return $this;
+    }
+    
+    protected function buildValuesForInsert()
+    {
+        return ' ('
+             . $this->indentCsv(array_keys($this->values))
+             . ') VALUES ('
+             . $this->indentCsv(array_values($this->values))
+             . ')';
+    }
+    
+    protected function buildValuesForUpdate()
+    {
+        $values = [];
+        foreach ($this->values as $col => $value) {
+            $values[] = "{$col} = {$value}";
+        }
+        return 'SET' . $this->indentCsv($values);
     }
 }

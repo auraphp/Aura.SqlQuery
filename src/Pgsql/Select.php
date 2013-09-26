@@ -10,6 +10,8 @@
  */
 namespace Aura\Sql\Query\Pgsql;
 
+use Aura\Sql\Query\Traits;
+
 /**
  *
  * An object for PgSQL SELECT queries.
@@ -17,7 +19,7 @@ namespace Aura\Sql\Query\Pgsql;
  * @package Aura.Sql
  *
  */
-class Select extends \Aura\Sql\Query\Select
+class Select extends AbstractPgsql
 {
-    
+    use Traits\SelectTrait;
 }

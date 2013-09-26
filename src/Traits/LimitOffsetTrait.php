@@ -45,9 +45,9 @@ trait LimitOffsetTrait
         return $this;
     }
     
-    protected function getLimitOffsetClause()
+    protected function buildLimitOffset()
     {
-        $limit = $this->getLimitClause();
+        $limit = $this->buildLimit();
         if (! $limit) {
             // no limit, so can't do offset
             return;

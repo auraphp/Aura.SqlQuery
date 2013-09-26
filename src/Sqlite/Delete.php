@@ -10,9 +10,7 @@
  */
 namespace Aura\Sql\Query\Sqlite;
 
-use Aura\Sql\Query\LimitTrait;
-use Aura\Sql\Query\OffsetTrait;
-use Aura\Sql\Query\OrderByTrait;
+use Aura\Sql\Query\Traits;
 
 /**
  *
@@ -21,27 +19,18 @@ use Aura\Sql\Query\OrderByTrait;
  * @package Aura.Sql
  *
  */
-class Delete extends \Aura\Sql\Query\Delete
+class Delete extends AbstractSqlite
 {
-    use LimitTrait;
-    use OffsetTrait;
-    use OrderByTrait;
+    use Traits\DeleteTrait;
+    use Traits\OrderByTrait;
+    use Traits\LimitOffsetTrait;
     
-    /**
-     * 
-     * Converts this query object to a string.
-     * 
-     * @return string
-     * 
-     */
-    public function __toString()
+    protected function build()
     {
-        $sql = parent::__toString();
-        
-        $sql .= $this->getOrderByClause();
-        
-        $this->connection->limit($sql, $this->limit, $this->offset);
-        
-        return $sql;
+        return 'DELETE' . $this->buildFlags() . " FROM {$this->from}"
+             . $this->buildWhere()
+             . $this->buildOrderBy()
+             . $this->buildLimitOffset()
+             . PHP_EOL;
     }
 }

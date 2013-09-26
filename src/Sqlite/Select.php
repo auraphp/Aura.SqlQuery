@@ -10,6 +10,8 @@
  */
 namespace Aura\Sql\Query\Sqlite;
 
+use Aura\Sql\Query\Traits;
+
 /**
  *
  * An object for Sqlite SELECT queries.
@@ -17,7 +19,7 @@ namespace Aura\Sql\Query\Sqlite;
  * @package Aura.Sql
  *
  */
-class Select extends \Aura\Sql\Query\Select
+class Select extends AbstractSqlite
 {
-    
+    use Traits\SelectTrait;
 }

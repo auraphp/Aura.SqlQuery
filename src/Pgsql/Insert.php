@@ -10,7 +10,7 @@
  */
 namespace Aura\Sql\Query\Pgsql;
 
-use Aura\Sql\Query\ReturningTrait;
+use Aura\Sql\Query\Traits;
 
 /**
  *
@@ -19,19 +19,16 @@ use Aura\Sql\Query\ReturningTrait;
  * @package Aura.Sql
  *
  */
-class Insert extends \Aura\Sql\Query\Insert
+class Insert extends AbstractPgsql
 {
-    use ReturningTrait;
+    use Traits\InsertTrait;
+    use Traits\ReturningTrait;
     
-    /**
-     * 
-     * Converts this query object to a string.
-     * 
-     * @return string
-     * 
-     */
-    public function __toString()
+    protected function build()
     {
-        return parent::__toString() . $this->getReturningClause();
+        return "INSERT INTO {$this->into}"
+             . $this->buildValuesForInsert()
+             . $this->buildReturning()
+             . PHP_EOL;
     }
 }

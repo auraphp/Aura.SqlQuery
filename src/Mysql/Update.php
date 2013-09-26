@@ -10,7 +10,7 @@
  */
 namespace Aura\Sql\Query\Mysql;
 
-use Aura\Sql\Query\LimitTrait;
+use Aura\Sql\Query\Traits;
 
 /**
  *
@@ -21,7 +21,9 @@ use Aura\Sql\Query\LimitTrait;
  */
 class Update extends \Aura\Sql\Query\Update
 {
-    use LimitTrait;
+    use Traits\UpdateTrait;
+    use Traits\LimitTrait;
+    use Traits\OrderByTrait;
     
     const FLAG_IGNORE = 'IGNORE';
     const FLAG_LOW_PRIORITY = 'LOW_PRIORITY';
@@ -33,11 +35,14 @@ class Update extends \Aura\Sql\Query\Update
      * @return string
      * 
      */
-    public function __toString()
+    protected function build()
     {
-        $sql = parent::__toString();
-        $this->connection->limit($sql, $this->limit);
-        return $sql;
+        return 'UPDATE' . $this->buildFlags() . " {$this->table}"
+             . $this->buildValuesForUpdate()
+             . $this->buildWhere()
+             . $this->buildOrderBy()
+             . $this->buildLimit()
+             . PHP_EOL;
     }
 
     /**

@@ -10,7 +10,7 @@
  */
 namespace Aura\Sql\Query\Mysql;
 
-use Aura\Sql\Query\LimitTrait;
+use Aura\Sql\Query\Traits;
 
 /**
  *
@@ -19,9 +19,11 @@ use Aura\Sql\Query\LimitTrait;
  * @package Aura.Sql
  *
  */
-class Delete extends \Aura\Sql\Query\Delete
+class Delete extends AbstractMysql
 {
-    use LimitTrait;
+    use Traits\DeleteTrait;
+    use Traits\LimitTrait;
+    use Traits\OrderByTrait;
     
     const FLAG_IGNORE = 'IGNORE';
     const FLAG_QUICK = 'QUICK';
@@ -34,11 +36,13 @@ class Delete extends \Aura\Sql\Query\Delete
      * @return string
      * 
      */
-    public function __toString()
+    protected function build()
     {
-        $sql = parent::__toString();
-        $this->connection->limit($sql, $this->limit);
-        return $sql;
+        return 'DELETE' . $this->buildFlags() . "FROM {$this->from}"
+             . $this->buildWhere()
+             . $this->buildOrderBy()
+             . $this->buildLimit()
+             . PHP_EOL;
     }
 
     /**

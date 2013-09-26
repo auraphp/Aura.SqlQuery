@@ -10,6 +10,8 @@
  */
 namespace Aura\Sql\Query\Mysql;
 
+use Aura\Sql\Query\Traits;
+
 /**
  *
  * An object for MySQL SELECT queries.
@@ -19,6 +21,8 @@ namespace Aura\Sql\Query\Mysql;
  */
 class Select extends \Aura\Sql\Query\Select
 {
+    use Traits\SelectTrait;
+    
     const FLAG_HIGH_PRIORITY = 'HIGH_PRIORITY';
     const FLAG_STRAIGHT_JOIN = 'STRAIGHT_JOIN';
     const FLAG_SQL_CALC_FOUND_ROWS = 'SQL_CALC_FOUND_ROWS';
@@ -40,7 +44,6 @@ class Select extends \Aura\Sql\Query\Select
     public function calcFoundRows($enable = true)
     {
         $this->setFlag(self::FLAG_SQL_CALC_FOUND_ROWS, $enable);
-
         return $this;
     }
 
@@ -56,7 +59,6 @@ class Select extends \Aura\Sql\Query\Select
     public function cache($enable = true)
     {
         $this->setFlag(self::FLAG_SQL_CACHE, $enable);
-
         return $this;
     }
 
@@ -72,7 +74,6 @@ class Select extends \Aura\Sql\Query\Select
     public function noCache($enable = true)
     {
         $this->setFlag(self::FLAG_SQL_NO_CACHE, $enable);
-
         return $this;
     }
 

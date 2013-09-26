@@ -2,7 +2,7 @@
 spl_autoload_register(function ($class) {
     
     // what namespace prefix should be recognized?
-    $prefix = 'Aura\Sql_Query_Bundle\\';
+    $prefix = 'Aura\Sql\Query\\';
     
     // does the requested class match the namespace prefix?
     $prefix_len = strlen($prefix);

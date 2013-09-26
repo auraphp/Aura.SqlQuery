@@ -8,7 +8,9 @@
  * @license http://opensource.org/licenses/bsd-license.php BSD
  *
  */
-namespace Aura\Sql\Query;
+namespace Aura\Sql\Query\Common;
+
+use Aura\Sql\Query\Traits;
 
 /**
  *
@@ -19,46 +21,5 @@ namespace Aura\Sql\Query;
  */
 class Insert extends AbstractQuery
 {
-    use ValuesTrait;
-    use FlagsTrait;
-
-    /**
-     *
-     * The table to insert into.
-     *
-     * @var string
-     *
-     */
-    protected $table;
-
-    /**
-     *
-     * Returns this object as an SQL statement string.
-     *
-     * @return string An SQL statement string.
-     *
-     */
-    public function __toString()
-    {
-        return 'INSERT' . $this->getFlagsAsString() . ' INTO ' . $this->table . ' ('
-             . $this->indentCsv(array_keys($this->values))
-             . ') VALUES ('
-             . $this->indentCsv(array_values($this->values))
-             . ')' . PHP_EOL;
-    }
-
-    /**
-     *
-     * Sets the table to insert into.
-     *
-     * @param string $table The table to insert into.
-     *
-     * @return $this
-     *
-     */
-    public function into($table)
-    {
-        $this->table = $this->connection->quoteName($table);
-        return $this;
-    }
+    use Traits\InsertTrait;
 }

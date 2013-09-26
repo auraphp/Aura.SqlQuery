@@ -17,22 +17,31 @@ namespace Aura\Sql\Query;
  * @package Aura.Sql
  * 
  */
-class Factory
+class QueryFactory
 {
     /**
      * 
      * Returns a new query object.
      * 
-     * @param string $type The query object type.
+     * @param string $query The query object type.
      * 
-     * @param AbstractConnection $connection The SQL connection.
+     * @param string $type The database backend type to use; if empty,
+     * defaults to the 'Common' type.
      * 
      * @return AbstractQuery
      * 
      */
-    public function newInstance($type, AbstractConnection $connection)
+    public function newInstance($query, $type = null)
     {
-        $class = '\Aura\Sql\Query\\' . ucfirst($type);
-        return new $class($connection);
+        $query = ucfirst(strtolower($query));
+        
+        if (! $type) {
+            $type = 'Common';
+        } else {
+            $type = ucfirst(strtolower($type));
+        }
+        
+        $class = "Aura\Sql\Query\\{$type}\\{$query}";
+        return new $class;
     }
 }

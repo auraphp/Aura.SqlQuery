@@ -8,7 +8,9 @@
  * @license http://opensource.org/licenses/bsd-license.php BSD
  *
  */
-namespace Aura\Sql\Query;
+namespace Aura\Sql\Query\Common;
+
+use Aura\Sql\Query\Traits;
 
 /**
  *
@@ -19,47 +21,5 @@ namespace Aura\Sql\Query;
  */
 class Delete extends AbstractQuery
 {
-    use FlagsTrait;
-    use WhereTrait;
-
-    /**
-     *
-     * The table to delete from.
-     *
-     * @var string
-     *
-     */
-    protected $table;
-
-    /**
-     *
-     * Returns this object as an SQL statement string.
-     *
-     * @return string An SQL statement string.
-     *
-     */
-    public function __toString()
-    {
-        $where = null;
-        if ($this->where) {
-            $where .= PHP_EOL . 'WHERE' . $this->indent($this->where);
-        }
-
-        return 'DELETE' . $this->getFlagsAsString() . ' FROM ' . $this->table . $where;
-    }
-
-    /**
-     *
-     * Sets the table to delete from.
-     *
-     * @param string $table The table to delete from.
-     *
-     * @return $this
-     *
-     */
-    public function from($table)
-    {
-        $this->table = $this->connection->quoteName($table);
-        return $this;
-    }
+    use Traits\DeleteTrait;
 }

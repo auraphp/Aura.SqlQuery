@@ -43,7 +43,7 @@ trait ReturningTrait
     public function returning(array $cols)
     {
         foreach ($cols as $col) {
-            $this->returning[] = $this->connection->quoteNamesIn($col);
+            $this->returning[] = $this->quoteNamesIn($col);
         }
         return $this;
     }
@@ -55,14 +55,10 @@ trait ReturningTrait
      * @return string
      * 
      */
-    protected function getReturningClause()
+    protected function buildReturning()
     {
         if ($this->returning) {
-            $text = 'RETURNING' . $this->indentCsv($this->returning);
-        } else {
-            $text = '';
+            return 'RETURNING' . $this->indentCsv($this->returning);
         }
-        
-        return $text;
     }
 }

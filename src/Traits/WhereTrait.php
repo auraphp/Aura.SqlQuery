@@ -43,10 +43,10 @@ trait WhereTrait
      */
     public function where($cond)
     {
-        $cond = $this->connection->quoteNamesIn($cond);
+        $cond = $this->quoteNamesIn($cond);
 
         if (func_num_args() > 1) {
-            $cond = $this->connection->quoteInto($cond, func_get_arg(1));
+            $cond = $this->rebind($cond, func_get_arg(1));
         }
 
         if ($this->where) {
@@ -73,10 +73,10 @@ trait WhereTrait
      */
     public function orWhere($cond)
     {
-        $cond = $this->connection->quoteNamesIn($cond);
+        $cond = $this->quoteNamesIn($cond);
 
         if (func_num_args() > 1) {
-            $cond = $this->connection->quoteInto($cond, func_get_arg(1));
+            $cond = $this->rebind($cond, func_get_arg(1));
         }
 
         if ($this->where) {
@@ -87,5 +87,12 @@ trait WhereTrait
 
         // done
         return $this;
+    }
+    
+    protected function buildWhere()
+    {
+        if ($this->where) {
+            return 'WHERE' . $this->indent($this->where);
+        }
     }
 }

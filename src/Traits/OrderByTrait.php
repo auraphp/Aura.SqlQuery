@@ -40,7 +40,7 @@ trait OrderByTrait
     public function orderBy(array $spec)
     {
         foreach ($spec as $col) {
-            $this->order_by[] = $this->connection->quoteNamesIn($col);
+            $this->order_by[] = $this->quoteNamesIn($col);
         }
         return $this;
     }
@@ -52,14 +52,10 @@ trait OrderByTrait
      * @return string
      * 
      */
-    protected function getOrderByClause()
+    protected function buildOrderBy()
     {
         if ($this->order_by) {
-            $text = 'ORDER BY' . $this->indentCsv($this->order_by);
-        } else {
-            $text = '';
+            return 'ORDER BY' . $this->indentCsv($this->order_by);
         }
-        
-        return $text;
     }
 }

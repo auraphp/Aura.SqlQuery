@@ -474,31 +474,31 @@ abstract class AbstractConnectionTest extends \PHPUnit_Framework_TestCase
     public function testQuoteName()
     {
         // table AS alias
-        $actual = $this->connection->quoteName('table AS alias');
+        $actual = $this->quoteName('table AS alias');
         $this->assertEquals($this->expect_quote_name_table_as_alias, $actual);
         
         // table.col AS alias
-        $actual = $this->connection->quoteName('table.col AS alias');
+        $actual = $this->quoteName('table.col AS alias');
         $this->assertEquals($this->expect_quote_name_table_col_as_alias, $actual);
         
         // table alias
-        $actual = $this->connection->quoteName('table alias');
+        $actual = $this->quoteName('table alias');
         $this->assertEquals($this->expect_quote_name_table_alias, $actual);
         
         // table.col alias
-        $actual = $this->connection->quoteName('table.col alias');
+        $actual = $this->quoteName('table.col alias');
         $this->assertEquals($this->expect_quote_name_table_col_alias, $actual);
         
         // plain old identifier
-        $actual = $this->connection->quoteName('table');
+        $actual = $this->quoteName('table');
         $this->assertEquals($this->expect_quote_name_plain, $actual);
         
         // star
-        $actual = $this->connection->quoteName('*');
+        $actual = $this->quoteName('*');
         $this->assertEquals('*', $actual);
         
         // star dot star
-        $actual = $this->connection->quoteName('*.*');
+        $actual = $this->quoteName('*.*');
         $this->assertEquals('*.*', $actual);
     }
     
@@ -508,7 +508,7 @@ abstract class AbstractConnectionTest extends \PHPUnit_Framework_TestCase
     public function testQuoteNamesIn()
     {
         $sql = "*, *.*, foo.bar, CONCAT('foo.bar', \"baz.dib\") AS zim";
-        $actual = $this->connection->quoteNamesIn($sql);
+        $actual = $this->quoteNamesIn($sql);
         $this->assertEquals($this->expect_quote_names_in, $actual);
     }
     

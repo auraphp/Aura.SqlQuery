@@ -56,7 +56,7 @@ trait LimitTrait
      * @return void
      * 
      */
-    protected function getLimitClause()
+    protected function buildLimit()
     {
         if ($this->limit) {
             return "LIMIT {$this->limit}" . PHP_EOL;

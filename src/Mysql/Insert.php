@@ -10,6 +10,8 @@
  */
 namespace Aura\Sql\Query\Mysql;
 
+use Aura\Sql\Query\Traits;
+
 /**
  *
  * An object for MySQL INSERT queries.
@@ -19,11 +21,20 @@ namespace Aura\Sql\Query\Mysql;
  */
 class Insert extends \Aura\Sql\Query\Insert
 {
+    use Traits\InsertTrait;
+    
     const FLAG_DELAYED = 'DELAYED';
     const FLAG_IGNORE = 'IGNORE';
     const FLAG_HIGH_PRIORITY = 'HIGH_PRIORITY';
     const FLAG_LOW_PRIORITY = 'LOW_PRIORITY';
 
+    protected function build()
+    {
+        return 'INSERT' . $this->buildFlags() . " INTO {$this->into}"
+             . $this->buildValuesForInsert()
+             . PHP_EOL;
+    }
+    
     /**
      *
      * Adds or removes HIGH_PRIORITY flag.
