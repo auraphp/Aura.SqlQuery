@@ -42,4 +42,24 @@ trait LimitTrait
         $this->limit = (int) $limit;
         return $this;
     }
+    
+    /**
+     * 
+     * Modifies an SQL string **in place** to add a `LIMIT ... OFFSET` clause.
+     * 
+     * @param string $text The SQL string.
+     * 
+     * @param int $count The number of rows to return.
+     * 
+     * @param int $offset Skip this many rows first.
+     * 
+     * @return void
+     * 
+     */
+    protected function getLimitClause()
+    {
+        if ($this->limit) {
+            return "LIMIT {$this->limit}" . PHP_EOL;
+        }
+    }
 }

@@ -12,13 +12,15 @@ namespace Aura\Sql\Query;
 
 /**
  * 
- * A trait for adding LIMIT.
+ * A trait for adding LIMIT and OFFSET.
  * 
  * @package Aura.Sql
  * 
  */
-trait OffsetTrait
+trait LimitOffsetTrait
 {
+    use LimitTrait;
+    
     /**
      *
      * Return rows after this offset.
@@ -41,5 +43,22 @@ trait OffsetTrait
     {
         $this->offset = (int) $offset;
         return $this;
+    }
+    
+    protected function getLimitOffsetClause()
+    {
+        $limit = $this->getLimitClause();
+        if (! $limit) {
+            // no limit, so can't do offset
+            return;
+        }
+        
+        if (! $this->offset) {
+            // no offset, so return only limit
+            return $limit;
+        }
+        
+        // return limit and offset
+        return rtrim($limit) . " OFFSET {$this->offset}" . PHP_EOL;
     }
 }
