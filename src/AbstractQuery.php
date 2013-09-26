@@ -76,6 +76,16 @@ abstract class AbstractQuery
      */
     abstract protected function build();
     
+    public function getQuoteNamePrefix()
+    {
+        return $this->quote_name_prefix;
+    }
+    
+    public function getQuoteNameSuffix()
+    {
+        return $this->quote_name_suffix;
+    }
+    
     /**
      * 
      * Returns an array as an indented comma-separated values string.
