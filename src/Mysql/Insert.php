@@ -19,7 +19,7 @@ use Aura\Sql\Query\Traits;
  * @package Aura.Sql
  *
  */
-class Insert extends \Aura\Sql\Query\Insert
+class Insert extends AbstractMysql
 {
     use Traits\InsertTrait;
     

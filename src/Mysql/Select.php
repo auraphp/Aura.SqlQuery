@@ -19,7 +19,7 @@ use Aura\Sql\Query\Traits;
  * @package Aura.Sql
  *
  */
-class Select extends \Aura\Sql\Query\Select
+class Select extends AbstractMysql
 {
     use Traits\SelectTrait;
     

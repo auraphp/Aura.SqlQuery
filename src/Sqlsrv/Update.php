@@ -14,12 +14,12 @@ use Aura\Sql\Query\Traits;
 
 /**
  *
- * An object for MySQL UPDATE queries.
+ * An object for Sqlsrv UPDATE queries.
  *
  * @package Aura.Sql
  *
  */
-class Update extends \Aura\Sql\Query\Update
+class Update extends AbstractSqlsrv
 {
     use Traits\UpdateTrait;
 }

@@ -44,7 +44,7 @@ abstract class AbstractQuery
      * @var string
      * 
      */
-    protected $quote_name_prefix = null;
+    protected $quote_name_prefix = '"';
 
     /**
      * 
@@ -53,7 +53,7 @@ abstract class AbstractQuery
      * @var string
      * 
      */
-    protected $quote_name_suffix = null;
+    protected $quote_name_suffix = '"';
 
     /**
      * 

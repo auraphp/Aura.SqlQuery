@@ -19,7 +19,7 @@ use Aura\Sql\Query\Traits;
  * @package Aura.Sql
  *
  */
-class Update extends \Aura\Sql\Query\Update
+class Update extends AbstractMysql
 {
     use Traits\UpdateTrait;
     use Traits\LimitTrait;

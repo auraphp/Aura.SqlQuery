@@ -10,16 +10,17 @@
  */
 namespace Aura\Sql\Query\Sqlite;
 
+use Aura\Sql\Query\AbstractQuery;
 use Aura\Sql\Query\Traits;
 
 /**
  *
- * An object for MySQL UPDATE queries.
+ * An object for Sqlite UPDATE queries.
  *
  * @package Aura.Sql
  *
  */
-class Update extends \Aura\Sql\Query\Update
+class Update extends AbstractQuery
 {
     use Traits\UpdateTrait;
     use Traits\SqliteFlagsTrait;
