@@ -1,7 +1,7 @@
 {
-    "name": "aura/sql-query-bundle",
+    "name": "aura/sql-query",
     "type": "library",
-    "description": "Objet-oriented query builders for MySQL, Postgres, SQLite, and SQLServer, along with non-vendor-specific query objects; requires Aura.Sql library.",
+    "description": "Object-oriented query builders for MySQL, Postgres, SQLite, and SQLServer.",
     "keywords": [ "mysql", "pdo", "pgsql", "postgres", "postgresql", "sqlite", "sql server", "sqlserver", "query", "select", "insert", "update", "delete" ],
     "homepage": "http://auraphp.github.com/Aura.Sql",
     "license": "BSD-2-Clause",
