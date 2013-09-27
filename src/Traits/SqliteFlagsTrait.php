@@ -1,5 +1,5 @@
 <?php
-namespace Aura\Sql\Query\Traits;
+namespace Aura\Sql_Query\Traits;
 
 trait SqliteFlagsTrait
 {

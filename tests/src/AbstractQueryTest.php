@@ -1,7 +1,7 @@
 <?php
-namespace Aura\Sql\Query;
+namespace Aura\Sql_Query;
 
-use Aura\Sql\Query\QueryFactory;
+use Aura\Sql_Query\QueryFactory;
 
 abstract class AbstractQueryTest extends \PHPUnit_Framework_TestCase
 {

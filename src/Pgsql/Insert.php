@@ -8,10 +8,10 @@
  * @license http://opensource.org/licenses/bsd-license.php BSD
  *
  */
-namespace Aura\Sql\Query\Pgsql;
+namespace Aura\Sql_Query\Pgsql;
 
-use Aura\Sql\Query\AbstractQuery;
-use Aura\Sql\Query\Traits;
+use Aura\Sql_Query\AbstractQuery;
+use Aura\Sql_Query\Traits;
 
 /**
  *

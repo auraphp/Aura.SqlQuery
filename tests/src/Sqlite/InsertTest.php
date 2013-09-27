@@ -1,7 +1,7 @@
 <?php
-namespace Aura\Sql\Query\Sqlite;
+namespace Aura\Sql_Query\Sqlite;
 
-use Aura\Sql\Query\InsertTest as CommonInsertTest;
+use Aura\Sql_Query\InsertTest as CommonInsertTest;
 
 class InsertTest extends CommonInsertTest
 {

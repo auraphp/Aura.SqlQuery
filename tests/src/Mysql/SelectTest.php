@@ -1,7 +1,7 @@
 <?php
-namespace Aura\Sql\Query\Mysql;
+namespace Aura\Sql_Query\Mysql;
 
-use Aura\Sql\Query\SelectTest as CommonSelectTest;
+use Aura\Sql_Query\SelectTest as CommonSelectTest;
 
 class SelectTest extends CommonSelectTest
 {

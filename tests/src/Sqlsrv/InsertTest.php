@@ -1,7 +1,7 @@
 <?php
-namespace Aura\Sql\Query\Sqlsrv;
+namespace Aura\Sql_Query\Sqlsrv;
 
-use Aura\Sql\Query\InsertTest as CommonInsertTest;
+use Aura\Sql_Query\InsertTest as CommonInsertTest;
 
 class InsertTest extends CommonInsertTest
 {

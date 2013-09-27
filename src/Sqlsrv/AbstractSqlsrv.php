@@ -1,7 +1,7 @@
 <?php
-namespace Aura\Sql\Query\Sqlsrv;
+namespace Aura\Sql_Query\Sqlsrv;
 
-use Aura\Sql\Query\AbstractQuery;
+use Aura\Sql_Query\AbstractQuery;
 
 abstract class AbstractSqlsrv extends AbstractQuery
 {

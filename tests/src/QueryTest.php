@@ -1,5 +1,5 @@
 <?php
-namespace Aura\Sql\Query;
+namespace Aura\Sql_Query;
 
 class QueryTest extends \PHPUnit_Framework_TestCase
 {

@@ -1,7 +1,7 @@
 <?php
-namespace Aura\Sql\Query\Sqlite;
+namespace Aura\Sql_Query\Sqlite;
 
-use Aura\Sql\Query\SelectTest as CommonSelectTest;
+use Aura\Sql_Query\SelectTest as CommonSelectTest;
 
 class SelectTest extends CommonSelectTest
 {

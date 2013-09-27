@@ -1,7 +1,7 @@
 <?php
-namespace Aura\Sql\Query\Sqlsrv;
+namespace Aura\Sql_Query\Sqlsrv;
 
-use Aura\Sql\Query\UpdateTest as CommonUpdateTest;
+use Aura\Sql_Query\UpdateTest as CommonUpdateTest;
 
 class UpdateTest extends CommonUpdateTest
 {

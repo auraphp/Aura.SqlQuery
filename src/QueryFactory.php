@@ -8,7 +8,7 @@
  * @license http://opensource.org/licenses/bsd-license.php BSD
  * 
  */
-namespace Aura\Sql\Query;
+namespace Aura\Sql_Query;
 
 /**
  * 
@@ -36,10 +36,10 @@ class QueryFactory
         $query = ucfirst(strtolower($query));
         
         if (! $type) {
-            $class = "Aura\Sql\Query\\{$query}";
+            $class = "Aura\Sql_Query\\{$query}";
         } else {
             $type = ucfirst(strtolower($type));
-            $class = "Aura\Sql\Query\\{$type}\\{$query}";
+            $class = "Aura\Sql_Query\\{$type}\\{$query}";
         }
         
         return new $class;

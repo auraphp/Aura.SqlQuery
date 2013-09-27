@@ -1,7 +1,7 @@
 <?php
-namespace Aura\Sql\Query\Pgsql;
+namespace Aura\Sql_Query\Pgsql;
 
-use Aura\Sql\Query\UpdateTest as CommonUpdateTest;
+use Aura\Sql_Query\UpdateTest as CommonUpdateTest;
 
 class UpdateTest extends CommonUpdateTest
 {

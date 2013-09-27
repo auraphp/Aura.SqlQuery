@@ -1,7 +1,7 @@
 <?php
-namespace Aura\Sql\Query\Mysql;
+namespace Aura\Sql_Query\Mysql;
 
-use Aura\Sql\Query\AbstractQuery;
+use Aura\Sql_Query\AbstractQuery;
 
 abstract class AbstractMysql extends AbstractQuery
 {

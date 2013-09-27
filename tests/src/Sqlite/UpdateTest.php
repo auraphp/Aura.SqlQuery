@@ -1,7 +1,7 @@
 <?php
-namespace Aura\Sql\Query\Sqlite;
+namespace Aura\Sql_Query\Sqlite;
 
-use Aura\Sql\Query\UpdateTest as CommonUpdateTest;
+use Aura\Sql_Query\UpdateTest as CommonUpdateTest;
 
 class UpdateTest extends CommonUpdateTest
 {
