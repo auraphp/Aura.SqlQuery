@@ -23,15 +23,6 @@ class Select extends AbstractMysql
 {
     use Traits\SelectTrait;
     
-    const FLAG_HIGH_PRIORITY = 'HIGH_PRIORITY';
-    const FLAG_STRAIGHT_JOIN = 'STRAIGHT_JOIN';
-    const FLAG_SQL_CALC_FOUND_ROWS = 'SQL_CALC_FOUND_ROWS';
-    const FLAG_SQL_CACHE = 'SQL_CACHE';
-    const FLAG_SQL_NO_CACHE = 'SQL_NO_CACHE';
-    const FLAG_SQL_SMALL_RESULT = 'SQL_SMALL_RESULT';
-    const FLAG_SQL_BIG_RESULT = 'SQL_BIG_RESULT';
-    const FLAG_SQL_BUFFER_RESULT = 'SQL_BUFFER_RESULT';
-
     /**
      *
      * Adds or removes SQL_CALC_FOUND_ROWS flag.
@@ -43,7 +34,7 @@ class Select extends AbstractMysql
      */
     public function calcFoundRows($enable = true)
     {
-        $this->setFlag(self::FLAG_SQL_CALC_FOUND_ROWS, $enable);
+        $this->setFlag('SQL_CALC_FOUND_ROWS', $enable);
         return $this;
     }
 
@@ -58,7 +49,7 @@ class Select extends AbstractMysql
      */
     public function cache($enable = true)
     {
-        $this->setFlag(self::FLAG_SQL_CACHE, $enable);
+        $this->setFlag('SQL_CACHE', $enable);
         return $this;
     }
 
@@ -73,7 +64,7 @@ class Select extends AbstractMysql
      */
     public function noCache($enable = true)
     {
-        $this->setFlag(self::FLAG_SQL_NO_CACHE, $enable);
+        $this->setFlag('SQL_NO_CACHE', $enable);
         return $this;
     }
 
@@ -88,7 +79,7 @@ class Select extends AbstractMysql
      */
     public function straightJoin($enable = true)
     {
-        $this->setFlag(self::FLAG_STRAIGHT_JOIN, $enable);
+        $this->setFlag('STRAIGHT_JOIN', $enable);
         return $this;
     }
 
@@ -103,7 +94,7 @@ class Select extends AbstractMysql
      */
     public function highPriority($enable = true)
     {
-        $this->setFlag(self::FLAG_HIGH_PRIORITY, $enable);
+        $this->setFlag('HIGH_PRIORITY', $enable);
         return $this;
     }
 
@@ -118,7 +109,7 @@ class Select extends AbstractMysql
      */
     public function smallResult($enable = true)
     {
-        $this->setFlag(self::FLAG_SQL_SMALL_RESULT, $enable);
+        $this->setFlag('SQL_SMALL_RESULT', $enable);
         return $this;
     }
 
@@ -133,7 +124,7 @@ class Select extends AbstractMysql
      */
     public function bigResult($enable = true)
     {
-        $this->setFlag(self::FLAG_SQL_BIG_RESULT, $enable);
+        $this->setFlag('SQL_BIG_RESULT', $enable);
         return $this;
     }
 
@@ -148,7 +139,7 @@ class Select extends AbstractMysql
      */
     public function bufferResult($enable = true)
     {
-        $this->setFlag(self::FLAG_SQL_BUFFER_RESULT, $enable);
+        $this->setFlag('SQL_BUFFER_RESULT', $enable);
         return $this;
     }
 }

@@ -25,9 +25,6 @@ class Update extends AbstractMysql
     use Traits\LimitTrait;
     use Traits\OrderByTrait;
     
-    const FLAG_IGNORE = 'IGNORE';
-    const FLAG_LOW_PRIORITY = 'LOW_PRIORITY';
-
     /**
      * 
      * Converts this query object to a string.
@@ -56,7 +53,7 @@ class Update extends AbstractMysql
      */
     public function lowPriority($enable = true)
     {
-        $this->setFlag(self::FLAG_LOW_PRIORITY, $enable);
+        $this->setFlag('LOW_PRIORITY', $enable);
         return $this;
     }
 
@@ -71,7 +68,7 @@ class Update extends AbstractMysql
      */
     public function ignore($enable = true)
     {
-        $this->setFlag(self::FLAG_IGNORE, $enable);
+        $this->setFlag('IGNORE', $enable);
         return $this;
     }
 }

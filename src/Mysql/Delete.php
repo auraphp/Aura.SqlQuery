@@ -25,10 +25,6 @@ class Delete extends AbstractMysql
     use Traits\LimitTrait;
     use Traits\OrderByTrait;
     
-    const FLAG_IGNORE = 'IGNORE';
-    const FLAG_QUICK = 'QUICK';
-    const FLAG_LOW_PRIORITY = 'LOW_PRIORITY';
-
     /**
      * 
      * Converts this query object to a string.
@@ -56,7 +52,7 @@ class Delete extends AbstractMysql
      */
     public function lowPriority($enable = true)
     {
-        $this->setFlag(self::FLAG_LOW_PRIORITY, $enable);
+        $this->setFlag('LOW_PRIORITY', $enable);
         return $this;
     }
 
@@ -71,7 +67,7 @@ class Delete extends AbstractMysql
      */
     public function ignore($enable = true)
     {
-        $this->setFlag(self::FLAG_IGNORE, $enable);
+        $this->setFlag('IGNORE', $enable);
         return $this;
     }
 
@@ -86,7 +82,7 @@ class Delete extends AbstractMysql
      */
     public function quick($enable = true)
     {
-        $this->setFlag(self::FLAG_QUICK, $enable);
+        $this->setFlag('QUICK', $enable);
         return $this;
     }
 }

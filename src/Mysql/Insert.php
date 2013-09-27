@@ -23,11 +23,6 @@ class Insert extends AbstractMysql
 {
     use Traits\InsertTrait;
     
-    const FLAG_DELAYED = 'DELAYED';
-    const FLAG_IGNORE = 'IGNORE';
-    const FLAG_HIGH_PRIORITY = 'HIGH_PRIORITY';
-    const FLAG_LOW_PRIORITY = 'LOW_PRIORITY';
-
     protected function build()
     {
         return 'INSERT' . $this->buildFlags() . " INTO {$this->into}"
@@ -46,7 +41,7 @@ class Insert extends AbstractMysql
      */
     public function highPriority($enable = true)
     {
-        $this->setFlag(self::FLAG_HIGH_PRIORITY, $enable);
+        $this->setFlag('HIGH_PRIORITY', $enable);
         return $this;
     }
 
@@ -61,7 +56,7 @@ class Insert extends AbstractMysql
      */
     public function lowPriority($enable = true)
     {
-        $this->setFlag(self::FLAG_LOW_PRIORITY, $enable);
+        $this->setFlag('LOW_PRIORITY', $enable);
         return $this;
     }
 
@@ -76,7 +71,7 @@ class Insert extends AbstractMysql
      */
     public function ignore($enable = true)
     {
-        $this->setFlag(self::FLAG_IGNORE, $enable);
+        $this->setFlag('IGNORE', $enable);
         return $this;
     }
 
@@ -91,7 +86,7 @@ class Insert extends AbstractMysql
      */
     public function delayed($enable = true)
     {
-        $this->setFlag(self::FLAG_DELAYED, $enable);
+        $this->setFlag('DELAYED', $enable);
         return $this;
     }
 }
