@@ -1,18 +1,19 @@
-- [NEW] Query\Sqlite\(Select|Insert|Update|Delete) classes to support
-  SQLite-specific behaviors
+- Extracted from Aura.Sql v1.3.0
 
-- [NEW] Query\Pgsql\(Select|Insert|Update|Delete) classes to support
-  PostgreSQL-specific behaviors
+- Add $quote_name_(prefix|suffix) to AbstractQuery.
+  
+- Move AbstractConnection::quoteName(), quoteNamesIn(), etc. to AbstractQuery.
 
-- [REF] Refactor existing limit/offset behaviors to Query\LimitTrait and Query\OffsetTrait
+- In LimitTrait, add getLimitClause()
 
-- [REF] Refactor existing order-by behaviors to Query\OrderByTrait
+- Rename OffsetTrait to LimitOffsetTrait, add getLimitOffsetClause(). This
+  is because some queries get LIMIT only, and others get LIMIT ... OFFSET.
 
-- [REF] Refactor query-string indenting and comma-separation behaviors to new
-  methods 
+- Move traits to Traits/ dir
 
-- [ADD] Methods on each db-specific connection object to return db-specific
-  query objects; e.g., Connection\Mysql::newMysqlSelect(),
-  Connection\Pgsql::newPgsqlInsert(), etc.
+- change setBind, etc. to bindValues() and getBindValues(); this is in line
+  with ExtendedPdo
 
-Many thanks to @MAXakaWIZARD for his work on the features in this release.
+- For "?" placeholders, turn the ? into a named placeholder, then add a
+  bind_value for it ("auto_bind_0", "auto_bind_1", etc)
+
