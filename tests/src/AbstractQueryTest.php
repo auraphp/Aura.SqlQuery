@@ -14,8 +14,13 @@ abstract class AbstractQueryTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         parent::setUp();
-        $query_factory = new QueryFactory;
-        $this->query = $query_factory->newInstance(
+        $this->query_factory = new QueryFactory;
+        $this->query = $this->newQuery();
+    }
+    
+    protected function newQuery()
+    {
+        return $this->query_factory->newInstance(
             $this->query_type,
             $this->db_type
         );
@@ -29,8 +34,8 @@ abstract class AbstractQueryTest extends \PHPUnit_Framework_TestCase
         $expect = preg_replace('/\s*$/m', '', $expect);
         
         // convert "<<" and ">>" to the correct identifier quotes
-        $expect = str_replace('<<', $this->query->getQuoteNamePrefix());
-        $expect = str_replace('>>', $this->query->getQuoteNameSuffix());
+        $expect = str_replace('<<', $this->query->getQuoteNamePrefix(), $expect);
+        $expect = str_replace('>>', $this->query->getQuoteNameSuffix(), $expect);
         
         // remove leading and trailing whitespace per block and line
         $actual = trim($actual);

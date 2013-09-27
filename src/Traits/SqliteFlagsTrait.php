@@ -3,12 +3,6 @@ namespace Aura\Sql\Query\Traits;
 
 trait SqliteFlagsTrait
 {
-    const FLAG_OR_ABORT = 'OR ABORT';
-    const FLAG_OR_FAIL = 'OR FAIL';
-    const FLAG_OR_IGNORE = 'OR IGNORE';
-    const FLAG_OR_REPLACE = 'OR REPLACE';
-    const FLAG_OR_ROLLBACK = 'OR ROLLBACK';
-
     /**
      *
      * Adds or removes OR ABORT flag.
@@ -20,7 +14,7 @@ trait SqliteFlagsTrait
      */
     public function orAbort($enable = true)
     {
-        $this->setFlag(self::FLAG_OR_ABORT, $enable);
+        $this->setFlag('OR ABORT', $enable);
         return $this;
     }
 
@@ -35,7 +29,7 @@ trait SqliteFlagsTrait
      */
     public function orFail($enable = true)
     {
-        $this->setFlag(self::FLAG_OR_FAIL, $enable);
+        $this->setFlag('OR FAIL', $enable);
         return $this;
     }
 
@@ -50,7 +44,7 @@ trait SqliteFlagsTrait
      */
     public function orIgnore($enable = true)
     {
-        $this->setFlag(self::FLAG_OR_IGNORE, $enable);
+        $this->setFlag('OR IGNORE', $enable);
         return $this;
     }
 
@@ -65,7 +59,7 @@ trait SqliteFlagsTrait
      */
     public function orReplace($enable = true)
     {
-        $this->setFlag(self::FLAG_OR_REPLACE, $enable);
+        $this->setFlag('OR REPLACE', $enable);
         return $this;
     }
     
@@ -80,7 +74,7 @@ trait SqliteFlagsTrait
      */
     public function orRollback($enable = true)
     {
-        $this->setFlag(self::FLAG_OR_ROLLBACK, $enable);
+        $this->setFlag('OR ROLLBACK', $enable);
         return $this;
     }
 }

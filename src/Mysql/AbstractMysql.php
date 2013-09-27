@@ -3,7 +3,7 @@ namespace Aura\Sql\Query\Mysql;
 
 use Aura\Sql\Query\AbstractQuery;
 
-class AbstractMysql extends AbstractQuery
+abstract class AbstractMysql extends AbstractQuery
 {
     /**
      * 

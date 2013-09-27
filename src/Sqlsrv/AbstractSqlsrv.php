@@ -3,7 +3,7 @@ namespace Aura\Sql\Query\Sqlsrv;
 
 use Aura\Sql\Query\AbstractQuery;
 
-class AbstractSqlsrv extends AbstractQuery
+abstract class AbstractSqlsrv extends AbstractQuery
 {
     /**
      * 

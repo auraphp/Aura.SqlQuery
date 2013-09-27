@@ -165,7 +165,7 @@ trait SelectTrait
      */
     public function distinct($enable = true)
     {
-        $this->setFlag(self::FLAG_DISTINCT, $enable);
+        $this->setFlag('DISTINCT', $enable);
         return $this;
     }
 
@@ -327,7 +327,7 @@ trait SelectTrait
         $cond = $this->quoteNamesIn($cond);
 
         if (func_num_args() > 1) {
-            $cond = $this->rebind($cond, func_get_arg(1));
+            $cond = $this->autobind($cond, func_get_arg(1));
         }
 
         if ($this->having) {
@@ -357,7 +357,7 @@ trait SelectTrait
         $cond = $this->quoteNamesIn($cond);
 
         if (func_num_args() > 1) {
-            $cond = $this->rebind($cond, func_get_arg(1));
+            $cond = $this->autobind($cond, func_get_arg(1));
         }
 
         if ($this->having) {

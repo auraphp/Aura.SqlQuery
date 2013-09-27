@@ -1,26 +1,28 @@
 <?php
 namespace Aura\Sql\Query\Sqlite;
 
-class UpdateTest extends \Aura\Sql\Query\AbstractQueryTest
+use Aura\Sql\Query\UpdateTest as CommonUpdateTest;
+
+class UpdateTest extends CommonUpdateTest
 {
-    protected $query_type = 'Sqlite\Update';
+    protected $db_type = 'sqlite';
 
     protected $expected_sql_with_flag = "
-        UPDATE %s \"t1\"
+        UPDATE %s <<t1>>
             SET
-                \"c1\" = :c1,
-                \"c2\" = :c2,
-                \"c3\" = :c3,
-                \"c4\" = NULL,
-                \"c5\" = NOW()
+                <<c1>> = :c1,
+                <<c2>> = :c2,
+                <<c3>> = :c3,
+                <<c4>> = NULL,
+                <<c5>> = NOW()
             WHERE
-                foo = 'bar'
-                AND baz = 'dib'
+                foo = :auto_bind_0
+                AND baz = :auto_bind_1
                 OR zim = gir
             LIMIT 5
     ";
 
-    public function test()
+    public function testOrderLimit()
     {
         $this->query->table('t1')
                     ->cols(['c1', 'c2', 'c3'])
@@ -35,16 +37,16 @@ class UpdateTest extends \Aura\Sql\Query\AbstractQueryTest
 
         $actual = $this->query->__toString();
         $expect = "
-            UPDATE \"t1\"
+            UPDATE <<t1>>
             SET
-                \"c1\" = :c1,
-                \"c2\" = :c2,
-                \"c3\" = :c3,
-                \"c4\" = NULL,
-                \"c5\" = NOW()
+                <<c1>> = :c1,
+                <<c2>> = :c2,
+                <<c3>> = :c3,
+                <<c4>> = NULL,
+                <<c5>> = NOW()
             WHERE
-                foo = 'bar'
-                AND baz = 'dib'
+                foo = :auto_bind_0
+                AND baz = :auto_bind_1
                 OR zim = gir
             ORDER BY 
                 zim DESC,

@@ -8,7 +8,7 @@
  * @license http://opensource.org/licenses/bsd-license.php BSD
  * 
  */
-namespace Aura\Sql\Query;
+namespace Aura\Sql\Query\Traits;
 
 /**
  * 
@@ -46,7 +46,7 @@ trait WhereTrait
         $cond = $this->quoteNamesIn($cond);
 
         if (func_num_args() > 1) {
-            $cond = $this->rebind($cond, func_get_arg(1));
+            $cond = $this->autobind($cond, func_get_arg(1));
         }
 
         if ($this->where) {
@@ -76,7 +76,7 @@ trait WhereTrait
         $cond = $this->quoteNamesIn($cond);
 
         if (func_num_args() > 1) {
-            $cond = $this->rebind($cond, func_get_arg(1));
+            $cond = $this->autobind($cond, func_get_arg(1));
         }
 
         if ($this->where) {

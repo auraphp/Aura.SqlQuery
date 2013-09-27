@@ -5,7 +5,7 @@ class DeleteTest extends AbstractQueryTest
 {
     protected $query_type = 'delete';
     
-    public function test()
+    public function testCommon()
     {
         $this->query->from('t1')
                     ->where('foo = ?', 'bar')
@@ -14,10 +14,10 @@ class DeleteTest extends AbstractQueryTest
                     
         $actual = $this->query->__toString();
         $expect = "
-            DELETE FROM \"t1\"
+            DELETE FROM <<t1>>
             WHERE
-                foo = 'bar'
-                AND baz = 'dib'
+                foo = :auto_bind_0
+                AND baz = :auto_bind_1
                 OR zim = gir
         ";
         

@@ -1,11 +1,13 @@
 <?php
 namespace Aura\Sql\Query\Pgsql;
 
-class DeleteTest extends \Aura\Sql\Query\AbstractQueryTest
-{
-    protected $query_type = 'Pgsql\Delete';
+use Aura\Sql\Query\DeleteTest as CommonDeleteTest;
 
-    public function test()
+class DeleteTest extends CommonDeleteTest
+{
+    protected $db_type = 'pgsql';
+
+    public function testReturning()
     {
         $this->query->from('t1')
                     ->where('foo = ?', 'bar')
@@ -15,10 +17,10 @@ class DeleteTest extends \Aura\Sql\Query\AbstractQueryTest
 
         $actual = $this->query->__toString();
         $expect = "
-            DELETE FROM \"t1\"
+            DELETE FROM <<t1>>
             WHERE
-                foo = 'bar'
-                AND baz = 'dib'
+                foo = :auto_bind_0
+                AND baz = :auto_bind_1
                 OR zim = gir
             RETURNING
                 foo,

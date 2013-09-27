@@ -1,9 +1,11 @@
 <?php
 namespace Aura\Sql\Query\Pgsql;
 
-class InsertTest extends \Aura\Sql\Query\InsertTest
+use Aura\Sql\Query\InsertTest as CommonInsertTest;
+
+class InsertTest extends CommonInsertTest
 {
-    protected $query_type = 'Pgsql\Insert';
+    protected $db_type = 'pgsql';
 
     public function testReturning()
     {
@@ -16,12 +18,12 @@ class InsertTest extends \Aura\Sql\Query\InsertTest
 
         $actual = $this->query->__toString();
         $expect = "
-            INSERT INTO \"t1\" (
-                \"c1\",
-                \"c2\",
-                \"c3\",
-                \"c4\",
-                \"c5\"
+            INSERT INTO <<t1>> (
+                <<c1>>,
+                <<c2>>,
+                <<c3>>,
+                <<c4>>,
+                <<c5>>
             ) VALUES (
                 :c1,
                 :c2,

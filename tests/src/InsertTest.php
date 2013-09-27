@@ -5,7 +5,7 @@ class InsertTest extends AbstractQueryTest
 {
     protected $query_type = 'insert';
     
-    public function test()
+    public function testCommon()
     {
         $this->query->into('t1')
                     ->cols(['c1', 'c2', 'c3'])
@@ -14,12 +14,12 @@ class InsertTest extends AbstractQueryTest
         
         $actual = $this->query->__toString();
         $expect = '
-            INSERT INTO \"t1\" (
-                \"c1\",
-                \"c2\",
-                \"c3\",
-                \"c4\",
-                \"c5\"
+            INSERT INTO <<t1>> (
+                <<c1>>,
+                <<c2>>,
+                <<c3>>,
+                <<c4>>,
+                <<c5>>
             ) VALUES (
                 :c1,
                 :c2,
@@ -28,5 +28,7 @@ class InsertTest extends AbstractQueryTest
                 NULL
             )
         ';
+        
+        $this->assertSameSql($expect, $actual);
     }
 }

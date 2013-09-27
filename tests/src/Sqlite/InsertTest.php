@@ -1,17 +1,19 @@
 <?php
 namespace Aura\Sql\Query\Sqlite;
 
-class InsertTest extends \Aura\Sql\Query\AbstractQueryTest
+use Aura\Sql\Query\InsertTest as CommonInsertTest;
+
+class InsertTest extends CommonInsertTest
 {
-    protected $query_type = 'Sqlite\Insert';
+    protected $db_type = 'sqlite';
 
     protected $expected_sql_with_flag = "
-        INSERT %s INTO \"t1\" (
-            \"c1\",
-            \"c2\",
-            \"c3\",
-            \"c4\",
-            \"c5\"
+        INSERT %s INTO <<t1>> (
+            <<c1>>,
+            <<c2>>,
+            <<c3>>,
+            <<c4>>,
+            <<c5>>
         ) VALUES (
             :c1,
             :c2,
@@ -20,33 +22,6 @@ class InsertTest extends \Aura\Sql\Query\AbstractQueryTest
             NULL
         )
     ";
-
-    public function test()
-    {
-        $this->query->into('t1')
-                    ->cols(['c1', 'c2', 'c3'])
-                    ->set('c4', 'NOW()')
-                    ->set('c5', null);
-
-        $actual = $this->query->__toString();
-        $expect = "
-            INSERT INTO \"t1\" (
-                \"c1\",
-                \"c2\",
-                \"c3\",
-                \"c4\",
-                \"c5\"
-            ) VALUES (
-                :c1,
-                :c2,
-                :c3,
-                NOW(),
-                NULL
-            )
-        ";
-
-        $this->assertSameSql($expect, $actual);
-    }
 
     public function testOrAbort()
     {

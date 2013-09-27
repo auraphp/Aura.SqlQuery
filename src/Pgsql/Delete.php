@@ -22,8 +22,8 @@ use Aura\Sql\Query\Traits;
  */
 class Delete extends AbstractQuery
 {
-    use Traits/DeleteTrait;
-    use Traits/ReturningTrait;
+    use Traits\DeleteTrait;
+    use Traits\ReturningTrait;
     
     /**
      * 
@@ -34,7 +34,7 @@ class Delete extends AbstractQuery
      */
     protected function build()
     {
-        return "DELETE FROM {$this->from}"
+        return "DELETE FROM {$this->from}" . PHP_EOL
              . $this->buildWhere()
              . $this->buildReturning()
              . PHP_EOL;

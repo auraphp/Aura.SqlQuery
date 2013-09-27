@@ -8,7 +8,7 @@
  * @license http://opensource.org/licenses/bsd-license.php BSD
  *
  */
-namespace Aura\Sql\Query\Trait;
+namespace Aura\Sql\Query\Traits;
 
 /**
  *
@@ -17,7 +17,7 @@ namespace Aura\Sql\Query\Trait;
  * @package Aura.Sql
  *
  */
-class Update extends AbstractQuery
+trait UpdateTrait
 {
     use ValuesTrait;
     use WhereTrait;

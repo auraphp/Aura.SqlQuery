@@ -23,11 +23,11 @@ class SelectTest extends AbstractQueryTest
 
         $expect = '
             SELECT DISTINCT
-                "t1"."c1",
-                "t1"."c2",
-                "t1"."c3"
+                <<t1>>.<<c1>>,
+                <<t1>>.<<c2>>,
+                <<t1>>.<<c3>>
             FROM
-                "t1"
+                <<t1>>
         ';
         $this->assertSameSql($expect, $actual);
     }
@@ -43,11 +43,11 @@ class SelectTest extends AbstractQueryTest
 
         $expect = '
             SELECT DISTINCT
-                "t1"."c1",
-                "t1"."c2",
-                "t1"."c3"
+                <<t1>>.<<c1>>,
+                <<t1>>.<<c2>>,
+                <<t1>>.<<c3>>
             FROM
-                "t1"
+                <<t1>>
         ';
         $this->assertSameSql($expect, $actual);
     }
@@ -63,11 +63,11 @@ class SelectTest extends AbstractQueryTest
 
         $expect = '
             SELECT
-                "t1"."c1",
-                "t1"."c2",
-                "t1"."c3"
+                <<t1>>.<<c1>>,
+                <<t1>>.<<c2>>,
+                <<t1>>.<<c3>>
             FROM
-                "t1"
+                <<t1>>
         ';
         $this->assertSameSql($expect, $actual);
     }
@@ -78,9 +78,9 @@ class SelectTest extends AbstractQueryTest
         $actual = $this->query->__toString();
         $expect = '
             SELECT
-                "t1"."c1",
+                <<t1>>.<<c1>>,
                 c2,
-                COUNT("t1"."c3")
+                COUNT(<<t1>>.<<c3>>)
         ';
         $this->assertSameSql($expect, $actual);
     }
@@ -94,21 +94,21 @@ class SelectTest extends AbstractQueryTest
         $expect = '
             SELECT
             FROM
-                "t1",
-                "t2"
+                <<t1>>,
+                <<t2>>
         ';
         $this->assertSameSql($expect, $actual);
     }
 
     public function testFromSubSelect()
     {
-        $sub = "SELECT * FROM t2";
-        $this->query->cols(['*'])->fromSubSelect($sub, "a2");
+        $sub = 'SELECT * FROM t2';
+        $this->query->cols(['*'])->fromSubSelect($sub, 'a2');
         $expect = '
             SELECT
                 *
             FROM
-                (SELECT * FROM t2) AS "a2"
+                (SELECT * FROM t2) AS <<a2>>
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
@@ -116,10 +116,10 @@ class SelectTest extends AbstractQueryTest
 
     public function testFromSubSelectObject()
     {
-        $sub = $this->connection->newSelect();
+        $sub = $this->newQuery();
         $sub->cols(['*'])->from('t2');
 
-        $this->query->cols(['*'])->fromSubSelect($sub, "a2");
+        $this->query->cols(['*'])->fromSubSelect($sub, 'a2');
         $expect = '
             SELECT
                 *
@@ -127,8 +127,8 @@ class SelectTest extends AbstractQueryTest
                 (SELECT
                     *
                 FROM
-                    "t2"
-                ) AS "a2"
+                    <<t2>>
+                ) AS <<a2>>
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
@@ -136,14 +136,14 @@ class SelectTest extends AbstractQueryTest
 
     public function testJoin()
     {
-        $this->query->join("left", "t2", "t1.id = t2.id");
-        $this->query->join("inner", "t3 AS a3", "t2.id = a3.id");
-        $this->query->join("natural", "t4");
+        $this->query->join('left', 't2', 't1.id = t2.id');
+        $this->query->join('inner', 't3 AS a3', 't2.id = a3.id');
+        $this->query->join('natural', 't4');
         $expect = '
             SELECT
-            LEFT JOIN "t2" ON "t1"."id" = "t2"."id"
-            INNER JOIN "t3" AS "a3" ON "t2"."id" = "a3"."id"
-            NATURAL JOIN "t4"
+            LEFT JOIN <<t2>> ON <<t1>>.<<id>> = <<t2>>.<<id>>
+            INNER JOIN <<t3>> AS <<a3>> ON <<t2>>.<<id>> = <<a3>>.<<id>>
+            NATURAL JOIN <<t4>>
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
@@ -151,14 +151,14 @@ class SelectTest extends AbstractQueryTest
 
     public function testJoinSubSelect()
     {
-        $sub1 = "SELECT * FROM t2";
-        $sub2 = "SELECT * FROM t3";
-        $this->query->joinSubSelect("left", $sub1, "a2", "t2.c1 = a3.c1");
-        $this->query->joinSubSelect("natural", $sub2, "a3");
+        $sub1 = 'SELECT * FROM t2';
+        $sub2 = 'SELECT * FROM t3';
+        $this->query->joinSubSelect('left', $sub1, 'a2', 't2.c1 = a3.c1');
+        $this->query->joinSubSelect('natural', $sub2, 'a3');
         $expect = '
             SELECT
-            LEFT JOIN (SELECT * FROM t2) AS "a2" ON "t2"."c1" = "a3"."c1"
-            NATURAL JOIN (SELECT * FROM t3) AS "a3"
+            LEFT JOIN (SELECT * FROM t2) AS <<a2>> ON <<t2>>.<<c1>> = <<a3>>.<<c1>>
+            NATURAL JOIN (SELECT * FROM t3) AS <<a3>>
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
@@ -166,17 +166,17 @@ class SelectTest extends AbstractQueryTest
 
     public function testJoinSubSelectObject()
     {
-        $sub = $this->connection->newSelect();
+        $sub = $this->newQuery();
         $sub->cols(['*'])->from('t2');
 
-        $this->query->joinSubSelect("left", $sub, "a3", "t2.c1 = a3.c1");
+        $this->query->joinSubSelect('left', $sub, 'a3', 't2.c1 = a3.c1');
         $expect = '
             SELECT
             LEFT JOIN (SELECT
                 *
             FROM
-                "t2"
-            ) AS "a3" ON "t2"."c1" = "a3"."c1"
+                <<t2>>
+            ) AS <<a3>> ON <<t2>>.<<c1>> = <<a3>>.<<c1>>
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
@@ -184,13 +184,13 @@ class SelectTest extends AbstractQueryTest
 
     public function testWhere()
     {
-        $this->query->where("c1 = c2")
-                     ->where("c3 = ?", 'foo');
+        $this->query->where('c1 = c2')
+                     ->where('c3 = ?', 'foo');
         $expect = '
             SELECT
             WHERE
                 c1 = c2
-                AND c3 = \'foo\'
+                AND c3 = :auto_bind_0
         ';
 
         $actual = $this->query->__toString();
@@ -199,14 +199,14 @@ class SelectTest extends AbstractQueryTest
 
     public function testOrWhere()
     {
-        $this->query->orWhere("c1 = c2")
-                     ->orWhere("c3 = ?", 'foo');
+        $this->query->orWhere('c1 = c2')
+                     ->orWhere('c3 = ?', 'foo');
 
         $expect = '
             SELECT
             WHERE
                 c1 = c2
-                OR c3 = \'foo\'
+                OR c3 = :auto_bind_0
         ';
 
         $actual = $this->query->__toString();
@@ -220,7 +220,7 @@ class SelectTest extends AbstractQueryTest
             SELECT
             GROUP BY
                 c1,
-                "t2"."c2"
+                <<t2>>.<<c2>>
         ';
 
         $actual = $this->query->__toString();
@@ -229,13 +229,13 @@ class SelectTest extends AbstractQueryTest
 
     public function testHaving()
     {
-        $this->query->having("c1 = c2")
-                     ->having("c3 = ?", 'foo');
+        $this->query->having('c1 = c2')
+                     ->having('c3 = ?', 'foo');
         $expect = '
             SELECT
             HAVING
                 c1 = c2
-                AND c3 = \'foo\'
+                AND c3 = :auto_bind_0
         ';
 
         $actual = $this->query->__toString();
@@ -244,13 +244,13 @@ class SelectTest extends AbstractQueryTest
 
     public function testOrHaving()
     {
-        $this->query->orHaving("c1 = c2")
-                     ->orHaving("c3 = ?", 'foo');
+        $this->query->orHaving('c1 = c2')
+                     ->orHaving('c3 = ?', 'foo');
         $expect = '
             SELECT
             HAVING
                 c1 = c2
-                OR c3 = \'foo\'
+                OR c3 = :auto_bind_0
         ';
 
         $actual = $this->query->__toString();
@@ -264,14 +264,14 @@ class SelectTest extends AbstractQueryTest
             SELECT
             ORDER BY
                 c1,
-                UPPER("t2"."c2")
+                UPPER(<<t2>>.<<c2>>)
         ';
 
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
     }
 
-    public function testLimit()
+    public function testLimitOffset()
     {
         $this->query->limit(10);
         $expect = '
@@ -280,14 +280,11 @@ class SelectTest extends AbstractQueryTest
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
-    }
-
-    public function testOffset()
-    {
+        
         $this->query->offset(40);
         $expect = '
             SELECT
-            OFFSET 40
+            LIMIT 10 OFFSET 40
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
@@ -326,12 +323,12 @@ class SelectTest extends AbstractQueryTest
             SELECT
                 c1
             FROM
-                "t1"
+                <<t1>>
             UNION
             SELECT
                 c2
             FROM
-                "t2"
+                <<t2>>
         ';
 
         $actual = $this->query->__toString();
@@ -349,15 +346,38 @@ class SelectTest extends AbstractQueryTest
             SELECT
                 c1
             FROM
-                "t1"
+                <<t1>>
             UNION ALL
             SELECT
                 c2
             FROM
-                "t2"
+                <<t2>>
         ';
 
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
+    }
+    
+    public function testAutobind()
+    {
+        $this->query->where('foo = ?', 'bar');
+        $this->query->having('baz IN (?)', ['dib', 'zim', 'gir']);
+        
+        $expect = '
+            SELECT
+            WHERE
+                foo = :auto_bind_0
+            HAVING
+                baz IN (:auto_bind_1)
+        ';
+        $actual = $this->query->__toString();
+        $this->assertSameSql($expect, $actual);
+        
+        $expect = [
+            'auto_bind_0' => 'bar',
+            'auto_bind_1' => ['dib', 'zim', 'gir'],
+        ];
+        $actual = $this->query->getBindValues();
+        $this->assertSame($expect, $actual);
     }
 }

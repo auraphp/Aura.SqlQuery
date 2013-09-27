@@ -1,38 +1,21 @@
 <?php
 namespace Aura\Sql\Query\Mysql;
 
-class DeleteTest extends \Aura\Sql\Query\AbstractQueryTest
-{
-    protected $query_type = 'Mysql\Delete';
+use Aura\Sql\Query\DeleteTest as CommonDeleteTest;
 
+class DeleteTest extends CommonDeleteTest
+{
+    protected $query_type = 'Delete';
+
+    protected $db_type = 'mysql';
+    
     protected $expected_sql_with_flag = "
-        DELETE %s FROM \"t1\"
+        DELETE %s FROM <<t1>>
             WHERE
-                foo = 'bar'
-                AND baz = 'dib'
+                foo = :auto_bind_0
+                AND baz = :auto_bind_1
                 OR zim = gir
     ";
-
-    public function test()
-    {
-        $this->query->from('t1')
-                    ->where('foo = ?', 'bar')
-                    ->where('baz = ?', 'dib')
-                    ->orWhere('zim = gir')
-                    ->limit(5);
-
-        $actual = $this->query->__toString();
-        $expect = "
-            DELETE FROM \"t1\"
-            WHERE
-                foo = 'bar'
-                AND baz = 'dib'
-                OR zim = gir
-            LIMIT 5
-        ";
-
-        $this->assertSameSql($expect, $actual);
-    }
 
     public function testLowPriority()
     {

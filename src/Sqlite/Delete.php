@@ -28,7 +28,7 @@ class Delete extends AbstractQuery
     
     protected function build()
     {
-        return 'DELETE' . $this->buildFlags() . " FROM {$this->from}"
+        return 'DELETE' . $this->buildFlags() . " FROM {$this->from}" . PHP_EOL
              . $this->buildWhere()
              . $this->buildOrderBy()
              . $this->buildLimitOffset()

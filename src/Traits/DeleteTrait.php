@@ -47,7 +47,7 @@ trait DeleteTrait
     
     protected function build()
     {
-        return "DELETE FROM {$this->from}"
+        return "DELETE FROM {$this->from}" . PHP_EOL
              . $this->buildWhere()
              . PHP_EOL;
     }

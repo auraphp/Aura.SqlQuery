@@ -37,7 +37,7 @@ class Update extends AbstractMysql
      */
     protected function build()
     {
-        return 'UPDATE' . $this->buildFlags() . " {$this->table}"
+        return 'UPDATE' . $this->buildFlags() . " {$this->table}" . PHP_EOL
              . $this->buildValuesForUpdate()
              . $this->buildWhere()
              . $this->buildOrderBy()

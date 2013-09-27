@@ -29,8 +29,9 @@ class Update extends AbstractQuery
     
     protected function build()
     {
-        return 'UPDATE' . $this->buildFlags() . " {$this->into}"
+        return 'UPDATE' . $this->buildFlags() . " {$this->table}" . PHP_EOL
              . $this->buildValuesForUpdate()
+             . $this->buildWhere()
              . $this->buildOrderBy()
              . $this->buildLimitOffset()
              . PHP_EOL;

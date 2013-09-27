@@ -38,7 +38,7 @@ class Delete extends AbstractMysql
      */
     protected function build()
     {
-        return 'DELETE' . $this->buildFlags() . "FROM {$this->from}"
+        return 'DELETE' . $this->buildFlags() . " FROM {$this->from}" . PHP_EOL
              . $this->buildWhere()
              . $this->buildOrderBy()
              . $this->buildLimit()

@@ -132,6 +132,11 @@ abstract class AbstractQuery
         $this->bind_values = array_merge($this->bind_values, $bind_values);
     }
 
+    public function bindValue($name, $value)
+    {
+        $this->bind_values[$name] = $value;
+    }
+    
     /**
      * 
      * Gets the values to bind into the query.
@@ -205,7 +210,7 @@ abstract class AbstractQuery
      * @see quote()
      * 
      */
-    protected function rebind($text, $bind)
+    protected function autobind($text, $bind)
     {
         // how many placeholders are there?
         $count = substr_count($text, '?');
@@ -216,8 +221,10 @@ abstract class AbstractQuery
 
         // only one placeholder?
         if ($count == 1) {
-            $bind = $this->quote($bind);
-            $text = str_replace('?', $bind, $text);
+            // replace with an auto-named placeholder
+            $auto = 'auto_bind_' . count($this->bind_values);
+            $text = str_replace('?', ":$auto", $text);
+            $this->bindValue($auto, $bind);
             return $text;
         }
 
@@ -232,12 +239,13 @@ abstract class AbstractQuery
                 break;
             }
 
-            // replace this question mark with a quoted value
-            $val  = $this->quote($val);
-            $text = substr_replace($text, $val, $pos, 1);
+            // replace this question mark with an auto-named placeholder
+            $auto = 'auto_bind_' . count($this->bind_values);
+            $text = substr_replace($text, ":$auto", $pos, 1);
+            $this->bindValue($auto, $val);
 
             // update the offset to move us past the quoted value
-            $offset = $pos + strlen($val);
+            $offset = $pos + strlen($auto);
         }
 
         return $text;

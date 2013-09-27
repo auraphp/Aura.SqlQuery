@@ -1,11 +1,13 @@
 <?php
 namespace Aura\Sql\Query\Pgsql;
 
-class UpdateTest extends \Aura\Sql\Query\AbstractQueryTest
-{
-    protected $query_type = 'Pgsql\Update';
+use Aura\Sql\Query\UpdateTest as CommonUpdateTest;
 
-    public function test()
+class UpdateTest extends CommonUpdateTest
+{
+    protected $db_type = 'pgsql';
+
+    public function testReturning()
     {
         $this->query->table('t1')
                     ->cols(['c1', 'c2', 'c3'])
@@ -19,16 +21,16 @@ class UpdateTest extends \Aura\Sql\Query\AbstractQueryTest
 
         $actual = $this->query->__toString();
         $expect = "
-            UPDATE \"t1\"
+            UPDATE <<t1>>
             SET
-                \"c1\" = :c1,
-                \"c2\" = :c2,
-                \"c3\" = :c3,
-                \"c4\" = NULL,
-                \"c5\" = NOW()
+                <<c1>> = :c1,
+                <<c2>> = :c2,
+                <<c3>> = :c3,
+                <<c4>> = NULL,
+                <<c5>> = NOW()
             WHERE
-                foo = 'bar'
-                AND baz = 'dib'
+                foo = :auto_bind_0
+                AND baz = :auto_bind_1
                 OR zim = gir
             RETURNING
                 c1,
