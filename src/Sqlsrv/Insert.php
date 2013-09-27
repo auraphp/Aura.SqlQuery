@@ -11,6 +11,7 @@
 namespace Aura\Sql_Query\Sqlsrv;
 
 use Aura\Sql_Query\Traits;
+use Aura\Sql_Query\InsertInterface;
 
 /**
  *
@@ -19,7 +20,7 @@ use Aura\Sql_Query\Traits;
  * @package Aura.Sql
  *
  */
-class Insert extends AbstractSqlsrv
+class Insert extends AbstractSqlsrv implements InsertInterface
 {
     use Traits\InsertTrait;
 }

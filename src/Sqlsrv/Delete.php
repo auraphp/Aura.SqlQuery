@@ -11,6 +11,7 @@
 namespace Aura\Sql_Query\Sqlsrv;
 
 use Aura\Sql_Query\Traits;
+use Aura\Sql_Query\DeleteInterface;
 
 /**
  *
@@ -19,7 +20,7 @@ use Aura\Sql_Query\Traits;
  * @package Aura.Sql
  *
  */
-class Delete extends AbstractSqlsrv
+class Delete extends AbstractSqlsrv implements DeleteInterface
 {
     use Traits\DeleteTrait;
 }

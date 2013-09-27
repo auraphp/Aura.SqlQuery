@@ -11,6 +11,7 @@
 namespace Aura\Sql_Query\Mysql;
 
 use Aura\Sql_Query\Traits;
+use Aura\Sql_Query\UpdateInterface;
 
 /**
  *
@@ -19,7 +20,7 @@ use Aura\Sql_Query\Traits;
  * @package Aura.Sql
  *
  */
-class Update extends AbstractMysql
+class Update extends AbstractMysql implements UpdateInterface
 {
     use Traits\UpdateTrait;
     use Traits\LimitTrait;

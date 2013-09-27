@@ -12,6 +12,7 @@ namespace Aura\Sql_Query\Pgsql;
 
 use Aura\Sql_Query\AbstractQuery;
 use Aura\Sql_Query\Traits;
+use Aura\Sql_Query\InsertInterface;
 
 /**
  *
@@ -20,7 +21,7 @@ use Aura\Sql_Query\Traits;
  * @package Aura.Sql
  *
  */
-class Insert extends AbstractQuery
+class Insert extends AbstractQuery implements InsertInterface
 {
     use Traits\InsertTrait;
     use Traits\ReturningTrait;

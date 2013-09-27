@@ -11,6 +11,7 @@
 namespace Aura\Sql_Query\Mysql;
 
 use Aura\Sql_Query\Traits;
+use Aura\Sql_Query\SelectInterface;
 
 /**
  *
@@ -19,7 +20,7 @@ use Aura\Sql_Query\Traits;
  * @package Aura.Sql
  *
  */
-class Select extends AbstractMysql
+class Select extends AbstractMysql implements SelectInterface
 {
     use Traits\SelectTrait;
     

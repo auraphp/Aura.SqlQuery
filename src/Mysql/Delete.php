@@ -11,6 +11,7 @@
 namespace Aura\Sql_Query\Mysql;
 
 use Aura\Sql_Query\Traits;
+use Aura\Sql_Query\DeleteInterface;
 
 /**
  *
@@ -19,7 +20,7 @@ use Aura\Sql_Query\Traits;
  * @package Aura.Sql
  *
  */
-class Delete extends AbstractMysql
+class Delete extends AbstractMysql implements DeleteInterface
 {
     use Traits\DeleteTrait;
     use Traits\LimitTrait;

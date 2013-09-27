@@ -12,6 +12,7 @@ namespace Aura\Sql_Query\Pgsql;
 
 use Aura\Sql_Query\AbstractQuery;
 use Aura\Sql_Query\Traits;
+use Aura\Sql_Query\DeleteInterface;
 
 /**
  *
@@ -20,7 +21,7 @@ use Aura\Sql_Query\Traits;
  * @package Aura.Sql
  *
  */
-class Delete extends AbstractQuery
+class Delete extends AbstractQuery implements DeleteInterface
 {
     use Traits\DeleteTrait;
     use Traits\ReturningTrait;

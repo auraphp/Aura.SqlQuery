@@ -12,6 +12,7 @@ namespace Aura\Sql_Query\Sqlite;
 
 use Aura\Sql_Query\AbstractQuery;
 use Aura\Sql_Query\Traits;
+use Aura\Sql_Query\SelectInterface;
 
 /**
  *
@@ -20,7 +21,7 @@ use Aura\Sql_Query\Traits;
  * @package Aura.Sql
  *
  */
-class Select extends AbstractQuery
+class Select extends AbstractQuery implements SelectInterface
 {
     use Traits\SelectTrait;
 }

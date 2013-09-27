@@ -11,6 +11,7 @@
 namespace Aura\Sql_Query\Sqlsrv;
 
 use Aura\Sql_Query\Traits;
+use Aura\Sql_Query\UpdateInterface;
 
 /**
  *
@@ -19,7 +20,7 @@ use Aura\Sql_Query\Traits;
  * @package Aura.Sql
  *
  */
-class Update extends AbstractSqlsrv
+class Update extends AbstractSqlsrv implements UpdateInterface
 {
     use Traits\UpdateTrait;
 }

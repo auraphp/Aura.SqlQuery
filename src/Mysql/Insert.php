@@ -11,6 +11,7 @@
 namespace Aura\Sql_Query\Mysql;
 
 use Aura\Sql_Query\Traits;
+use Aura\Sql_Query\InsertInterface;
 
 /**
  *
@@ -19,7 +20,7 @@ use Aura\Sql_Query\Traits;
  * @package Aura.Sql
  *
  */
-class Insert extends AbstractMysql
+class Insert extends AbstractMysql implements InsertInterface
 {
     use Traits\InsertTrait;
     
