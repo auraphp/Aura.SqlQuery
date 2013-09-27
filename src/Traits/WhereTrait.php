@@ -30,11 +30,7 @@ trait WhereTrait
 
     /**
      * 
-     * Adds a WHERE condition to the query by AND; if a value is passed as the
-     * second param, it will be quoted and replaced into the condition 
-     * wherever a question-mark appears.
-     * 
-     * Array values are quoted and comma-separated.
+     * Adds a WHERE condition to the query by AND.
      * 
      * @param string $cond The WHERE condition.
      * 

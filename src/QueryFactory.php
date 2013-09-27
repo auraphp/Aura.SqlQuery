@@ -36,12 +36,12 @@ class QueryFactory
         $query = ucfirst(strtolower($query));
         
         if (! $type) {
-            $class = "Aura\Sql_Query\\{$query}";
+            $type = "Common";
         } else {
             $type = ucfirst(strtolower($type));
-            $class = "Aura\Sql_Query\\{$type}\\{$query}";
         }
         
+        $class = "Aura\Sql_Query\\{$type}\\{$query}";
         return new $class;
     }
 }

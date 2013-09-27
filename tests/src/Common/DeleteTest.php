@@ -1,5 +1,7 @@
 <?php
-namespace Aura\Sql_Query;
+namespace Aura\Sql_Query\Common;
+
+use Aura\Sql_Query\AbstractQueryTest;
 
 class DeleteTest extends AbstractQueryTest
 {

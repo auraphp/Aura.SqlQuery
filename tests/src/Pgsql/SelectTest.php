@@ -1,7 +1,7 @@
 <?php
 namespace Aura\Sql_Query\Pgsql;
 
-use Aura\Sql_Query\SelectTest as CommonSelectTest;
+use Aura\Sql_Query\Common\SelectTest as CommonSelectTest;
 
 class SelectTest extends CommonSelectTest
 {

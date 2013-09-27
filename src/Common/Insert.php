@@ -8,18 +8,19 @@
  * @license http://opensource.org/licenses/bsd-license.php BSD
  *
  */
-namespace Aura\Sql_Query;
+namespace Aura\Sql_Query\Common;
 
+use Aura\Sql_Query\AbstractQuery;
 use Aura\Sql_Query\Traits;
 
 /**
  *
- * An object for UPDATE queries.
+ * An object for INSERT queries.
  *
  * @package Aura.Sql
  *
  */
-class Update extends AbstractQuery
+class Insert extends AbstractQuery
 {
-    use Traits\UpdateTrait;
+    use Traits\InsertTrait;
 }
