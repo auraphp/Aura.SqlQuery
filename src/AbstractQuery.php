@@ -210,7 +210,7 @@ abstract class AbstractQuery
      * @see quote()
      * 
      */
-    protected function autobind($text, $bind)
+    protected function autobind($text, $bind = null)
     {
         // how many placeholders are there?
         $count = substr_count($text, '?');
@@ -272,7 +272,7 @@ abstract class AbstractQuery
      * @see replaceName()
      * 
      */
-    public function quoteName($spec)
+    protected function quoteName($spec)
     {
         // remove extraneous spaces
         $spec = trim($spec);
@@ -330,7 +330,7 @@ abstract class AbstractQuery
      * @see replaceNamesIn()
      * 
      */
-    public function quoteNamesIn($text)
+    protected function quoteNamesIn($text)
     {
         // single and double quotes
         $apos = "'";

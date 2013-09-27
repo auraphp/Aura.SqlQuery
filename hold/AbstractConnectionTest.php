@@ -468,9 +468,6 @@ abstract class AbstractConnectionTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($this->expect_quote_multi, $actual);
     }
     
-    /**
-     * @todo Implement testQuoteName().
-     */
     public function testQuoteName()
     {
         // table AS alias
