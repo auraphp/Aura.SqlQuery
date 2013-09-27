@@ -58,7 +58,7 @@ class Select extends AbstractSqlsrv
             // use TOP
             return preg_replace(
                 '/^(SELECT( DISTINCT)?)/',
-                "$1 TOP $limit",
+                "$1 TOP {$this->limit}",
                 $stm
             );
         }
@@ -68,4 +68,5 @@ class Select extends AbstractSqlsrv
         return $stm . PHP_EOL
              . "OFFSET {$this->offset} ROWS "
              . "FETCH NEXT {$this->limit} ROWS ONLY" . PHP_EOL;
+    }
 }
