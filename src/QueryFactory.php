@@ -19,6 +19,35 @@ namespace Aura\Sql_Query;
  */
 class QueryFactory
 {
+    protected $type = 'Common';
+    
+    public function __construct($type = null)
+    {
+        if ($type) {
+            $this->type = ucfirst(strtolower($type));
+        }
+    }
+    
+    public function newSelect()
+    {
+        return $this->newInstance('select');
+    }
+    
+    public function newInsert()
+    {
+        return $this->newInstance('insert');
+    }
+    
+    public function newUpdate()
+    {
+        return $this->newInstance('update');
+    }
+    
+    public function newDelete()
+    {
+        return $this->newInstance('delete');
+    }
+    
     /**
      * 
      * Returns a new query object.
@@ -31,17 +60,11 @@ class QueryFactory
      * @return AbstractQuery
      * 
      */
-    public function newInstance($query, $type = null)
+    protected function newInstance($query)
     {
         $query = ucfirst(strtolower($query));
-        
-        if (! $type) {
-            $type = "Common";
-        } else {
-            $type = ucfirst(strtolower($type));
-        }
-        
-        $class = "Aura\Sql_Query\\{$type}\\{$query}";
+        $class = "Aura\Sql_Query\\{$this->type}\\{$query}";
         return new $class;
     }
+    
 }

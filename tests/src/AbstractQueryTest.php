@@ -14,16 +14,14 @@ abstract class AbstractQueryTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         parent::setUp();
-        $this->query_factory = new QueryFactory;
+        $this->query_factory = new QueryFactory($this->db_type);
         $this->query = $this->newQuery();
     }
     
     protected function newQuery()
     {
-        return $this->query_factory->newInstance(
-            $this->query_type,
-            $this->db_type
-        );
+        $method = 'new' . $this->query_type;
+        return $this->query_factory->$method();
     }
     
     protected function assertSameSql($expect, $actual)
