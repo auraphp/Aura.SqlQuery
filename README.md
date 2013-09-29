@@ -65,10 +65,13 @@ $delete = $query_factory->newDelete();
 ```
 
 By default, the _QueryFactory_ will return query objects that are compatible
-with MySQL, PostgreSQL, and SQLite.  Only the methods available to all three
-of these open-source database systems will be available. If you want query
-objects that implement functionality specific to one database, pass its
-type as a param to the _QueryFactory_:
+with MySQL, PostgreSQL, SQLite, and Microsoft SQL Server. Only the methods
+available to all four database systems will be available. (Note that the SQL
+strings you pass to these methods may or may not be compatible across all
+systems.)
+
+If you want query objects that implement functionality specific to one
+database, pass its type as a param to the _QueryFactory_:
 
 ```php
 <?php
@@ -117,10 +120,10 @@ for you, change it to a fully-qualified identifer (e.g., from `col_name` to
 
 ## Common Queries
 
-The "common" query objects implement a shared subset of MySQL, PostgreSQL, and
-SQLite functionality. Methods called on the "common" query objects should work
-with any of those three open-source databases, but functionality specific to
-any one of them will not be available through the object methods.
+The "common" query objects implement a shared subset of MySQL, PostgreSQL,
+SQLite, and Microsoft SQL Server functionality. Methods called on the "common"
+query objects should work with those databases, but functionality specific to
+any one of them will not be available as object methods.
 
 ### SELECT
 
@@ -325,7 +328,7 @@ $sth->execute($insert->getBindValues());
 ?>
 ```
 
-## MySQL Query Objects
+## MySQL Query Objects ('mysql')
 
 The MySQL query objects have additional MySQL-specific methods.
 
@@ -359,7 +362,7 @@ The MySQL query objects have additional MySQL-specific methods.
     - `orderBy()` to add an ORDER BY clause
     - `limit()` to set a LIMIT count
     
-## PostgreSQL Query Objects
+## PostgreSQL Query Objects ('pgsql')
 
 - SELECT
     - no additional methods
@@ -374,7 +377,7 @@ The MySQL query objects have additional MySQL-specific methods.
     - `returning()` to add a `RETURNING` clause
 
 
-## SQLite Query Objects
+## SQLite Query Objects ('sqlite')
 
 - SELECT
     - no additional methods
@@ -406,5 +409,26 @@ The MySQL query objects have additional MySQL-specific methods.
     - `limit()` to set a LIMIT count
     - `offset()` to set an OFFSET count
 
-## Microsoft SQL Query Objects
+## Microsoft SQL Query Objects ('sqlsrv')
 
+- SELECT
+    - no additional methods
+    
+- INSERT
+    - no additional methods
+
+- UPDATE
+    - no additional methods
+
+- DELETE
+    - no additional methods
+
+N.b.: The `limit()` and `offset()` methods on the Microsoft SQL Server query
+objects will generate sqlsrv-specific variations of `LIMIT ... OFFSET`:
+
+- If only a `LIMIT` is present, it will be translated as a `TOP` clause.
+
+- If both `LIMIT` and `OFFSET` are present, it will be translates as an
+  `OFFSET ... ROWS FETCH NEXT ... ROWS ONLY` clause. In this case there *must*
+  be an `ORDER BY` clause, as the limiting clause is a sub-clause of `ORDER
+  BY`.
