@@ -153,13 +153,14 @@ $result = $pdo->fetchAll($select->__toString(), $select->getBindValues());
 Insert
 ------
 
-To get a new `Insert` object, invoke the `newInsert()` method on an connection.
+To get a new `Insert` object, invoke the `newInsert()` method on the 
+_QueryFactory_ object.
 You can then modify the `Insert` object and pass it to the `query()` method.
 
 ```php
 <?php
 // create a new Insert object
-$insert = $connection->newInsert();
+$insert = $query_factory->newInsert();
 
 // INSERT INTO foo (bar, baz, date) VALUES (:bar, :baz, NOW());
 $insert->into('foo')
@@ -177,13 +178,14 @@ $stmt = $connection->query($insert, $bind);
 Update
 ------
 
-To get a new `Update` object, invoke the `newUpdate()` method on an connection.
+To get a new `Update` object, invoke the `newUpdate()` method on the 
+_QueryFactory_ object.
 You can then modify the `Update` object and pass it to the `query()` method.
 
 ```php
 <?php
 // create a new Update object
-$update = $connection->newUpdate();
+$update = $query_factory->newUpdate();
 
 // UPDATE foo SET bar = :bar, baz = :baz, date = NOW() WHERE zim = :zim OR gir = :gir
 $update->table('foo')
@@ -205,13 +207,14 @@ $stmt = $connection->query($update, $bind);
 Delete
 ------
 
-To get a new `Delete` object, invoke the `newDelete()` method on an connection.
+To get a new `Delete` object, invoke the `newDelete()` method on the 
+_QueryFactory_ object.
 You can then modify the `Delete` object and pass it to the `query()` method.
 
 ```php
 <?php
 // create a new Delete object
-$delete = $connection->newDelete();
+$delete = $query_factory->newDelete();
 
 // DELETE FROM WHERE zim = :zim OR gir = :gir
 $delete->from('foo')
