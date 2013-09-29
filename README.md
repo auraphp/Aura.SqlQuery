@@ -432,3 +432,6 @@ objects will generate sqlsrv-specific variations of `LIMIT ... OFFSET`:
   `OFFSET ... ROWS FETCH NEXT ... ROWS ONLY` clause. In this case there *must*
   be an `ORDER BY` clause, as the limiting clause is a sub-clause of `ORDER
   BY`.
+
+In general, using `limit()` and `offset()` with Microsfot SQL Server is best
+combined with `orderBy()`.
