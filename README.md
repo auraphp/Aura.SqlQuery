@@ -325,43 +325,86 @@ $sth->execute($insert->getBindValues());
 ?>
 ```
 
-## MySQL Queries
+## MySQL Query Objects
 
 The MySQL query objects have additional MySQL-specific methods.
 
 - SELECT
-    - `bigResult()` to add or remove `BIG_RESULT`
-    - `bufferResult()` to add or remove `BUFFER_RESULT`
-    - `cache()` to add or remove `SQL_CACHE`
-    - `calcFoundRows()` to add or remove `SQL_CALC_FOUND_ROWS`
-    - `highPriority()` to add or remove `HIGH_PRIORITY`
-    - `noCache()` to add or remove `SQL_NO_CACHE`
-    - `smallResult()` to add or remove `SMALL_RESULT`
-    - `straightJoin()` to add or remove `STRAIGHT_JOIN`
+    - `bigResult()` to add or remove `BIG_RESULT` flag
+    - `bufferResult()` to add or remove `BUFFER_RESULT` flag
+    - `cache()` to add or remove `SQL_CACHE` flag
+    - `calcFoundRows()` to add or remove `SQL_CALC_FOUND_ROWS` flag
+    - `highPriority()` to add or remove `HIGH_PRIORITY` flag
+    - `noCache()` to add or remove `SQL_NO_CACHE` flag
+    - `smallResult()` to add or remove `SMALL_RESULT` flag
+    - `straightJoin()` to add or remove `STRAIGHT_JOIN` flag
 
 - INSERT
-    - `highPriority()` to add or remove `HIGH_PRIORITY`
-    - `lowPriority()` to add or remove `LOW_PRIORITY`
-    - `ignore()` to add or remove `IGNORE`
-    - `delayed()` to add or remove `DELAYED`
+    - `highPriority()` to add or remove `HIGH_PRIORITY` flag
+    - `lowPriority()` to add or remove `LOW_PRIORITY` flag
+    - `ignore()` to add or remove `IGNORE` flag
+    - `delayed()` to add or remove `DELAYED` flag
 
 - UPDATE
-    - `lowPriority()` to add or remove `LOW_PRIORITY`
-    - `ignore()` to add or remove `IGNORE`
-    - `where()` and `orWhere()` to add WHERE conditions
-    - `orderBy()` to add an ORDER BY clause
-    - `limit()` to set a limit count
+    - `lowPriority()` to add or remove `LOW_PRIORITY` flag
+    - `ignore()` to add or remove `IGNORE` flag
+    - `where()` and `orWhere()` to add WHERE conditions flag
+    - `orderBy()` to add an ORDER BY clause flag
+    - `limit()` to set a LIMIT count
 
 - DELETE
-    - `lowPriority()` to add or remove `LOW_PRIORITY`
-    - `ignore()` to add or remove `IGNORE`
-    - `quick()` to add or remove `QUICK`
+    - `lowPriority()` to add or remove `LOW_PRIORITY` flag
+    - `ignore()` to add or remove `IGNORE` flag
+    - `quick()` to add or remove `QUICK` flag
     - `orderBy()` to add an ORDER BY clause
-    - `limit()` to set a limit count
+    - `limit()` to set a LIMIT count
     
-## PostgreSQL Qeries
+## PostgreSQL Query Objects
 
-## SQLite Queries
+- SELECT
+    - no additional methods
 
-## Microsoft SQL Queries
+- INSERT
+    - `returning()` to add a `RETURNING` clause
+
+- UPDATE
+    - `returning()` to add a `RETURNING` clause
+
+- DELETE
+    - `returning()` to add a `RETURNING` clause
+
+
+## SQLite Query Objects
+
+- SELECT
+    - no additional methods
+
+- INSERT
+    - `orAbort()` to add or remove an `OR ABORT` flag
+    - `orFail()` to add or remove an `OR FAIL` flag
+    - `orIgnore()` to add or remove an `OR IGNORE` flag
+    - `orReplace()` to add or remove an `OR REPLACE` flag
+    - `orRollback()` to add or remove an `OR ROLLBACK` flag
+
+- UPDATE
+    - `orAbort()` to add or remove an `OR ABORT` flag
+    - `orFail()` to add or remove an `OR FAIL` flag
+    - `orIgnore()` to add or remove an `OR IGNORE` flag
+    - `orReplace()` to add or remove an `OR REPLACE` flag
+    - `orRollback()` to add or remove an `OR ROLLBACK` flag
+    - `orderBy()` to add an ORDER BY clause
+    - `limit()` to set a LIMIT count
+    - `offset()` to set an OFFSET count
+
+- DELETE
+    - `orAbort()` to add or remove an `OR ABORT` flag
+    - `orFail()` to add or remove an `OR FAIL` flag
+    - `orIgnore()` to add or remove an `OR IGNORE` flag
+    - `orReplace()` to add or remove an `OR REPLACE` flag
+    - `orRollback()` to add or remove an `OR ROLLBACK` flag
+    - `orderBy()` to add an ORDER BY clause
+    - `limit()` to set a LIMIT count
+    - `offset()` to set an OFFSET count
+
+## Microsoft SQL Query Objects
 
