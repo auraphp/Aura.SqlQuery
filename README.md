@@ -95,7 +95,7 @@ bound values should work just as well (e.g. [Aura.Sql][] _ExtendedPdo_).
 In most cases, the query objects will quote identifiers for you. For example,
 under the common _Select_ object with double-quotes for identifiers:
 
-```
+```php
 <?php
 $select->cols(['foo', 'bar AS barbar'])
        ->from(['table1', 'table2'])
