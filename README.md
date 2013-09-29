@@ -81,11 +81,39 @@ $query_factory = new QueryFactory('pgsql'); // mysql, pgsql, sqlite, sqlsrv
 
 The query objects do not execute queries against a database. When you are done
 building the query, you will need to pass it to a database connection of your
-choice.  In the examples below, we will use the [Aura.Sql][] _ExtendedPdo_
-object for the database connection, but any database library that uses named
-placeholders and bound values should work just as well.
+choice.  In the examples below, we will use [PDO](http://php.net/pdo) for the
+database connection, but any database library that uses named placeholders and
+bound values should work just as well (e.g. [Aura.Sql][] _ExtendedPdo_).
 
 [Aura.Sql]: https://github.com/auraphp/Aura.Sql/tree/develop-2
+
+## Identifier Quoting
+
+In most cases, the query objects will quote identifiers for you. For example,
+under the common _Select_ object with double-quotes for identifiers:
+
+```
+<?php
+$select->cols(['foo', 'bar AS barbar'])
+       ->from(['table1', 'table2'])
+       ->where('table2.zim = 99');
+
+echo $select->__toString();
+// SELECT
+//     "foo",
+//     "bar" AS "barbar"
+// FROM
+//     "table1",
+//     "table2"
+// WHERE
+//     "table2"."zim" = 99
+
+?>
+```
+
+If you discover that a partially-qualified identifier has not been auto-quoted
+for you, change it to a fully-qualified identifer (e.g., from `col_name` to
+`table_name.col_name`).
 
 ## Common Queries
 
@@ -139,8 +167,8 @@ $select
     ->forUpdate()                   // FOR UPDATE
     ->union()                       // UNION with a followup SELECT
     ->unionAll()                    // UNION ALL with a followup SELECT
+    ->bindValue('foo', 'foo_val')   // bind one value to a placeholder
     ->bindValues([                  // bind these values to named placeholders
-        'foo' => 'foo_val',
         'bar' => 'bar_val',
         'baz' => 'baz_val',
     ]);
@@ -155,10 +183,17 @@ choice as a string, and send the bound values along with it.
 
 ```php
 <?php
-use Aura\Sql\ExtendedPdo;
+// a PDO connection
+$pdo = new PDO(...);
 
-$pdo = new ExtendedPdo(...);
-$result = $pdo->fetchAll($select->__toString(), $select->getBindValues());
+// prepare the statment
+$sth = $pdo->prepare($select->__toString());
+
+// bind the values and execute
+$sth->execute($select->getBindValues());
+
+// get the results back as an associative array
+$result = $sth->fetch(PDO::FETCH_ASSOC);
 ?>
 ```
 
@@ -173,13 +208,14 @@ builds a single insert; you cannot do a multiple insert with this object.
 $insert = $query_factory->newInsert();
 
 $insert
-    ->into('foo')               # INTO this table
-    ->cols([                    # insert these as "(col) VALUES (:col)"
+    ->into('foo')                   // INTO this table
+    ->cols([                        // insert these as "(col) VALUES (:col)"
         'bar',
         'baz',
     ])
-    ->set('id', 'NULL')         # insert raw values for this column
-    ->bindValues([              # bind these values
+    ->set('id', 'NULL')             // insert raw values for this column
+    ->bindValue('foo', 'foo_val')   // bind one value to a placeholder
+    ->bindValues([                  // bind these values
         'bar' => 'foo',
         'baz' => 'zim',
     ]);
@@ -191,10 +227,16 @@ choice as a string, and send the bound values along with it.
 
 ```php
 <?php
-use Aura\Sql\ExtendedPdo;
+// the PDO connection
+$pdo = new PDO(...);
 
-$pdo = new ExtendedPdo(...);
-$pdo->exec($insert->__toString(), $insert->getBindValues());
+// prepare the statement
+$sth = $pdo->prepare($insert->__toString())
+
+// execute with bound values
+$sth->execute($insert->getBindValues());
+
+// get the last insert ID
 $id = $pdo->getLastInsertId();
 ?>
 ```
@@ -202,57 +244,121 @@ $id = $pdo->getLastInsertId();
 ### UPDATE
 
 Build a common _UPDATE_ query using the following methods. They do not need to
-be called in any particular order, and may be called multiple times. This
-builds a single insert; you cannot do a multiple insert with this object.
+be called in any particular order, and may be called multiple times.
 
 ```php
 <?php
-// create a new Update object
-$update = $connection->newUpdate();
+$update = $query_factory->newUpdate();
 
-// UPDATE foo SET bar = :bar, baz = :baz, date = NOW() WHERE zim = :zim OR gir = :gir
-$update->table('foo')
-       ->cols(['bar', 'baz'])
-       ->set('date', 'NOW()')
-       ->where('zim = :zim')
-       ->orWhere('gir = :gir');
+$update
+    ->table('foo')                  // update this table
+    ->cols([                        // these cols as "SET bar = :bar"
+        'bar',
+        'baz',
+    ])
+    ->set('date', 'NOW()')          // set this col to a raw value
+    ->where('zim = :zim')           // AND WHERE these conditions
+    ->where('gir = ?', 'doom')      // bind this value to the condition
+    ->orWhere('gir = :gir');        // OR WHERE these conditions
+    ->bindValue('bar', 'bar_val',   // bind one value to a placeholder
+    ->bindValues([                  // bind these values to the query
+        'baz' => 99,
+        'zim' => 'dib',
+        'gir' => 'doom',
+    ]);
+?>
+```
 
-$bind = [
-    'bar' => 'barbar',
-    'baz' => 99,
-    'zim' => 'dib',
-    'gir' => 'doom',
-];
+Once you have built the query, pass it to the database connection of your
+choice as a string, and send the bound values along with it.
 
-$stmt = $connection->query($update, $bind);
+```php
+<?php
+// the PDO connection
+$pdo = new PDO(...);
+
+// prepare the statement
+$sth = $pdo->prepare($insert->__toString())
+
+// execute with bound values
+$sth->execute($insert->getBindValues());
+?>
 ```
 
 Delete
 ------
 
-To get a new `Delete` object, invoke the `newDelete()` method on an connection.
-You can then modify the `Delete` object and pass it to the `query()` method.
+Build a common _DELETE_ query using the following methods. They do not need to
+be called in any particular order, and may be called multiple times.
 
 ```php
 <?php
-// create a new Delete object
-$delete = $connection->newDelete();
+$delete = $query_factory->newDelete();
 
-// DELETE FROM WHERE zim = :zim OR gir = :gir
-$delete->from('foo')
-       ->where('zim = :zim')
-       ->orWhere('gir = :gir');
+$delete
+    ->from('foo')                   // FROM this table
+    ->where('zim = :zim')           // AND WHERE these conditions
+    ->where('gir = ?', 'doom')      // bind this value to the condition
+    ->orWhere('gir = :gir');        // OR WHERE these conditions
+    ->bindValue('bar', 'bar_val',   // bind one value to a placeholder
+    ->bindValues([                  // bind these values to the query
+        'baz' => 99,
+        'zim' => 'dib',
+        'gir' => 'doom',
+    ]);
+?>
+```
 
-$bind = [
-    'zim' => 'dib',
-    'gir' => 'doom',
-];
+Once you have built the query, pass it to the database connection of your
+choice as a string, and send the bound values along with it.
 
-$stmt = $connection->query($delete, $bind);
+```php
+<?php
+// the PDO connection
+$pdo = new PDO(...);
+
+// prepare the statement
+$sth = $pdo->prepare($insert->__toString())
+
+// execute with bound values
+$sth->execute($insert->getBindValues());
+?>
 ```
 
 ## MySQL Queries
 
+The MySQL query objects have additional MySQL-specific methods.
+
+- SELECT
+    - `bigResult()` to add or remove `BIG_RESULT`
+    - `bufferResult()` to add or remove `BUFFER_RESULT`
+    - `cache()` to add or remove `SQL_CACHE`
+    - `calcFoundRows()` to add or remove `SQL_CALC_FOUND_ROWS`
+    - `highPriority()` to add or remove `HIGH_PRIORITY`
+    - `noCache()` to add or remove `SQL_NO_CACHE`
+    - `smallResult()` to add or remove `SMALL_RESULT`
+    - `straightJoin()` to add or remove `STRAIGHT_JOIN`
+
+- INSERT
+    - `highPriority()` to add or remove `HIGH_PRIORITY`
+    - `lowPriority()` to add or remove `LOW_PRIORITY`
+    - `ignore()` to add or remove `IGNORE`
+    - `delayed()` to add or remove `DELAYED`
+
+- UPDATE
+    - `lowPriority()` to add or remove `LOW_PRIORITY`
+    - `ignore()` to add or remove `IGNORE`
+    - `where()` and `orWhere()` to add WHERE conditions
+    - `orderBy()` to add an ORDER BY clause
+    - `limit()` to set a limit count
+
+- DELETE
+    - `lowPriority()` to add or remove `LOW_PRIORITY`
+    - `ignore()` to add or remove `IGNORE`
+    - `quick()` to add or remove `QUICK`
+    - `orderBy()` to add an ORDER BY clause
+    - `limit()` to set a limit count
+    
 ## PostgreSQL Qeries
 
 ## SQLite Queries
