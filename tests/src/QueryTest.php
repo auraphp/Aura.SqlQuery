@@ -5,7 +5,8 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 {
     public function setUp()
     {
-        $this->query = new MockQuery;
+        // use double-quotes for identifier quoting
+        $this->query = new MockQuery('"', '"');
     }
     
     public function testQuoteName()

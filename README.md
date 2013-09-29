@@ -43,13 +43,13 @@ you notice compliance oversights, please send a patch via pull request.
 
 ## Getting Started
 
-First, instantiate a _QueryFactory_:
+First, instantiate a _QueryFactory_ with a database type:
 
 ```php
 <?php
 use Aura\Sql_Query\QueryFactory;
 
-$query_factory = new QueryFactory;
+$query_factory = new QueryFactory('sqlite');
 ?>
 ```
 
@@ -63,30 +63,14 @@ $update = $query_factory->newUpdate();
 $delete = $query_factory->newDelete();
 ?>
 ```
-
-By default, the _QueryFactory_ will return query objects that are compatible
-with MySQL, PostgreSQL, SQLite, and Microsoft SQL Server. Only the methods
-available to all four database systems will be available. (Note that the SQL
-strings you pass to these methods may or may not be compatible across all
-systems.)
-
-If you want query objects that implement functionality specific to one
-database, pass its type as a param to the _QueryFactory_:
-
-```php
-<?php
-use Aura\Sql_Query\QueryFactory;
-
-// have the query factory create PostgreSQL query objects
-$query_factory = new QueryFactory('pgsql'); // mysql, pgsql, sqlite, sqlsrv
 ?>
-```
 
 The query objects do not execute queries against a database. When you are done
 building the query, you will need to pass it to a database connection of your
-choice.  In the examples below, we will use [PDO](http://php.net/pdo) for the
+choice. In the examples below, we will use [PDO](http://php.net/pdo) for the
 database connection, but any database library that uses named placeholders and
-bound values should work just as well (e.g. [Aura.Sql][] _ExtendedPdo_).
+bound values should work just as well (e.g. the [Aura.Sql][] _ExtendedPdo_
+class).
 
 [Aura.Sql]: https://github.com/auraphp/Aura.Sql/tree/develop-2
 
@@ -118,16 +102,31 @@ If you discover that a partially-qualified identifier has not been auto-quoted
 for you, change it to a fully-qualified identifer (e.g., from `col_name` to
 `table_name.col_name`).
 
-## Common Queries
+## Common Query Objects
 
-The "common" query objects implement a shared subset of MySQL, PostgreSQL,
-SQLite, and Microsoft SQL Server functionality. Methods called on the "common"
-query objects should work with those databases, but functionality specific to
-any one of them will not be available as object methods.
+Although you must specify a database type when instantiating a _QueryFactory_,
+you can tell the factory to return "common" query objects instead of database-
+specific ones.  This will make only the common query methods available, which
+helps with writing database-portable applications. To do so, pass the constant
+`QueryFactory::COMMON` as the second constructor parameter.
+
+```php
+<?php
+use Aura\Sql_Query\QueryFactory;
+
+// return Common, not SQLite-specific, query objects
+$query_factory = new QueryFactory('sqlite', QueryFactory::COMMON);
+?>
+```
+
+> N.b. You still need to pass a database type so that identifiers can be
+> quoted appropriately.
+
+All query objects implement the "Common" methods.
 
 ### SELECT
 
-Build a common _Select_ query using the following methods. They do not need to
+Build a _Select_ query using the following methods. They do not need to
 be called in any particular order, and may be called multiple times.
 
 ```php
@@ -177,9 +176,6 @@ $select
     ]);
 ?>
 
-> N.b. The example is to show the available methods, and does not necessarily
-> represent a valid SELECT statement.
-
 Once you have built the query, pass it to the database connection of your
 choice as a string, and send the bound values along with it.
 
@@ -202,7 +198,7 @@ $result = $sth->fetch(PDO::FETCH_ASSOC);
 
 ### INSERT
 
-Build a common _Insert_ query using the following methods. They do not need to
+Build an _Insert_ query using the following methods. They do not need to
 be called in any particular order, and may be called multiple times. This
 builds a single insert; you cannot do a multiple insert with this object.
 
@@ -246,7 +242,7 @@ $id = $pdo->getLastInsertId();
 
 ### UPDATE
 
-Build a common _UPDATE_ query using the following methods. They do not need to
+Build an _UPDATE_ query using the following methods. They do not need to
 be called in any particular order, and may be called multiple times.
 
 ```php
@@ -281,17 +277,16 @@ choice as a string, and send the bound values along with it.
 $pdo = new PDO(...);
 
 // prepare the statement
-$sth = $pdo->prepare($insert->__toString())
+$sth = $pdo->prepare($update->__toString())
 
 // execute with bound values
-$sth->execute($insert->getBindValues());
+$sth->execute($update->getBindValues());
 ?>
 ```
 
-Delete
-------
+### DELETE
 
-Build a common _DELETE_ query using the following methods. They do not need to
+Build a _DELETE_ query using the following methods. They do not need to
 be called in any particular order, and may be called multiple times.
 
 ```php
@@ -321,25 +316,25 @@ choice as a string, and send the bound values along with it.
 $pdo = new PDO(...);
 
 // prepare the statement
-$sth = $pdo->prepare($insert->__toString())
+$sth = $pdo->prepare($delete->__toString())
 
 // execute with bound values
-$sth->execute($insert->getBindValues());
+$sth->execute($delete->getBindValues());
 ?>
 ```
 
 ## MySQL Query Objects ('mysql')
 
-The MySQL query objects have additional MySQL-specific methods.
+These 'mysql' query objects have additional MySQL-specific methods:
 
 - SELECT
-    - `bigResult()` to add or remove `BIG_RESULT` flag
-    - `bufferResult()` to add or remove `BUFFER_RESULT` flag
-    - `cache()` to add or remove `SQL_CACHE` flag
     - `calcFoundRows()` to add or remove `SQL_CALC_FOUND_ROWS` flag
-    - `highPriority()` to add or remove `HIGH_PRIORITY` flag
+    - `cache()` to add or remove `SQL_CACHE` flag
     - `noCache()` to add or remove `SQL_NO_CACHE` flag
+    - `bigResult()` to add or remove `BIG_RESULT` flag
     - `smallResult()` to add or remove `SMALL_RESULT` flag
+    - `bufferResult()` to add or remove `BUFFER_RESULT` flag
+    - `highPriority()` to add or remove `HIGH_PRIORITY` flag
     - `straightJoin()` to add or remove `STRAIGHT_JOIN` flag
 
 - INSERT
@@ -364,8 +359,7 @@ The MySQL query objects have additional MySQL-specific methods.
     
 ## PostgreSQL Query Objects ('pgsql')
 
-- SELECT
-    - no additional methods
+These 'pgsql' query objects have additional PostgreSQL-specific methods:
 
 - INSERT
     - `returning()` to add a `RETURNING` clause
@@ -379,8 +373,7 @@ The MySQL query objects have additional MySQL-specific methods.
 
 ## SQLite Query Objects ('sqlite')
 
-- SELECT
-    - no additional methods
+These 'sqlite' query objects have additional SQLite-specific methods:
 
 - INSERT
     - `orAbort()` to add or remove an `OR ABORT` flag
@@ -411,20 +404,12 @@ The MySQL query objects have additional MySQL-specific methods.
 
 ## Microsoft SQL Query Objects ('sqlsrv')
 
-- SELECT
-    - no additional methods
-    
-- INSERT
-    - no additional methods
+The 'sqlsrv' query objects have no additional methods specific to Microsoft SQL Server.
 
-- UPDATE
-    - no additional methods
-
-- DELETE
-    - no additional methods
-
-N.b.: The `limit()` and `offset()` methods on the Microsoft SQL Server query
-objects will generate sqlsrv-specific variations of `LIMIT ... OFFSET`:
+In general, `limit()` and `offset()` with Microsoft SQL Server are best
+combined with `orderBy()`. The `limit()` and `offset()` methods on the
+Microsoft SQL Server query objects will generate sqlsrv-specific variations of
+`LIMIT ... OFFSET`:
 
 - If only a `LIMIT` is present, it will be translated as a `TOP` clause.
 
@@ -432,6 +417,3 @@ objects will generate sqlsrv-specific variations of `LIMIT ... OFFSET`:
   `OFFSET ... ROWS FETCH NEXT ... ROWS ONLY` clause. In this case there *must*
   be an `ORDER BY` clause, as the limiting clause is a sub-clause of `ORDER
   BY`.
-
-In general, using `limit()` and `offset()` with Microsfot SQL Server is best
-combined with `orderBy()`.

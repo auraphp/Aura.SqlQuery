@@ -7,7 +7,7 @@ abstract class AbstractQueryTest extends \PHPUnit_Framework_TestCase
 {
     protected $query_type;
     
-    protected $db_type;
+    protected $db_type = 'Common';
     
     protected $query;
 

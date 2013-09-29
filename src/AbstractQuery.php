@@ -55,6 +55,14 @@ abstract class AbstractQuery
      */
     protected $quote_name_suffix = '"';
 
+    public function __construct(
+        $quote_name_prefix,
+        $quote_name_suffix
+    ) {
+        $this->quote_name_prefix = $quote_name_prefix;
+        $this->quote_name_suffix = $quote_name_suffix;
+    }
+    
     /**
      * 
      * Returns this query object as a string.

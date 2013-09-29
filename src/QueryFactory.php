@@ -19,33 +19,49 @@ namespace Aura\Sql_Query;
  */
 class QueryFactory
 {
-    protected $type = 'Common';
+    const COMMON = 'common';
     
-    public function __construct($type = null)
+    protected $type;
+    
+    protected $common = false;
+    
+    protected $quotes = [
+        'Common' => ['"', '"'],
+        'Mysql'  => ['`', '`'],
+        'Pgsql'  => ['"', '"'],
+        'Sqlite' => ['"', '"'],
+        'Sqlsrv' => ['[', ']'],
+    ];
+    
+    protected $quote_name_prefix;
+    
+    protected $quote_name_suffix;
+    
+    public function __construct($type, $common = false)
     {
-        if ($type) {
-            $this->type = ucfirst(strtolower($type));
-        }
+        $this->type = ucfirst(strtolower($type));
+        $this->quote_name_prefix = $this->quotes[$this->type][0];
+        $this->quote_name_suffix = $this->quotes[$this->type][1];
     }
     
     public function newSelect()
     {
-        return $this->newInstance('select');
+        return $this->newInstance('Select');
     }
     
     public function newInsert()
     {
-        return $this->newInstance('insert');
+        return $this->newInstance('Insert');
     }
     
     public function newUpdate()
     {
-        return $this->newInstance('update');
+        return $this->newInstance('Update');
     }
     
     public function newDelete()
     {
-        return $this->newInstance('delete');
+        return $this->newInstance('Delete');
     }
     
     /**
@@ -62,9 +78,17 @@ class QueryFactory
      */
     protected function newInstance($query)
     {
-        $query = ucfirst(strtolower($query));
-        $class = "Aura\Sql_Query\\{$this->type}\\{$query}";
-        return new $class;
+        if ($this->common) {
+            $class = "Aura\Sql_Query\Common";
+        } else {
+            $class = "Aura\Sql_Query\\{$this->type}";
+        }
+        
+        $class .= "\\{$query}";
+        
+        return new $class(
+            $this->quote_name_prefix,
+            $this->quote_name_suffix
+        );
     }
-    
 }
