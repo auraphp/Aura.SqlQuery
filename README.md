@@ -101,6 +101,8 @@ be called in any particular order, and may be called multiple times.
 
 ```php
 <?php
+$select = $query_factory->newSelect();
+
 $select
     ->distinct()                    // SELECT DISTINCT
     ->cols([                        // select these columns
@@ -109,10 +111,20 @@ $select
         'COUNT(foo) AS foo_count',
     ])
     ->from(['foo AS f'])            // FROM these tables
+    ->fromSubselect(                // FROM sub-select AS my_sub
+        'SELECT ...',
+        'my_sub'
+    )
     ->join(                         // JOIN ...
         'LEFT',                     // left/inner/natural/etc
         'doom AS d'                 // this table name
         'foo.id = d.foo_id'         // ON these conditions
+    )
+    ->joinSubSelect(                // JOIN to a sub-select
+        'INNER',                    // left/inner/natural/etc
+        'SELECT ...',               // the subselect to join on
+        'subjoin'                   // AS this name
+        'sub.id = foo.id'           // ON these conditions
     )
     ->where('bar > :bar')           // AND WHERE these conditions
     ->where('zim = ?', 'zim_val')   // bind 'zim_val' to the ? placeholder
@@ -127,15 +139,15 @@ $select
     ->forUpdate()                   // FOR UPDATE
     ->union()                       // UNION with a followup SELECT
     ->unionAll()                    // UNION ALL with a followup SELECT
-    ->bindValues([                  // bind these value to named placeholders
+    ->bindValues([                  // bind these values to named placeholders
         'foo' => 'foo_val',
         'bar' => 'bar_val',
         'baz' => 'baz_val',
     ]);
 ?>
 
-> N.b. The example is to show off all the methods, and does not necessarily
-> represent a syntactically valid SELECT statement.
+> N.b. The example is to show the available methods, and does not necessarily
+> represent a valid SELECT statement.
 
 Once you have built the query, pass it to the database connection of your
 choice as a string, and send the bound values along with it.
@@ -150,35 +162,48 @@ $result = $pdo->fetchAll($select->__toString(), $select->getBindValues());
 ?>
 ```
 
-Insert
-------
+### INSERT
 
-To get a new `Insert` object, invoke the `newInsert()` method on an connection.
-You can then modify the `Insert` object and pass it to the `query()` method.
+Build a common _Insert_ query using the following methods. They do not need to
+be called in any particular order, and may be called multiple times. This
+builds a single insert; you cannot do a multiple insert with this object.
 
 ```php
 <?php
-// create a new Insert object
-$insert = $connection->newInsert();
+$insert = $query_factory->newInsert();
 
-// INSERT INTO foo (bar, baz, date) VALUES (:bar, :baz, NOW());
-$insert->into('foo')
-       ->cols(['bar', 'baz'])
-       ->set('date', 'NOW()');
-
-$bind = [
-    'bar' => null,
-    'baz' => 'zim',
-];
-
-$stmt = $connection->query($insert, $bind);
+$insert
+    ->into('foo')               # INTO this table
+    ->cols([                    # insert these as "(col) VALUES (:col)"
+        'bar',
+        'baz',
+    ])
+    ->set('id', 'NULL')         # insert raw values for this column
+    ->bindValues([              # bind these values
+        'bar' => 'foo',
+        'baz' => 'zim',
+    ]);
+?>
 ```
 
-Update
-------
+Once you have built the query, pass it to the database connection of your
+choice as a string, and send the bound values along with it.
 
-To get a new `Update` object, invoke the `newUpdate()` method on an connection.
-You can then modify the `Update` object and pass it to the `query()` method.
+```php
+<?php
+use Aura\Sql\ExtendedPdo;
+
+$pdo = new ExtendedPdo(...);
+$pdo->exec($insert->__toString(), $insert->getBindValues());
+$id = $pdo->getLastInsertId();
+?>
+```
+
+### UPDATE
+
+Build a common _UPDATE_ query using the following methods. They do not need to
+be called in any particular order, and may be called multiple times. This
+builds a single insert; you cannot do a multiple insert with this object.
 
 ```php
 <?php
