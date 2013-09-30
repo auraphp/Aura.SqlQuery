@@ -1,18 +1,20 @@
 <?php
-namespace Aura\Sql_Query;
+namespace Aura\Sql_Query\Common;
 
-interface InsertInterface extends QueryInterface
+use Aura\Sql_Query\QueryInterface;
+
+interface UpdateInterface extends QueryInterface
 {
     /**
      *
-     * Sets the table to insert into.
+     * Sets the table to update.
      *
-     * @param string $into The table to insert into.
+     * @param string $table The table to update.
      *
      * @return $this
      *
      */
-    public function into($into);
+    public function table($table);
     
     /**
      * 
@@ -49,4 +51,29 @@ interface InsertInterface extends QueryInterface
      * 
      */
     public function set($col, $value);
+
+    /**
+     * 
+     * Adds a WHERE condition to the query by AND.
+     * 
+     * @param string $cond The WHERE condition.
+     * 
+     * @return $this
+     * 
+     */
+    public function where($cond);
+
+    /**
+     * 
+     * Adds a WHERE condition to the query by OR; otherwise identical to 
+     * `where()`.
+     * 
+     * @param string $cond The WHERE condition.
+     * 
+     * @return $this
+     * 
+     * @see where()
+     * 
+     */
+    public function orWhere($cond);
 }

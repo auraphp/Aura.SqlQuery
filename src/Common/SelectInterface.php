@@ -8,7 +8,9 @@
  * @license http://opensource.org/licenses/bsd-license.php BSD
  *
  */
-namespace Aura\Sql_Query;
+namespace Aura\Sql_Query\Common;
+
+use Aura\Sql_Query\QueryInterface;
 
 /**
  *

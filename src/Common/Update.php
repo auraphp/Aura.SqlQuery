@@ -12,7 +12,6 @@ namespace Aura\Sql_Query\Common;
 
 use Aura\Sql_Query\AbstractQuery;
 use Aura\Sql_Query\Traits;
-use Aura\Sql_Query\UpdateInterface;
 
 /**
  *
