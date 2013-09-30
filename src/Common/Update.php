@@ -52,7 +52,7 @@ class Update extends AbstractQuery implements UpdateInterface
     
     protected function build()
     {
-        return "UPDATE {$this->table}" . PHP_EOL
+        return 'UPDATE' . $this->buildFlags() . " {$this->table}" . PHP_EOL
              . $this->buildValuesForUpdate()
              . $this->buildWhere()
              . PHP_EOL;

@@ -22,13 +22,6 @@ use Aura\Sql_Query\Traits;
  */
 class Insert extends Common\Insert
 {
-    protected function build()
-    {
-        return 'INSERT' . $this->buildFlags() . " INTO {$this->into}"
-             . $this->buildValuesForInsert()
-             . PHP_EOL;
-    }
-    
     /**
      *
      * Adds or removes OR ABORT flag.

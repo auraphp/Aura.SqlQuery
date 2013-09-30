@@ -26,9 +26,7 @@ class Update extends Common\Update
     
     protected function build()
     {
-        return "UPDATE {$this->table}" . PHP_EOL
-             . $this->buildValuesForUpdate()
-             . $this->buildWhere()
+        return parent::build()
              . $this->buildReturning()
              . PHP_EOL;
     }

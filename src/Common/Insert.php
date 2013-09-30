@@ -51,7 +51,7 @@ class Insert extends AbstractQuery implements InsertInterface
 
     protected function build()
     {
-        return "INSERT INTO {$this->into}"
+        return 'INSERT' . $this->buildFlags() . " INTO {$this->into}"
              . $this->buildValuesForInsert()
              . PHP_EOL;
     }

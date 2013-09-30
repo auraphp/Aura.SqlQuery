@@ -34,8 +34,7 @@ class Delete extends Common\Delete
      */
     protected function build()
     {
-        return 'DELETE' . $this->buildFlags() . " FROM {$this->from}" . PHP_EOL
-             . $this->buildWhere()
+        return parent::build()
              . $this->buildOrderBy()
              . $this->buildLimit()
              . PHP_EOL;

@@ -26,8 +26,7 @@ class Insert extends Common\Insert
     
     protected function build()
     {
-        return "INSERT INTO {$this->into}"
-             . $this->buildValuesForInsert()
+        return parent::build()
              . $this->buildReturning()
              . PHP_EOL;
     }
