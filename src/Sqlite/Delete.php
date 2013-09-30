@@ -22,8 +22,8 @@ use Aura\Sql_Query\Traits;
  */
 class Delete extends Common\Delete
 {
-    use Traits\OrderByTrait;
     use Traits\LimitOffsetTrait;
+    use Traits\OrderByTrait;
     
     protected function build()
     {
