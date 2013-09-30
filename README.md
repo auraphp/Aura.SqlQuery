@@ -236,7 +236,8 @@ $sth = $pdo->prepare($insert->__toString())
 $sth->execute($insert->getBindValues());
 
 // get the last insert ID
-$id = $pdo->getLastInsertId();
+$name = $insert->getLastInsertIdName('id');
+$id = $pdo->lastInsertId($name);
 ?>
 ```
 
