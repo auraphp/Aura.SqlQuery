@@ -23,5 +23,36 @@ use Aura\Sql_Query\DeleteInterface;
  */
 class Delete extends AbstractQuery implements DeleteInterface
 {
-    use Traits\DeleteTrait;
+    use Traits\WhereTrait;
+    
+    /**
+     *
+     * The table to delete from.
+     *
+     * @var string
+     *
+     */
+    protected $from;
+
+    /**
+     *
+     * Sets the table to delete from.
+     *
+     * @param string $table The table to delete from.
+     *
+     * @return $this
+     *
+     */
+    public function from($table)
+    {
+        $this->from = $this->quoteName($table);
+        return $this;
+    }
+    
+    protected function build()
+    {
+        return "DELETE FROM {$this->from}" . PHP_EOL
+             . $this->buildWhere()
+             . PHP_EOL;
+    }
 }

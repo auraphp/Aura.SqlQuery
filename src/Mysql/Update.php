@@ -10,9 +10,8 @@
  */
 namespace Aura\Sql_Query\Mysql;
 
-use Aura\Sql_Query\AbstractQuery;
+use Aura\Sql_Query\Common;
 use Aura\Sql_Query\Traits;
-use Aura\Sql_Query\UpdateInterface;
 
 /**
  *
@@ -21,9 +20,8 @@ use Aura\Sql_Query\UpdateInterface;
  * @package Aura.Sql
  *
  */
-class Update extends AbstractQuery implements UpdateInterface
+class Update extends Common\Update
 {
-    use Traits\UpdateTrait;
     use Traits\LimitTrait;
     use Traits\OrderByTrait;
     

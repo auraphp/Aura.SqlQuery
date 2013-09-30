@@ -10,9 +10,8 @@
  */
 namespace Aura\Sql_Query\Sqlite;
 
-use Aura\Sql_Query\AbstractQuery;
+use Aura\Sql_Query\Common;
 use Aura\Sql_Query\Traits;
-use Aura\Sql_Query\DeleteInterface;
 
 /**
  *
@@ -21,9 +20,8 @@ use Aura\Sql_Query\DeleteInterface;
  * @package Aura.Sql
  *
  */
-class Delete extends AbstractQuery implements DeleteInterface
+class Delete extends Common\Delete
 {
-    use Traits\DeleteTrait;
     use Traits\OrderByTrait;
     use Traits\LimitOffsetTrait;
     

@@ -10,9 +10,8 @@
  */
 namespace Aura\Sql_Query\Sqlite;
 
-use Aura\Sql_Query\AbstractQuery;
+use Aura\Sql_Query\Common;
 use Aura\Sql_Query\Traits;
-use Aura\Sql_Query\InsertInterface;
 
 /**
  *
@@ -21,9 +20,8 @@ use Aura\Sql_Query\InsertInterface;
  * @package Aura.Sql
  *
  */
-class Insert extends AbstractQuery implements InsertInterface
+class Insert extends Common\Insert
 {
-    use Traits\InsertTrait;
     
     protected function build()
     {

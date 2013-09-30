@@ -1,9 +1,9 @@
 <?php
 namespace Aura\Sql_Query\Mysql;
 
-use Aura\Sql_Query\Common\UpdateTest as CommonUpdateTest;
+use Aura\Sql_Query\Common;
 
-class UpdateTest extends CommonUpdateTest
+class UpdateTest extends Common\UpdateTest
 {
     protected $db_type = 'mysql';
 

@@ -175,10 +175,10 @@ $select
         'baz' => 'baz_val',
     ]);
 ?>
+```
 
 Once you have built the query, pass it to the database connection of your
 choice as a string, and send the bound values along with it.
-
 
 ```php
 <?php

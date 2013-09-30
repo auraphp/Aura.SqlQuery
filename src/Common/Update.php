@@ -23,5 +23,38 @@ use Aura\Sql_Query\UpdateInterface;
  */
 class Update extends AbstractQuery implements UpdateInterface
 {
-    use Traits\UpdateTrait;
+    use Traits\ValuesTrait;
+    use Traits\WhereTrait;
+
+    /**
+     *
+     * The table to update.
+     *
+     * @var string
+     *
+     */
+    protected $table;
+
+    /**
+     *
+     * Sets the table to update.
+     *
+     * @param string $table The table to update.
+     *
+     * @return $this
+     *
+     */
+    public function table($table)
+    {
+        $this->table = $this->quoteName($table);
+        return $this;
+    }
+    
+    protected function build()
+    {
+        return "UPDATE {$this->table}" . PHP_EOL
+             . $this->buildValuesForUpdate()
+             . $this->buildWhere()
+             . PHP_EOL;
+    }
 }

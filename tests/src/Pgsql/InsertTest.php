@@ -1,9 +1,9 @@
 <?php
 namespace Aura\Sql_Query\Pgsql;
 
-use Aura\Sql_Query\Common\InsertTest as CommonInsertTest;
+use Aura\Sql_Query\Common;
 
-class InsertTest extends CommonInsertTest
+class InsertTest extends Common\InsertTest
 {
     protected $db_type = 'pgsql';
 

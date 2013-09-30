@@ -1,9 +1,9 @@
 <?php
 namespace Aura\Sql_Query\Sqlsrv;
 
-use Aura\Sql_Query\Common\SelectTest as CommonSelectTest;
+use Aura\Sql_Query\Common;
 
-class SelectTest extends CommonSelectTest
+class SelectTest extends Common\SelectTest
 {
     protected $db_type = 'sqlsrv';
 

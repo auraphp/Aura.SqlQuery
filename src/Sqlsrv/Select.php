@@ -10,9 +10,8 @@
  */
 namespace Aura\Sql_Query\Sqlsrv;
 
-use Aura\Sql_Query\AbstractQuery;
+use Aura\Sql_Query\Common;
 use Aura\Sql_Query\Traits;
-use Aura\Sql_Query\SelectInterface;
 
 /**
  *
@@ -21,54 +20,55 @@ use Aura\Sql_Query\SelectInterface;
  * @package Aura.Sql
  *
  */
-class Select extends AbstractQuery implements SelectInterface
+class Select extends Common\Select
 {
-    use Traits\SelectTrait;
-
+    protected $stm;
+    
     protected function build()
     {
-        // build the first part of the string
-        $stm = 'SELECT'
-             . $this->buildFlags() . PHP_EOL
-             . $this->buildCols()
-             . $this->buildFrom()
-             . $this->buildJoin()
-             . $this->buildWhere()
-             . $this->buildGroupBy()
-             . $this->buildHaving()
-             . $this->buildOrderBy();
+        // build the first part of the statement
+        $this->stm = 'SELECT'
+                   . $this->buildFlags() . PHP_EOL
+                   . $this->buildCols()
+                   . $this->buildFrom()
+                   . $this->buildJoin()
+                   . $this->buildWhere()
+                   . $this->buildGroupBy()
+                   . $this->buildHaving()
+                   . $this->buildOrderBy();
         
-        // split because we need to modify the string at this point
-        $stm = $this->buildLimitOffset($stm);
+        // split because we need to modify the statement at this point
+        $this->buildLimitOffset();
         
         // continue building
-        return $stm
+        return $this->stm
              . $this->buildForUpdate()
              . PHP_EOL;
     }
     
-    protected function buildLimitOffset($stm)
+    protected function buildLimitOffset()
     {
         // neither limit nor offset?
         if (! $this->limit && ! $this->offset) {
             // no changes
-            return $stm;
+            return;
         }
         
         // limit but no offset?
         if ($this->limit && ! $this->offset) {
             // use TOP
-            return preg_replace(
+            $this->stm = preg_replace(
                 '/^(SELECT( DISTINCT)?)/',
                 "$1 TOP {$this->limit}",
-                $stm
+                $this->stm
             );
+            return;
         }
         
         // both limit and offset. must have an ORDER clause to work; OFFSET is
         // a sub-clause of the ORDER clause. cannot use FETCH without OFFSET.
-        return $stm . PHP_EOL
-             . "OFFSET {$this->offset} ROWS "
-             . "FETCH NEXT {$this->limit} ROWS ONLY" . PHP_EOL;
+        $this->stm .= PHP_EOL
+                    . "OFFSET {$this->offset} ROWS "
+                    . "FETCH NEXT {$this->limit} ROWS ONLY" . PHP_EOL;
     }
 }

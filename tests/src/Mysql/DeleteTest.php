@@ -1,9 +1,9 @@
 <?php
 namespace Aura\Sql_Query\Mysql;
 
-use Aura\Sql_Query\Common\DeleteTest as CommonDeleteTest;
+use Aura\Sql_Query\Common;
 
-class DeleteTest extends CommonDeleteTest
+class DeleteTest extends Common\DeleteTest
 {
     protected $query_type = 'Delete';
 

@@ -23,5 +23,36 @@ use Aura\Sql_Query\InsertInterface;
  */
 class Insert extends AbstractQuery implements InsertInterface
 {
-    use Traits\InsertTrait;
+    use Traits\ValuesTrait;
+
+    /**
+     *
+     * The table to insert into.
+     *
+     * @var string
+     *
+     */
+    protected $into;
+
+    /**
+     *
+     * Sets the table to insert into.
+     *
+     * @param string $into The table to insert into.
+     *
+     * @return $this
+     *
+     */
+    public function into($into)
+    {
+        $this->into = $this->quoteName($into);
+        return $this;
+    }
+
+    protected function build()
+    {
+        return "INSERT INTO {$this->into}"
+             . $this->buildValuesForInsert()
+             . PHP_EOL;
+    }
 }
