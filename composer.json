@@ -14,6 +14,9 @@
     "require": {
         "php": ">=5.4.0"
     },
+    "suggest": {
+        "aura/sql": "Provides an extension to the native PDO along with a profiler and connection locator. Use version dev-develop-2"
+    },
     "autoload": {
         "files": ["autoload.php"]
     }
