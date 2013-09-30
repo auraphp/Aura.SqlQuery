@@ -44,7 +44,8 @@ class Insert extends AbstractQuery implements InsertInterface
      */
     public function into($into)
     {
-        $this->into = $this->quoteName($into);
+        // don't quote yet, we might need it for getLastInsertIdName()
+        $this->into = $into;
         return $this;
     }
 
@@ -59,6 +60,11 @@ class Insert extends AbstractQuery implements InsertInterface
     
     protected function buildInto()
     {
-        $this->stm .= " INTO {$this->into}";
+        $this->stm .= " INTO " . $this->quoteName($this->into);
+    }
+    
+    public function getLastInsertIdName($col)
+    {
+        return null;
     }
 }

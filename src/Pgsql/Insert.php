@@ -30,4 +30,9 @@ class Insert extends Common\Insert
         $this->buildReturning();
         return $this->stm;
     }
+    
+    public function getLastInsertIdName($col)
+    {
+        return "{$this->into}_{$col}_seq";
+    }
 }

@@ -33,4 +33,9 @@ class InsertTest extends AbstractQueryTest
         
         $this->assertSameSql($expect, $actual);
     }
+    
+    public function testGetLastInsertIdName()
+    {
+        $this->assertNull($this->query->getLastInsertIdName('no matter'));
+    }
 }
