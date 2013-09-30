@@ -51,14 +51,14 @@ class Delete extends AbstractQuery implements DeleteInterface
     protected function build()
     {
         $this->stm = 'DELETE';
-        $this->stm .= $this->buildFlags();
-        $this->stm .= $this->buildFrom();
-        $this->stm .= $this->buildWhere();
-        return $this->stm . PHP_EOL;
+        $this->buildFlags();
+        $this->buildFrom();
+        $this->buildWhere();
+        return $this->stm;
     }
     
     protected function buildFrom()
     {
-        return " FROM {$this->from}" . PHP_EOL;
+        $this->stm .= " FROM {$this->from}";
     }
 }

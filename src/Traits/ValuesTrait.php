@@ -88,11 +88,11 @@ trait ValuesTrait
     
     protected function buildValuesForInsert()
     {
-        return ' ('
-             . $this->indentCsv(array_keys($this->values))
-             . ') VALUES ('
-             . $this->indentCsv(array_values($this->values))
-             . ')';
+        $this->stm .= ' ('
+                    . $this->indentCsv(array_keys($this->values))
+                    . PHP_EOL . ') VALUES ('
+                    . $this->indentCsv(array_values($this->values))
+                    . PHP_EOL . ')';
     }
     
     protected function buildValuesForUpdate()
@@ -101,6 +101,6 @@ trait ValuesTrait
         foreach ($this->values as $col => $value) {
             $values[] = "{$col} = {$value}";
         }
-        return 'SET' . $this->indentCsv($values);
+        $this->stm .= PHP_EOL . 'SET' . $this->indentCsv($values);
     }
 }

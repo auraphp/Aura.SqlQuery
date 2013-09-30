@@ -59,7 +59,7 @@ trait LimitTrait
     protected function buildLimit()
     {
         if ($this->limit) {
-            return "LIMIT {$this->limit}" . PHP_EOL;
+            $this->stm .= PHP_EOL . "LIMIT {$this->limit}";
         }
     }
 }

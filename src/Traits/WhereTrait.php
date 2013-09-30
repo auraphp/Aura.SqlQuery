@@ -99,7 +99,7 @@ trait WhereTrait
     protected function buildWhere()
     {
         if ($this->where) {
-            return 'WHERE' . $this->indent($this->where);
+            $this->stm .= PHP_EOL . 'WHERE' . $this->indent($this->where);
         }
     }
 }

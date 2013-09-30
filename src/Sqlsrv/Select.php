@@ -22,7 +22,7 @@ use Aura\Sql_Query\Traits;
  */
 class Select extends Common\Select
 {
-    protected function buildLimitOffset()
+    protected function buildLimit()
     {
         // neither limit nor offset?
         if (! $this->limit && ! $this->offset) {
@@ -43,7 +43,7 @@ class Select extends Common\Select
         
         // both limit and offset. must have an ORDER clause to work; OFFSET is
         // a sub-clause of the ORDER clause. cannot use FETCH without OFFSET.
-        return "OFFSET {$this->offset} ROWS "
-             . "FETCH NEXT {$this->limit} ROWS ONLY" . PHP_EOL;
+        $this->stm .= PHP_EOL . "OFFSET {$this->offset} ROWS "
+                    . "FETCH NEXT {$this->limit} ROWS ONLY";
     }
 }

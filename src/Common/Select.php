@@ -224,8 +224,10 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function fromSubSelect($spec, $name)
     {
-        $spec = ltrim(preg_replace('/^/m', '    ', (string) $spec));
-        $this->from[] = "($spec) AS " . $this->quoteName($name);
+        $spec = ltrim(preg_replace('/^/m', '        ', (string) $spec));
+        $this->from[] = "("
+                      . PHP_EOL . '        ' . $spec . PHP_EOL
+                      . "    ) AS " . $this->quoteName($name);
         return $this;
     }
 
@@ -275,7 +277,9 @@ class Select extends AbstractQuery implements SelectInterface
     public function joinSubSelect($join, $spec, $name, $cond = null)
     {
         $join = strtoupper(ltrim("$join JOIN"));
-        $spec = ltrim(preg_replace('/^/m', '    ', (string) $spec));
+        $spec = PHP_EOL . '    '
+              . ltrim(preg_replace('/^/m', '    ', (string) $spec))
+              . PHP_EOL;
         $name = $this->quoteName($name);
         if ($cond) {
             $cond = $this->quoteNamesIn($cond);
@@ -407,7 +411,7 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function union()
     {
-        $this->union[] = $this->build() . 'UNION';
+        $this->union[] = $this->build() . PHP_EOL . 'UNION';
         $this->reset();
         return $this;
     }
@@ -422,7 +426,7 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function unionAll()
     {
-        $this->union[] = $this->build() . 'UNION ALL';
+        $this->union[] = $this->build() . PHP_EOL . 'UNION ALL';
         $this->reset();
         return $this;
     }
@@ -453,63 +457,61 @@ class Select extends AbstractQuery implements SelectInterface
     protected function build()
     {
         $this->stm = 'SELECT';
-        $this->stm .= $this->buildFlags();
-        $this->stm .= $this->buildCols();
-        $this->stm .= $this->buildFrom();
-        $this->stm .= $this->buildJoin();
-        $this->stm .= $this->buildWhere();
-        $this->stm .= $this->buildGroupBy();
-        $this->stm .= $this->buildHaving();
-        $this->stm .= $this->buildOrderBy();
-        $this->stm .= $this->buildLimitOffset();
-        $this->stm .= $this->buildForUpdate();
+        $this->buildFlags();
+        $this->buildCols();
+        $this->buildFrom();
+        $this->buildJoin();
+        $this->buildWhere();
+        $this->buildGroupBy();
+        $this->buildHaving();
+        $this->buildOrderBy();
+        $this->buildLimit();
+        $this->buildForUpdate();
         return $this->stm;
     }
     
     protected function buildCols()
     {
         if ($this->cols) {
-            return $this->indentCsv($this->cols);
+            $this->stm .= $this->indentCsv($this->cols);
+            return;
         }
-        return PHP_EOL;
     }
     
     protected function buildFrom()
     {
         if ($this->from) {
-            return 'FROM' . $this->indentCsv($this->from);
+            $this->stm .= PHP_EOL . 'FROM' . $this->indentCsv($this->from);
         }
     }
     
     protected function buildJoin()
     {
         if ($this->join) {
-            $text = '';
             foreach ($this->join as $join) {
-                $text .= $join . PHP_EOL;
+                $this->stm .= PHP_EOL . $join;
             }
-            return $text;
         }
     }
     
     protected function buildGroupBy()
     {
         if ($this->group_by) {
-            return 'GROUP BY' . $this->indentCsv($this->group_by);
+            $this->stm .= PHP_EOL . 'GROUP BY' . $this->indentCsv($this->group_by);
         }
     }
     
     protected function buildHaving()
     {
         if ($this->having) {
-            return 'HAVING' . $this->indent($this->having);
+            $this->stm .= PHP_EOL . 'HAVING' . $this->indent($this->having);
         }
     }
     
     protected function buildForUpdate()
     {
         if ($this->for_update) {
-            return 'FOR UPDATE' . PHP_EOL;
+            $this->stm .= PHP_EOL . 'FOR UPDATE';
         }
     }
 }

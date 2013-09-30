@@ -58,7 +58,7 @@ trait ReturningTrait
     protected function buildReturning()
     {
         if ($this->returning) {
-            return 'RETURNING' . $this->indentCsv($this->returning);
+            $this->stm .= PHP_EOL . 'RETURNING' . $this->indentCsv($this->returning);
         }
     }
 }

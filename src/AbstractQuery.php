@@ -115,8 +115,7 @@ abstract class AbstractQuery
     protected function indentCsv(array $list)
     {
         return PHP_EOL . '    '
-             . implode(',' . PHP_EOL . '    ', $list)
-             . PHP_EOL;
+             . implode(',' . PHP_EOL . '    ', $list);
     }
 
     /**
@@ -131,8 +130,7 @@ abstract class AbstractQuery
     protected function indent(array $list)
     {
         return PHP_EOL . '    '
-             . implode(PHP_EOL . '    ', $list)
-             . PHP_EOL;
+             . implode(PHP_EOL . '    ', $list);
     }
 
     /**
@@ -176,7 +174,7 @@ abstract class AbstractQuery
     protected function buildFlags()
     {
         if ($this->flags) {
-            return ' ' . implode(' ', array_keys($this->flags));
+            $this->stm .= ' ' . implode(' ', array_keys($this->flags));
         }
     }
 

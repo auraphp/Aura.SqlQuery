@@ -110,7 +110,9 @@ class SelectTest extends AbstractQueryTest
             SELECT
                 *
             FROM
-                (SELECT * FROM t2) AS <<a2>>
+                (
+                SELECT * FROM t2
+                ) AS <<a2>>
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
@@ -126,7 +128,8 @@ class SelectTest extends AbstractQueryTest
             SELECT
                 *
             FROM
-                (SELECT
+                (
+                SELECT
                     *
                 FROM
                     <<t2>>
@@ -159,8 +162,12 @@ class SelectTest extends AbstractQueryTest
         $this->query->joinSubSelect('natural', $sub2, 'a3');
         $expect = '
             SELECT
-            LEFT JOIN (SELECT * FROM t2) AS <<a2>> ON <<t2>>.<<c1>> = <<a3>>.<<c1>>
-            NATURAL JOIN (SELECT * FROM t3) AS <<a3>>
+            LEFT JOIN (
+                SELECT * FROM t2
+            ) AS <<a2>> ON <<t2>>.<<c1>> = <<a3>>.<<c1>>
+            NATURAL JOIN (
+                SELECT * FROM t3
+            ) AS <<a3>>
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
@@ -174,10 +181,11 @@ class SelectTest extends AbstractQueryTest
         $this->query->joinSubSelect('left', $sub, 'a3', 't2.c1 = a3.c1');
         $expect = '
             SELECT
-            LEFT JOIN (SELECT
-                *
-            FROM
-                <<t2>>
+            LEFT JOIN (
+                SELECT
+                    *
+                FROM
+                    <<t2>>
             ) AS <<a3>> ON <<t2>>.<<c1>> = <<a3>>.<<c1>>
         ';
         $actual = $this->query->__toString();

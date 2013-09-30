@@ -34,10 +34,10 @@ class Update extends Common\Update
      */
     protected function build()
     {
-        $this->stm = rtrim(parent::build()) . PHP_EOL;
-        $this->stm .= $this->buildOrderBy();
-        $this->stm .= $this->buildLimit();
-        return $this->stm . PHP_EOL;
+        parent::build();
+        $this->buildOrderBy();
+        $this->buildLimit();
+        return $this->stm;
     }
 
     /**

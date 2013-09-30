@@ -45,20 +45,13 @@ trait LimitOffsetTrait
         return $this;
     }
     
-    protected function buildLimitOffset()
+    protected function buildLimit()
     {
-        $limit = $this->buildLimit();
-        if (! $limit) {
-            // no limit, so can't do offset
-            return;
+        if ($this->limit) {
+            $this->stm .= PHP_EOL . "LIMIT {$this->limit}";
+            if ($this->offset) {
+                $this->stm .= " OFFSET {$this->offset}";
+            }
         }
-        
-        if (! $this->offset) {
-            // no offset, so return only limit
-            return $limit;
-        }
-        
-        // return limit and offset
-        return rtrim($limit) . " OFFSET {$this->offset}" . PHP_EOL;
     }
 }

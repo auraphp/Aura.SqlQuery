@@ -55,7 +55,7 @@ trait OrderByTrait
     protected function buildOrderBy()
     {
         if ($this->order_by) {
-            return 'ORDER BY' . $this->indentCsv($this->order_by);
+            $this->stm .= PHP_EOL . 'ORDER BY' . $this->indentCsv($this->order_by);
         }
     }
 }

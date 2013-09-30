@@ -26,8 +26,8 @@ class Update extends Common\Update
     
     protected function build()
     {
-        $this->stm = rtrim(parent::build()) . PHP_EOL;
-        $this->stm .= $this->buildReturning();
-        return $this->stm . PHP_EOL;
+        parent::build();
+        $this->buildReturning();
+        return $this->stm;
     }
 }
