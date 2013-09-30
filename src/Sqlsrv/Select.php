@@ -22,30 +22,6 @@ use Aura\Sql_Query\Traits;
  */
 class Select extends Common\Select
 {
-    protected $stm;
-    
-    protected function build()
-    {
-        // build the first part of the statement
-        $this->stm = 'SELECT'
-                   . $this->buildFlags() . PHP_EOL
-                   . $this->buildCols()
-                   . $this->buildFrom()
-                   . $this->buildJoin()
-                   . $this->buildWhere()
-                   . $this->buildGroupBy()
-                   . $this->buildHaving()
-                   . $this->buildOrderBy();
-        
-        // split because we need to modify the statement at this point
-        $this->buildLimitOffset();
-        
-        // continue building
-        return $this->stm
-             . $this->buildForUpdate()
-             . PHP_EOL;
-    }
-    
     protected function buildLimitOffset()
     {
         // neither limit nor offset?
@@ -56,7 +32,7 @@ class Select extends Common\Select
         
         // limit but no offset?
         if ($this->limit && ! $this->offset) {
-            // use TOP
+            // use TOP in place
             $this->stm = preg_replace(
                 '/^(SELECT( DISTINCT)?)/',
                 "$1 TOP {$this->limit}",
@@ -67,8 +43,7 @@ class Select extends Common\Select
         
         // both limit and offset. must have an ORDER clause to work; OFFSET is
         // a sub-clause of the ORDER clause. cannot use FETCH without OFFSET.
-        $this->stm .= PHP_EOL
-                    . "OFFSET {$this->offset} ROWS "
-                    . "FETCH NEXT {$this->limit} ROWS ONLY" . PHP_EOL;
+        return "OFFSET {$this->offset} ROWS "
+             . "FETCH NEXT {$this->limit} ROWS ONLY" . PHP_EOL;
     }
 }

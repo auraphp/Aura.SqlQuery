@@ -34,10 +34,10 @@ class Delete extends Common\Delete
      */
     protected function build()
     {
-        return parent::build()
-             . $this->buildOrderBy()
-             . $this->buildLimit()
-             . PHP_EOL;
+        $this->stm = rtrim(parent::build()) . PHP_EOL;
+        $this->stm .= $this->buildOrderBy();
+        $this->stm .= $this->buildLimit();
+        return $this->stm . PHP_EOL;
     }
 
     /**

@@ -51,9 +51,16 @@ class Update extends AbstractQuery implements UpdateInterface
     
     protected function build()
     {
-        return 'UPDATE' . $this->buildFlags() . " {$this->table}" . PHP_EOL
-             . $this->buildValuesForUpdate()
-             . $this->buildWhere()
-             . PHP_EOL;
+        $this->stm = 'UPDATE';
+        $this->stm .= $this->buildFlags();
+        $this->stm .= $this->buildTable();
+        $this->stm .= $this->buildValuesForUpdate();
+        $this->stm .= $this->buildWhere();
+        return $this->stm . PHP_EOL;
+    }
+    
+    protected function buildTable()
+    {
+        return " {$this->table}" . PHP_EOL;
     }
 }

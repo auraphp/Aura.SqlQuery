@@ -28,8 +28,8 @@ abstract class AbstractQueryTest extends \PHPUnit_Framework_TestCase
     {
         // remove leading and trailing whitespace per block and line
         $expect = trim($expect);
-        $expect = preg_replace('/^\s*/m', '', $expect);
-        $expect = preg_replace('/\s*$/m', '', $expect);
+        $expect = preg_replace('/^[ \t]*/m', '', $expect);
+        $expect = preg_replace('/[ \t]*$/m', '', $expect);
         
         // convert "<<" and ">>" to the correct identifier quotes
         $expect = str_replace('<<', $this->query->getQuoteNamePrefix(), $expect);
@@ -37,8 +37,8 @@ abstract class AbstractQueryTest extends \PHPUnit_Framework_TestCase
         
         // remove leading and trailing whitespace per block and line
         $actual = trim($actual);
-        $actual = preg_replace('/^\s*/m', '', $actual);
-        $actual = preg_replace('/\s*$/m', '', $actual);
+        $actual = preg_replace('/^[ \t]*/m', '', $actual);
+        $actual = preg_replace('/[ \t]*$/m', '', $actual);
         
         // are they the same now?
         $this->assertSame($expect, $actual);

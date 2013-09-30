@@ -26,6 +26,9 @@ class Select extends AbstractQuery implements SelectInterface
     use Traits\OrderByTrait;
     use Traits\WhereTrait;
 
+    // the statement being built
+    protected $stm;
+    
     /**
      *
      * An array of union SELECT statements.
@@ -404,7 +407,7 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function union()
     {
-        $this->union[] = $this->build() . PHP_EOL . 'UNION';
+        $this->union[] = $this->build() . 'UNION';
         $this->reset();
         return $this;
     }
@@ -419,7 +422,7 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function unionAll()
     {
-        $this->union[] = $this->build() . PHP_EOL . 'UNION ALL';
+        $this->union[] = $this->build() . 'UNION ALL';
         $this->reset();
         return $this;
     }
@@ -449,18 +452,18 @@ class Select extends AbstractQuery implements SelectInterface
     
     protected function build()
     {
-        return 'SELECT'
-             . $this->buildFlags() . PHP_EOL
-             . $this->buildCols()
-             . $this->buildFrom()
-             . $this->buildJoin()
-             . $this->buildWhere()
-             . $this->buildGroupBy()
-             . $this->buildHaving()
-             . $this->buildOrderBy()
-             . $this->buildLimitOffset()
-             . $this->buildForUpdate()
-             . PHP_EOL;
+        $this->stm = 'SELECT';
+        $this->stm .= $this->buildFlags();
+        $this->stm .= $this->buildCols();
+        $this->stm .= $this->buildFrom();
+        $this->stm .= $this->buildJoin();
+        $this->stm .= $this->buildWhere();
+        $this->stm .= $this->buildGroupBy();
+        $this->stm .= $this->buildHaving();
+        $this->stm .= $this->buildOrderBy();
+        $this->stm .= $this->buildLimitOffset();
+        $this->stm .= $this->buildForUpdate();
+        return $this->stm;
     }
     
     protected function buildCols()
@@ -468,6 +471,7 @@ class Select extends AbstractQuery implements SelectInterface
         if ($this->cols) {
             return $this->indentCsv($this->cols);
         }
+        return PHP_EOL;
     }
     
     protected function buildFrom()
@@ -505,7 +509,7 @@ class Select extends AbstractQuery implements SelectInterface
     protected function buildForUpdate()
     {
         if ($this->for_update) {
-            return 'FOR UPDATE';
+            return 'FOR UPDATE' . PHP_EOL;
         }
     }
 }

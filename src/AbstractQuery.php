@@ -48,6 +48,15 @@ abstract class AbstractQuery
 
     /**
      * 
+     * The statement being built.
+     * 
+     * @var string
+     * 
+     */
+    protected $stm;
+    
+    /**
+     * 
      * The suffix to use when quoting identifier names.
      * 
      * @var string
