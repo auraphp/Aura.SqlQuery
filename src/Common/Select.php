@@ -303,23 +303,9 @@ class Select extends AbstractQuery implements SelectInterface
 
     /**
      *
-     * Adds a HAVING condition to the query by AND; if a value is passed as
-     * the second param, it will be quoted and replaced into the condition
-     * wherever a question-mark appears.
-     *
-     * Array values are quoted and comma-separated.
-     *
-     * {{code: php
-     *     // simplest but non-secure
-     *     $select->having("COUNT(id) = $count");
-     *
-     *     // secure
-     *     $select->having('COUNT(id) = ?', $count);
-     *
-     *     // equivalent security with named binding
-     *     $select->having('COUNT(id) = :count');
-     *     $select->bind('count', $count);
-     * }}
+     * Adds a HAVING condition to the query by AND. If the condition has
+     * ?-placeholders, additional arguments to the method will be bound to
+     * those placeholders sequentially.
      *
      * @param string $cond The HAVING condition.
      *
@@ -328,10 +314,14 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function having($cond)
     {
+        // quote names in the condition
         $cond = $this->quoteNamesIn($cond);
-
-        if (func_num_args() > 1) {
-            $cond = $this->autobind($cond, func_get_arg(1));
+        
+        // bind values to the condition
+        $bind = func_get_args();
+        array_shift($bind);
+        if ($bind) {
+            $cond = $this->autobind($cond, $bind);
         }
 
         if ($this->having) {
@@ -346,8 +336,9 @@ class Select extends AbstractQuery implements SelectInterface
 
     /**
      *
-     * Adds a HAVING condition to the query by AND; otherwise identical to
-     * `having()`.
+     * Adds a HAVING condition to the query by AND. If the condition has
+     * ?-placeholders, additional arguments to the method will be bound to
+     * those placeholders sequentially.
      *
      * @param string $cond The HAVING condition.
      *
@@ -358,10 +349,14 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function orHaving($cond)
     {
+        // quote names in the condition
         $cond = $this->quoteNamesIn($cond);
-
-        if (func_num_args() > 1) {
-            $cond = $this->autobind($cond, func_get_arg(1));
+        
+        // bind values to the condition
+        $bind = func_get_args();
+        array_shift($bind);
+        if ($bind) {
+            $cond = $this->autobind($cond, $bind);
         }
 
         if ($this->having) {

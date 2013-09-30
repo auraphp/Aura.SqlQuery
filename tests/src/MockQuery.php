@@ -18,7 +18,7 @@ class MockQuery extends AbstractQuery
         return parent::quoteNamesIn($text);
     }
     
-    public function autobind($text, $bind = null)
+    public function autobind($text, array $bind)
     {
         return parent::autobind($text, $bind);
     }

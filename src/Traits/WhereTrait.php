@@ -30,7 +30,9 @@ trait WhereTrait
 
     /**
      * 
-     * Adds a WHERE condition to the query by AND.
+     * Adds a WHERE condition to the query by AND. If the condition has
+     * ?-placeholders, additional arguments to the method will be bound to
+     * those placeholders sequentially.
      * 
      * @param string $cond The WHERE condition.
      * 
@@ -39,10 +41,14 @@ trait WhereTrait
      */
     public function where($cond)
     {
+        // quote names in the condition
         $cond = $this->quoteNamesIn($cond);
-
-        if (func_num_args() > 1) {
-            $cond = $this->autobind($cond, func_get_arg(1));
+        
+        // bind values to the condition
+        $bind = func_get_args();
+        array_shift($bind);
+        if ($bind) {
+            $cond = $this->autobind($cond, $bind);
         }
 
         if ($this->where) {
@@ -57,8 +63,9 @@ trait WhereTrait
 
     /**
      * 
-     * Adds a WHERE condition to the query by OR; otherwise identical to 
-     * `where()`.
+     * Adds a WHERE condition to the query by OR. If the condition has
+     * ?-placeholders, additional arguments to the method will be bound to
+     * those placeholders sequentially.
      * 
      * @param string $cond The WHERE condition.
      * 
@@ -69,10 +76,14 @@ trait WhereTrait
      */
     public function orWhere($cond)
     {
+        // quote names in the condition
         $cond = $this->quoteNamesIn($cond);
-
-        if (func_num_args() > 1) {
-            $cond = $this->autobind($cond, func_get_arg(1));
+        
+        // bind values to the condition
+        $bind = func_get_args();
+        array_shift($bind);
+        if ($bind) {
+            $cond = $this->autobind($cond, $bind);
         }
 
         if ($this->where) {

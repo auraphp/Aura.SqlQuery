@@ -51,11 +51,11 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     public function testAutobind()
     {
         $expect = 'foo = bar';
-        $actual = $this->query->autobind('foo = bar');
+        $actual = $this->query->autobind('foo = bar', []);
         $this->assertSame($expect, $actual);
         
         $expect = 'foo = :auto_bind_0';
-        $actual = $this->query->autobind('foo = ?', 'bar');
+        $actual = $this->query->autobind('foo = ?', ['bar']);
         $this->assertSame($expect, $actual);
         
         $expect = 'foo IN (:auto_bind_1)';

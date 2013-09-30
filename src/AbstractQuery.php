@@ -210,35 +210,23 @@ abstract class AbstractQuery
      * 
      * @param string $text The text with placeholder(s).
      * 
-     * @param mixed $bind The data value(s) to quote.
-     * 
      * @return mixed An SQL-safe quoted value (or string of separated values)
      * placed into the original text.
      * 
      * @see quote()
      * 
      */
-    protected function autobind($text, $bind = null)
+    protected function autobind($text, array $bind)
     {
-        // how many placeholders are there?
+        // if there are no placeholders, nothing to replace
         $count = substr_count($text, '?');
         if (! $count) {
-            // no replacements needed
             return $text;
         }
 
-        // only one placeholder?
-        if ($count == 1) {
-            // replace with an auto-named placeholder
-            $auto = 'auto_bind_' . count($this->bind_values);
-            $text = str_replace('?', ":$auto", $text);
-            $this->bindValue($auto, $bind);
-            return $text;
-        }
-
-        // more than one placeholder
+        // replace with named placeholders then bind values
         $offset = 0;
-        foreach ((array) $bind as $val) {
+        foreach ($bind as $val) {
 
             // find the next placeholder
             $pos = strpos($text, '?', $offset);
