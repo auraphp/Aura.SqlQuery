@@ -40,6 +40,7 @@ class QueryFactory
     public function __construct($type, $common = false)
     {
         $this->type = ucfirst(strtolower($type));
+        $this->common = $common;
         $this->quote_name_prefix = $this->quotes[$this->type][0];
         $this->quote_name_suffix = $this->quotes[$this->type][1];
     }
