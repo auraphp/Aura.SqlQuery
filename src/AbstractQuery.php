@@ -447,5 +447,4 @@ abstract class AbstractQuery
 
         return $text;
     }
-
 }

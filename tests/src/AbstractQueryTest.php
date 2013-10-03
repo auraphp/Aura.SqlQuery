@@ -1,8 +1,6 @@
 <?php
 namespace Aura\Sql_Query;
 
-use Aura\Sql_Query\QueryFactory;
-
 abstract class AbstractQueryTest extends \PHPUnit_Framework_TestCase
 {
     protected $query_type;

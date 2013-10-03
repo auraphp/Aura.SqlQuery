@@ -48,7 +48,7 @@ class UpdateTest extends Common\UpdateTest
                 foo = :auto_bind_0
                 AND baz = :auto_bind_1
                 OR zim = gir
-            ORDER BY 
+            ORDER BY
                 zim DESC,
                 baz ASC
             LIMIT 5 OFFSET 10
