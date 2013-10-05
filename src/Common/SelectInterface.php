@@ -278,5 +278,4 @@ interface SelectInterface extends QueryInterface
      *
      */
     public function unionAll();
-
 }

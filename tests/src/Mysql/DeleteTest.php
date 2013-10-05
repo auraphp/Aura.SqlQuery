@@ -5,8 +5,6 @@ use Aura\Sql_Query\Common;
 
 class DeleteTest extends Common\DeleteTest
 {
-    protected $query_type = 'Delete';
-
     protected $db_type = 'mysql';
     
     protected $expected_sql_with_flag = "

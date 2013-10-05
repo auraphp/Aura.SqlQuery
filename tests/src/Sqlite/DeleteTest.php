@@ -24,7 +24,7 @@ class DeleteTest extends Common\DeleteTest
                 foo = :auto_bind_0
                 AND baz = :auto_bind_1
                 OR zim = gir
-            ORDER BY 
+            ORDER BY
                 zim DESC
             LIMIT 5 OFFSET 10    
         ";
