@@ -206,7 +206,9 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function from($spec)
     {
-        $this->from[] = $this->quoteName($spec);
+        $this->from[] = [
+            $this->quoteName($spec)
+        ];
         return $this;
     }
 
@@ -225,9 +227,11 @@ class Select extends AbstractQuery implements SelectInterface
     public function fromSubSelect($spec, $name)
     {
         $spec = ltrim(preg_replace('/^/m', '        ', (string) $spec));
-        $this->from[] = "("
-                      . PHP_EOL . '        ' . $spec . PHP_EOL
-                      . "    ) AS " . $this->quoteName($name);
+        $this->from[] = [
+            "("
+            . PHP_EOL . '        ' . $spec . PHP_EOL
+            . "    ) AS " . $this->quoteName($name)
+        ];
         return $this;
     }
 
@@ -250,10 +254,19 @@ class Select extends AbstractQuery implements SelectInterface
         $spec = $this->quoteName($spec);
         if ($cond) {
             $cond = $this->quoteNamesIn($cond);
-            $this->join[] = "$join $spec ON $cond";
+            $joinStatement = "$join $spec ON $cond";
         } else {
-            $this->join[] = "$join $spec";
+            $joinStatement = "$join $spec";
         }
+
+        $this->join[] = $joinStatement;
+
+        //connect to latest from statement
+        $fromCount = count($this->from);
+        if ($fromCount) {
+            $this->from[$fromCount - 1][] = $joinStatement;
+        }
+
         return $this;
     }
 
@@ -283,10 +296,19 @@ class Select extends AbstractQuery implements SelectInterface
         $name = $this->quoteName($name);
         if ($cond) {
             $cond = $this->quoteNamesIn($cond);
-            $this->join[] = "$join ($spec) AS $name ON $cond";
+            $joinStatement = "$join ($spec) AS $name ON $cond";
         } else {
-            $this->join[] = "$join ($spec) AS $name";
+            $joinStatement = "$join ($spec) AS $name";
         }
+
+        $this->join[] = $joinStatement;
+
+        //connect to latest from statement
+        $fromCount = count($this->from);
+        if ($fromCount) {
+            $this->from[$fromCount - 1][] = $joinStatement;
+        }
+
         return $this;
     }
 
@@ -480,14 +502,18 @@ class Select extends AbstractQuery implements SelectInterface
     
     protected function buildFrom()
     {
-        if ($this->from) {
-            $this->stm .= PHP_EOL . 'FROM' . $this->indentCsv($this->from);
+        if (count($this->from)) {
+            $preparedFrom = [];
+            foreach ($this->from as $from) {
+                $preparedFrom[] = implode(PHP_EOL, $from);
+            }
+            $this->stm .= PHP_EOL . 'FROM' . $this->indentCsv($preparedFrom);
         }
     }
     
     protected function buildJoin()
     {
-        if ($this->join) {
+        if (count($this->from) === 0 && count($this->join) > 0) {
             foreach ($this->join as $join) {
                 $this->stm .= PHP_EOL . $join;
             }
