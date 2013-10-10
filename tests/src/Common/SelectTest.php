@@ -221,11 +221,15 @@ class SelectTest extends AbstractQueryTest
             SELECT
             WHERE
                 c1 = c2
-                AND c3 = :auto_bind_0
+                AND c3 = ?
         ';
 
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
+        
+        $actual = $this->query->getBindValues();
+        $expect = [1 => 'foo'];
+        $this->assertSame($expect, $actual);
     }
 
     public function testOrWhere()
@@ -237,11 +241,15 @@ class SelectTest extends AbstractQueryTest
             SELECT
             WHERE
                 c1 = c2
-                OR c3 = :auto_bind_0
+                OR c3 = ?
         ';
 
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
+        
+        $actual = $this->query->getBindValues();
+        $expect = [1 => 'foo'];
+        $this->assertSame($expect, $actual);
     }
 
     public function testGroupBy()
@@ -266,11 +274,15 @@ class SelectTest extends AbstractQueryTest
             SELECT
             HAVING
                 c1 = c2
-                AND c3 = :auto_bind_0
+                AND c3 = ?
         ';
 
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
+        
+        $actual = $this->query->getBindValues();
+        $expect = [1 => 'foo'];
+        $this->assertSame($expect, $actual);
     }
 
     public function testOrHaving()
@@ -281,11 +293,15 @@ class SelectTest extends AbstractQueryTest
             SELECT
             HAVING
                 c1 = c2
-                OR c3 = :auto_bind_0
+                OR c3 = ?
         ';
 
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
+        
+        $actual = $this->query->getBindValues();
+        $expect = [1 => 'foo'];
+        $this->assertSame($expect, $actual);
     }
 
     public function testOrderBy()
@@ -391,22 +407,23 @@ class SelectTest extends AbstractQueryTest
     
     public function testAutobind()
     {
-        $this->query->where('foo = ?', 'bar');
+        // do these out of order
         $this->query->having('baz IN (?)', ['dib', 'zim', 'gir']);
+        $this->query->where('foo = ?', 'bar');
         
         $expect = '
             SELECT
             WHERE
-                foo = :auto_bind_0
+                foo = ?
             HAVING
-                baz IN (:auto_bind_1)
+                baz IN (?)
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
         
         $expect = [
-            'auto_bind_0' => 'bar',
-            'auto_bind_1' => ['dib', 'zim', 'gir'],
+            1 => 'bar',
+            2 => ['dib', 'zim', 'gir'],
         ];
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);

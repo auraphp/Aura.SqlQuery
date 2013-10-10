@@ -48,22 +48,36 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($expect, $actual);
     }
     
-    public function testAutobind()
+    public function testBindCondValue()
     {
-        $expect = 'foo = bar';
-        $actual = $this->query->autobind('foo = bar', []);
+        $actual = [];
+        
+        $expect = [];
+        $this->query->bindCondValue('foo = bar', [], $actual);
         $this->assertSame($expect, $actual);
         
-        $expect = 'foo = :auto_bind_0';
-        $actual = $this->query->autobind('foo = ?', ['bar']);
+        $expect = [
+            0 => 'foo',
+        ];
+        $this->query->bindCondValue('foo = ?', ['foo'], $actual);
         $this->assertSame($expect, $actual);
         
-        $expect = 'foo IN (:auto_bind_1)';
-        $actual = $this->query->autobind('foo IN (?)', ['bar', 'baz', 'dib']);
+        // this is a problem, because quoting at ExtendedPdo level *does not*
+        // quote sequential question marks to CSV arrays.
+        $expect = [
+            0 => 'foo',
+            1 => ['bar', 'baz', 'dib'],
+        ];
+        $this->query->bindCondValue('foo IN (?)', [['bar', 'baz', 'dib']], $actual);
         $this->assertSame($expect, $actual);
         
-        $expect = 'foo BETWEEN :auto_bind_2 AND :auto_bind_3';
-        $actual = $this->query->autobind('foo BETWEEN ? AND ?', [10, 20, 30]);
+        $expect = [
+            0 => 'foo',
+            1 => ['bar', 'baz', 'dib'],
+            2 => 10,
+            3 => 20,
+        ];
+        $this->query->bindCondValue('foo BETWEEN ? AND ?', [10, 20], $actual);
         $this->assertSame($expect, $actual);
     }
 }

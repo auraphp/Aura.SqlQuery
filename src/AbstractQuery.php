@@ -135,18 +135,33 @@ abstract class AbstractQuery
 
     /**
      * 
-     * Adds values to bind into the query; merges with existing values.
+     * Binds multiple values to placeholders; merges with existing values.
      * 
-     * @param array $bind_values Values to bind to the query.
+     * @param array $bind_values Values to bind to placeholders.
      * 
-     * @return void
+     * @return null
      * 
      */
     public function bindValues(array $bind_values)
     {
-        $this->bind_values = array_merge($this->bind_values, $bind_values);
+        // array_merge() renumbers integer keys, which is bad for
+        // question-mark placeholders
+        foreach ($bind_values as $key => $val) {
+            $this->bindValue($key, $val);
+        }
     }
 
+    /**
+     * 
+     * Binds a single value to the query.
+     * 
+     * @param string $name The placeholder name or number.
+     * 
+     * @param mixes $value The value to bind to the placeholder.
+     * 
+     * @return null
+     * 
+     */
     public function bindValue($name, $value)
     {
         $this->bind_values[$name] = $value;
@@ -154,7 +169,7 @@ abstract class AbstractQuery
     
     /**
      * 
-     * Gets the values to bind into the query.
+     * Gets the values to bind to placeholders.
      * 
      * @return array
      * 
@@ -186,7 +201,7 @@ abstract class AbstractQuery
      * 
      * @param bool $enable Flag status - enabled or not (default true)
      * 
-     * @return void
+     * @return null
      * 
      */
     protected function setFlag($flag, $enable = true)
@@ -202,7 +217,7 @@ abstract class AbstractQuery
      * 
      * Reset all query flags.
      * 
-     * @return void
+     * @return null
      * 
      */
     protected function resetFlags()
@@ -212,46 +227,34 @@ abstract class AbstractQuery
     
     /**
      * 
-     * Quotes a value and places into a piece of text at a placeholder; the
-     * placeholder is a question-mark.
+     * Binds a value to a question-mark placeholder.
      * 
      * @param string $text The text with placeholder(s).
      * 
-     * @return mixed An SQL-safe quoted value (or string of separated values)
-     * placed into the original text.
+     * @param array $bind The values to bind.
      * 
-     * @see quote()
+     * @param array $save Where to retain the bind values.
+     * 
+     * @return null
      * 
      */
-    protected function autobind($text, array $bind)
+    protected function bindCondValue($text, array $bind, array &$save)
     {
-        // if there are no placeholders, nothing to replace
-        $count = substr_count($text, '?');
-        if (! $count) {
-            return $text;
-        }
+        // number of placeholders in text
+        $text_count = substr_count($text, '?');
+        
+        // number of values to bind
+        $bind_count = count($bind);
 
-        // replace with named placeholders then bind values
-        $offset = 0;
+        // do they match?
+        if ($bind_count != $text_count) {
+            throw new Exception('Number of placeholders does not match number of values to bind.');
+        }
+        
+        // bind the values to placeholders
         foreach ($bind as $val) {
-
-            // find the next placeholder
-            $pos = strpos($text, '?', $offset);
-            if ($pos === false) {
-                // no more placeholders, exit the data loop
-                break;
-            }
-
-            // replace this question mark with an auto-named placeholder
-            $auto = 'auto_bind_' . count($this->bind_values);
-            $text = substr_replace($text, ":$auto", $pos, 1);
-            $this->bindValue($auto, $val);
-
-            // update the offset to move us past the quoted value
-            $offset = $pos + strlen($auto);
+            $save[] = $val;
         }
-
-        return $text;
     }
     
     /**

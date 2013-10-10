@@ -16,8 +16,8 @@ class UpdateTest extends Common\UpdateTest
                 <<c4>> = NULL,
                 <<c5>> = NOW()
             WHERE
-                foo = :auto_bind_0
-                AND baz = :auto_bind_1
+                foo = ?
+                AND baz = ?
                 OR zim = gir
             LIMIT 5
     ";
@@ -45,16 +45,22 @@ class UpdateTest extends Common\UpdateTest
                 <<c4>> = NULL,
                 <<c5>> = NOW()
             WHERE
-                foo = :auto_bind_0
-                AND baz = :auto_bind_1
+                foo = ?
+                AND baz = ?
                 OR zim = gir
             ORDER BY
                 zim DESC,
                 baz ASC
             LIMIT 5 OFFSET 10
         ";
-
         $this->assertSameSql($expect, $actual);
+        
+        $actual = $this->query->getBindValues();
+        $expect = [
+            1 => 'bar',
+            2 => 'dib',
+        ];
+        $this->assertSame($expect, $actual);
     }
 
     public function testOrAbort()
@@ -71,8 +77,14 @@ class UpdateTest extends Common\UpdateTest
 
         $actual = $this->query->__toString();
         $expect = sprintf($this->expected_sql_with_flag, 'OR ABORT');
-
         $this->assertSameSql($expect, $actual);
+        
+        $actual = $this->query->getBindValues();
+        $expect = [
+            1 => 'bar',
+            2 => 'dib',
+        ];
+        $this->assertSame($expect, $actual);
     }
 
     public function testOrFail()
@@ -89,8 +101,14 @@ class UpdateTest extends Common\UpdateTest
 
         $actual = $this->query->__toString();
         $expect = sprintf($this->expected_sql_with_flag, 'OR FAIL');
-
         $this->assertSameSql($expect, $actual);
+        
+        $actual = $this->query->getBindValues();
+        $expect = [
+            1 => 'bar',
+            2 => 'dib',
+        ];
+        $this->assertSame($expect, $actual);
     }
 
     public function testOrIgnore()
@@ -107,8 +125,14 @@ class UpdateTest extends Common\UpdateTest
 
         $actual = $this->query->__toString();
         $expect = sprintf($this->expected_sql_with_flag, 'OR IGNORE');
-
         $this->assertSameSql($expect, $actual);
+        
+        $actual = $this->query->getBindValues();
+        $expect = [
+            1 => 'bar',
+            2 => 'dib',
+        ];
+        $this->assertSame($expect, $actual);
     }
 
     public function testOrReplace()
@@ -125,8 +149,14 @@ class UpdateTest extends Common\UpdateTest
 
         $actual = $this->query->__toString();
         $expect = sprintf($this->expected_sql_with_flag, 'OR REPLACE');
-
         $this->assertSameSql($expect, $actual);
+        
+        $actual = $this->query->getBindValues();
+        $expect = [
+            1 => 'bar',
+            2 => 'dib',
+        ];
+        $this->assertSame($expect, $actual);
     }
     
     public function testOrRollback()
@@ -143,7 +173,13 @@ class UpdateTest extends Common\UpdateTest
 
         $actual = $this->query->__toString();
         $expect = sprintf($this->expected_sql_with_flag, 'OR ROLLBACK');
-
         $this->assertSameSql($expect, $actual);
+        
+        $actual = $this->query->getBindValues();
+        $expect = [
+            1 => 'bar',
+            2 => 'dib',
+        ];
+        $this->assertSame($expect, $actual);
     }
 }

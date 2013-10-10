@@ -92,6 +92,8 @@ class Select extends AbstractQuery implements SelectInterface
      */
     protected $having = [];
 
+    protected $bind_having = [];
+    
     /**
      *
      * The number of rows per page.
@@ -144,6 +146,28 @@ class Select extends AbstractQuery implements SelectInterface
         return $this->paging;
     }
 
+    /**
+     * 
+     * Gets the values to bind to placeholders.
+     * 
+     * @return array
+     * 
+     */
+    public function getBindValues()
+    {
+        $bind_values = $this->bind_values;
+        $i = 1;
+        foreach ($this->bind_where as $val) {
+            $bind_values[$i] = $val;
+            $i ++;
+        }
+        foreach ($this->bind_having as $val) {
+            $bind_values[$i] = $val;
+            $i ++;
+        }
+        return $bind_values;
+    }
+    
     /**
      *
      * Makes the select FOR UPDATE (or not).
@@ -349,7 +373,7 @@ class Select extends AbstractQuery implements SelectInterface
         $bind = func_get_args();
         array_shift($bind);
         if ($bind) {
-            $cond = $this->autobind($cond, $bind);
+            $this->bindCondValue($cond, $bind, $this->bind_having);
         }
 
         if ($this->having) {
@@ -384,7 +408,7 @@ class Select extends AbstractQuery implements SelectInterface
         $bind = func_get_args();
         array_shift($bind);
         if ($bind) {
-            $cond = $this->autobind($cond, $bind);
+            $this->bindCondValue($cond, $bind, $this->bind_having);
         }
 
         if ($this->having) {
@@ -458,7 +482,7 @@ class Select extends AbstractQuery implements SelectInterface
      * Clears the current select properties; generally used after adding a
      * union.
      *
-     * @return void
+     * @return null
      *
      */
     protected function reset()

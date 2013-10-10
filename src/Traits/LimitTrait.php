@@ -53,7 +53,7 @@ trait LimitTrait
      * 
      * @param int $offset Skip this many rows first.
      * 
-     * @return void
+     * @return null
      * 
      */
     protected function buildLimit()

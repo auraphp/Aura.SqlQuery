@@ -22,7 +22,7 @@ interface QueryInterface
      * 
      * @param array $bind_values Values to bind to the query.
      * 
-     * @return void
+     * @return null
      * 
      */
     public function bindValues(array $bind_values);

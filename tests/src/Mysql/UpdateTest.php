@@ -16,8 +16,8 @@ class UpdateTest extends Common\UpdateTest
                 <<c4>> = NULL,
                 <<c5>> = NOW()
             WHERE
-                foo = :auto_bind_0
-                AND baz = :auto_bind_1
+                foo = ?
+                AND baz = ?
                 OR zim = gir
             LIMIT 5
     ";
@@ -36,8 +36,14 @@ class UpdateTest extends Common\UpdateTest
 
         $actual = $this->query->__toString();
         $expect = sprintf($this->expected_sql_with_flag, ' LOW_PRIORITY');
-
         $this->assertSameSql($expect, $actual);
+        
+        $actual = $this->query->getBindValues();
+        $expect = [
+            1 => 'bar',
+            2 => 'dib',
+        ];
+        $this->assertSame($expect, $actual);
     }
 
     public function testIgnore()
@@ -54,7 +60,13 @@ class UpdateTest extends Common\UpdateTest
 
         $actual = $this->query->__toString();
         $expect = sprintf($this->expected_sql_with_flag, ' IGNORE');
-
         $this->assertSameSql($expect, $actual);
+        
+        $actual = $this->query->getBindValues();
+        $expect = [
+            1 => 'bar',
+            2 => 'dib',
+        ];
+        $this->assertSame($expect, $actual);
     }
 }

@@ -28,6 +28,8 @@ trait WhereTrait
      */
     protected $where = [];
 
+    protected $bind_where = [];
+    
     /**
      * 
      * Adds a WHERE condition to the query by AND. If the condition has
@@ -48,7 +50,7 @@ trait WhereTrait
         $bind = func_get_args();
         array_shift($bind);
         if ($bind) {
-            $cond = $this->autobind($cond, $bind);
+            $this->bindCondValue($cond, $bind, $this->bind_where);
         }
 
         if ($this->where) {
@@ -83,7 +85,7 @@ trait WhereTrait
         $bind = func_get_args();
         array_shift($bind);
         if ($bind) {
-            $cond = $this->autobind($cond, $bind);
+            $this->bindCondValue($cond, $bind, $this->bind_where);
         }
 
         if ($this->where) {
@@ -96,6 +98,31 @@ trait WhereTrait
         return $this;
     }
     
+    /**
+     * 
+     * Gets the values to bind to placeholders.
+     * 
+     * @return array
+     * 
+     */
+    public function getBindValues()
+    {
+        $bind_values = $this->bind_values;
+        $i = 1;
+        foreach ($this->bind_where as $val) {
+            $bind_values[$i] = $val;
+            $i ++;
+        }
+        return $bind_values;
+    }
+    
+    /**
+     * 
+     * Builds the WHERE conditions into the statement.
+     * 
+     * @return null
+     * 
+     */
     protected function buildWhere()
     {
         if ($this->where) {

@@ -10,8 +10,8 @@ class DeleteTest extends Common\DeleteTest
     protected $expected_sql_with_flag = "
         DELETE %s FROM <<t1>>
             WHERE
-                foo = :auto_bind_0
-                AND baz = :auto_bind_1
+                foo = ?
+                AND baz = ?
                 OR zim = gir
     ";
 
@@ -25,8 +25,14 @@ class DeleteTest extends Common\DeleteTest
 
         $actual = $this->query->__toString();
         $expect = sprintf($this->expected_sql_with_flag, 'LOW_PRIORITY');
-
         $this->assertSameSql($expect, $actual);
+        
+        $actual = $this->query->getBindValues();
+        $expect = [
+            1 => 'bar',
+            2 => 'dib',
+        ];
+        $this->assertSame($expect, $actual);
     }
 
     public function testQuick()
@@ -39,8 +45,14 @@ class DeleteTest extends Common\DeleteTest
 
         $actual = $this->query->__toString();
         $expect = sprintf($this->expected_sql_with_flag, 'QUICK');
-
         $this->assertSameSql($expect, $actual);
+        
+        $actual = $this->query->getBindValues();
+        $expect = [
+            1 => 'bar',
+            2 => 'dib',
+        ];
+        $this->assertSame($expect, $actual);
     }
 
     public function testIgnore()
@@ -53,7 +65,13 @@ class DeleteTest extends Common\DeleteTest
 
         $actual = $this->query->__toString();
         $expect = sprintf($this->expected_sql_with_flag, 'IGNORE');
-
         $this->assertSameSql($expect, $actual);
+        
+        $actual = $this->query->getBindValues();
+        $expect = [
+            1 => 'bar',
+            2 => 'dib',
+        ];
+        $this->assertSame($expect, $actual);
     }
 }

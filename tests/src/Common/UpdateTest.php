@@ -27,11 +27,18 @@ class UpdateTest extends AbstractQueryTest
                 <<c4>> = NULL,
                 <<c5>> = NOW()
             WHERE
-                foo = :auto_bind_0
-                AND baz = :auto_bind_1
+                foo = ?
+                AND baz = ?
                 OR zim = gir
         ";
         
         $this->assertSameSql($expect, $actual);
+        
+        $actual = $this->query->getBindValues();
+        $expect = [
+            1 => 'bar',
+            2 => 'dib',
+        ];
+        $this->assertSame($expect, $actual);
     }
 }
