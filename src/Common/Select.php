@@ -372,8 +372,8 @@ class Select extends AbstractQuery implements SelectInterface
         // bind values to the condition
         $bind = func_get_args();
         array_shift($bind);
-        if ($bind) {
-            $this->bindCondValue($cond, $bind, $this->bind_having);
+        foreach ($bind as $value) {
+            $this->bind_having[] = $value;
         }
 
         if ($this->having) {
@@ -407,8 +407,8 @@ class Select extends AbstractQuery implements SelectInterface
         // bind values to the condition
         $bind = func_get_args();
         array_shift($bind);
-        if ($bind) {
-            $this->bindCondValue($cond, $bind, $this->bind_having);
+        foreach ($bind as $value) {
+            $this->bind_having[] = $value;
         }
 
         if ($this->having) {

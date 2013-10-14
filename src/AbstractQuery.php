@@ -227,38 +227,6 @@ abstract class AbstractQuery
     
     /**
      * 
-     * Binds a value to a question-mark placeholder.
-     * 
-     * @param string $text The text with placeholder(s).
-     * 
-     * @param array $bind The values to bind.
-     * 
-     * @param array $save Where to retain the bind values.
-     * 
-     * @return null
-     * 
-     */
-    protected function bindCondValue($text, array $bind, array &$save)
-    {
-        // number of placeholders in text
-        $text_count = substr_count($text, '?');
-        
-        // number of values to bind
-        $bind_count = count($bind);
-
-        // do they match?
-        if ($bind_count != $text_count) {
-            throw new Exception('Number of placeholders does not match number of values to bind.');
-        }
-        
-        // bind the values to placeholders
-        foreach ($bind as $val) {
-            $save[] = $val;
-        }
-    }
-    
-    /**
-     * 
      * Quotes a single identifier name (table, table alias, table column, 
      * index, sequence).
      * 

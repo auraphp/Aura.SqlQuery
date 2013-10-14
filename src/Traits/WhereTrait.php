@@ -49,8 +49,8 @@ trait WhereTrait
         // bind values to the condition
         $bind = func_get_args();
         array_shift($bind);
-        if ($bind) {
-            $this->bindCondValue($cond, $bind, $this->bind_where);
+        foreach ($bind as $value) {
+            $this->bind_where[] = $value;
         }
 
         if ($this->where) {
@@ -84,8 +84,8 @@ trait WhereTrait
         // bind values to the condition
         $bind = func_get_args();
         array_shift($bind);
-        if ($bind) {
-            $this->bindCondValue($cond, $bind, $this->bind_where);
+        foreach ($bind as $value) {
+            $this->bind_where[] = $value;
         }
 
         if ($this->where) {

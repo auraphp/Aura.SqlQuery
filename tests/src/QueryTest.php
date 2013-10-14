@@ -47,37 +47,4 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         $expect = "*, *.*, \"foo\".\"bar\", CONCAT('foo.bar', \"baz.dib\") AS \"zim\"";
         $this->assertSame($expect, $actual);
     }
-    
-    public function testBindCondValue()
-    {
-        $actual = [];
-        
-        $expect = [];
-        $this->query->bindCondValue('foo = bar', [], $actual);
-        $this->assertSame($expect, $actual);
-        
-        $expect = [
-            0 => 'foo',
-        ];
-        $this->query->bindCondValue('foo = ?', ['foo'], $actual);
-        $this->assertSame($expect, $actual);
-        
-        // this is a problem, because quoting at ExtendedPdo level *does not*
-        // quote sequential question marks to CSV arrays.
-        $expect = [
-            0 => 'foo',
-            1 => ['bar', 'baz', 'dib'],
-        ];
-        $this->query->bindCondValue('foo IN (?)', [['bar', 'baz', 'dib']], $actual);
-        $this->assertSame($expect, $actual);
-        
-        $expect = [
-            0 => 'foo',
-            1 => ['bar', 'baz', 'dib'],
-            2 => 10,
-            3 => 20,
-        ];
-        $this->query->bindCondValue('foo BETWEEN ? AND ?', [10, 20], $actual);
-        $this->assertSame($expect, $actual);
-    }
 }

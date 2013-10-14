@@ -17,9 +17,4 @@ class MockQuery extends AbstractQuery
     {
         return parent::quoteNamesIn($text);
     }
-    
-    public function bindCondValue($text, array $bind, array &$save)
-    {
-        return parent::bindCondValue($text, $bind, $save);
-    }
 }
