@@ -11,6 +11,7 @@
 namespace Aura\Sql_Query\Common;
 
 use Aura\Sql_Query\AbstractQuery;
+use Aura\Sql_Query\Exception;
 use Aura\Sql_Query\Traits;
 
 /**
@@ -58,22 +59,15 @@ class Select extends AbstractQuery implements SelectInterface
 
     /**
      *
-     * Select from these tables.
+     * Select from these tables; includes JOIN clauses.
      *
      * @var array
      *
      */
     protected $from = [];
 
-    /**
-     *
-     * Use these joins.
-     *
-     * @var array
-     *
-     */
-    protected $join = [];
-
+    protected $from_key = -1;
+    
     /**
      *
      * GROUP BY these columns.
@@ -230,9 +224,8 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function from($spec)
     {
-        $this->from[] = [
-            $this->quoteName($spec)
-        ];
+        $this->from[] = [$this->quoteName($spec)];
+        $this->from_key ++;
         return $this;
     }
 
@@ -256,6 +249,7 @@ class Select extends AbstractQuery implements SelectInterface
             . PHP_EOL . '        ' . $spec . PHP_EOL
             . "    ) AS " . $this->quoteName($name)
         ];
+        $this->from_key ++;
         return $this;
     }
 
@@ -274,21 +268,18 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function join($join, $spec, $cond = null)
     {
+        if (! $this->from) {
+            throw new Exception('Cannot join() without from() first.');
+        }
+        
         $join = strtoupper(ltrim("$join JOIN"));
         $spec = $this->quoteName($spec);
+        
         if ($cond) {
             $cond = $this->quoteNamesIn($cond);
-            $joinStatement = "$join $spec ON $cond";
+            $this->from[$this->from_key][] = "$join $spec ON $cond";
         } else {
-            $joinStatement = "$join $spec";
-        }
-
-        $this->join[] = $joinStatement;
-
-        //connect to latest from statement
-        $fromCount = count($this->from);
-        if ($fromCount) {
-            $this->from[$fromCount - 1][] = $joinStatement;
+            $this->from[$this->from_key][] = "$join $spec";
         }
 
         return $this;
@@ -313,24 +304,21 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function joinSubSelect($join, $spec, $name, $cond = null)
     {
+        if (! $this->from) {
+            throw new Exception('Cannot join() without from() first.');
+        }
+        
         $join = strtoupper(ltrim("$join JOIN"));
         $spec = PHP_EOL . '    '
               . ltrim(preg_replace('/^/m', '    ', (string) $spec))
               . PHP_EOL;
         $name = $this->quoteName($name);
+        
         if ($cond) {
             $cond = $this->quoteNamesIn($cond);
-            $joinStatement = "$join ($spec) AS $name ON $cond";
+            $this->from[$this->from_key][] = "$join ($spec) AS $name ON $cond";
         } else {
-            $joinStatement = "$join ($spec) AS $name";
-        }
-
-        $this->join[] = $joinStatement;
-
-        //connect to latest from statement
-        $fromCount = count($this->from);
-        if ($fromCount) {
-            $this->from[$fromCount - 1][] = $joinStatement;
+            $this->from[$this->from_key][] = "$join ($spec) AS $name";
         }
 
         return $this;
@@ -490,7 +478,7 @@ class Select extends AbstractQuery implements SelectInterface
         $this->resetFlags();
         $this->cols       = [];
         $this->from       = [];
-        $this->join       = [];
+        $this->from_key   = -1;
         $this->where      = [];
         $this->group_by   = [];
         $this->having     = [];
@@ -505,8 +493,7 @@ class Select extends AbstractQuery implements SelectInterface
         $this->stm = 'SELECT';
         $this->buildFlags();
         $this->buildCols();
-        $this->buildFrom();
-        $this->buildJoin();
+        $this->buildFrom(); // includes JOIN
         $this->buildWhere();
         $this->buildGroupBy();
         $this->buildHaving();
@@ -526,21 +513,12 @@ class Select extends AbstractQuery implements SelectInterface
     
     protected function buildFrom()
     {
-        if (count($this->from)) {
-            $preparedFrom = [];
+        if ($this->from) {
+            $refs = [];
             foreach ($this->from as $from) {
-                $preparedFrom[] = implode(PHP_EOL, $from);
+                $refs[] = implode(PHP_EOL, $from);
             }
-            $this->stm .= PHP_EOL . 'FROM' . $this->indentCsv($preparedFrom);
-        }
-    }
-    
-    protected function buildJoin()
-    {
-        if (count($this->from) === 0 && count($this->join) > 0) {
-            foreach ($this->join as $join) {
-                $this->stm .= PHP_EOL . $join;
-            }
+            $this->stm .= PHP_EOL . 'FROM' . $this->indentCsv($refs);
         }
     }
     
