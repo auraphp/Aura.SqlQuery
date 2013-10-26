@@ -3,7 +3,7 @@
  *
  * This file is part of Aura for PHP.
  *
- * @package Aura.Sql
+ * @package Aura.Sql_Query
  *
  * @license http://opensource.org/licenses/bsd-license.php BSD
  *
@@ -17,7 +17,7 @@ use Aura\Sql_Query\Traits;
  *
  * An object for UPDATE queries.
  *
- * @package Aura.Sql
+ * @package Aura.Sql_Query
  *
  */
 class Update extends AbstractQuery implements UpdateInterface
@@ -49,6 +49,13 @@ class Update extends AbstractQuery implements UpdateInterface
         return $this;
     }
     
+    /**
+     * 
+     * Builds this query object into a string.
+     * 
+     * @return string
+     * 
+     */
     protected function build()
     {
         $this->stm = 'UPDATE';
@@ -59,6 +66,13 @@ class Update extends AbstractQuery implements UpdateInterface
         return $this->stm;
     }
     
+    /**
+     * 
+     * Builds the table clause.
+     * 
+     * @return null
+     * 
+     */
     protected function buildTable()
     {
         $this->stm .= " {$this->table}";

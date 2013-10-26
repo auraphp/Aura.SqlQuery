@@ -3,7 +3,7 @@
  *
  * This file is part of Aura for PHP.
  *
- * @package Aura.Sql
+ * @package Aura.Sql_Query
  *
  * @license http://opensource.org/licenses/bsd-license.php BSD
  *
@@ -17,11 +17,18 @@ use Aura\Sql_Query\Traits;
  *
  * An object for Sqlsrv SELECT queries.
  *
- * @package Aura.Sql
+ * @package Aura.Sql_Query
  *
  */
 class Select extends Common\Select
 {
+    /**
+     * 
+     * Builds the limit/offset equivalent portions of the statement.
+     * 
+     * @return null
+     * 
+     */
     protected function buildLimit()
     {
         // neither limit nor offset?

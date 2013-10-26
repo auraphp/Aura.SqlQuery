@@ -3,7 +3,7 @@
  *
  * This file is part of Aura for PHP.
  *
- * @package Aura.Sql
+ * @package Aura.Sql_Query
  *
  * @license http://opensource.org/licenses/bsd-license.php BSD
  *
@@ -17,7 +17,7 @@ use Aura\Sql_Query\Traits;
  *
  * An object for INSERT queries.
  *
- * @package Aura.Sql
+ * @package Aura.Sql_Query
  *
  */
 class Insert extends AbstractQuery implements InsertInterface
@@ -49,6 +49,13 @@ class Insert extends AbstractQuery implements InsertInterface
         return $this;
     }
 
+    /**
+     * 
+     * Builds this query object into a string.
+     * 
+     * @return string
+     * 
+     */
     protected function build()
     {
         $this->stm = 'INSERT';
@@ -58,11 +65,27 @@ class Insert extends AbstractQuery implements InsertInterface
         return $this->stm;
     }
     
+    /**
+     * 
+     * Builds the INTO clause.
+     * 
+     * @return null
+     * 
+     */
     protected function buildInto()
     {
         $this->stm .= " INTO " . $this->quoteName($this->into);
     }
     
+    /**
+     * 
+     * Returns the proper name for passing to `PDO::lastInsertId()`.
+     * 
+     * @param string $col The last insert ID column.
+     * 
+     * @return null Normally null, since most drivers do not need a name.
+     * 
+     */
     public function getLastInsertIdName($col)
     {
         return null;

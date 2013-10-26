@@ -3,7 +3,7 @@
  *
  * This file is part of Aura for PHP.
  *
- * @package Aura.Sql
+ * @package Aura.Sql_Query
  *
  * @license http://opensource.org/licenses/bsd-license.php BSD
  *
@@ -18,7 +18,7 @@ use Aura\Sql_Query\Traits;
  *
  * An object for SELECT queries.
  *
- * @package Aura.Sql
+ * @package Aura.Sql_Query
  *
  */
 class Select extends AbstractQuery implements SelectInterface
@@ -27,7 +27,13 @@ class Select extends AbstractQuery implements SelectInterface
     use Traits\OrderByTrait;
     use Traits\WhereTrait;
 
-    // the statement being built
+    /**
+     * 
+     * The statement being built.
+     * 
+     * @var string
+     * 
+     */
     protected $stm;
     
     /**
@@ -66,6 +72,13 @@ class Select extends AbstractQuery implements SelectInterface
      */
     protected $from = [];
 
+    /**
+     * 
+     * The current key in the `$from` array.
+     * 
+     * @var int
+     * 
+     */
     protected $from_key = -1;
     
     /**
@@ -86,6 +99,13 @@ class Select extends AbstractQuery implements SelectInterface
      */
     protected $having = [];
 
+    /**
+     * 
+     * Bind values in the HAVING clause.
+     * 
+     * @var array
+     * 
+     */
     protected $bind_having = [];
     
     /**
@@ -488,6 +508,13 @@ class Select extends AbstractQuery implements SelectInterface
         $this->for_update = false;
     }
     
+    /**
+     * 
+     * Builds this query object into a string.
+     * 
+     * @return string
+     * 
+     */
     protected function build()
     {
         $this->stm = 'SELECT';
@@ -503,6 +530,13 @@ class Select extends AbstractQuery implements SelectInterface
         return $this->stm;
     }
     
+    /**
+     * 
+     * Builds the columns clause.
+     * 
+     * @return null
+     * 
+     */
     protected function buildCols()
     {
         if ($this->cols) {
@@ -511,6 +545,13 @@ class Select extends AbstractQuery implements SelectInterface
         }
     }
     
+    /**
+     * 
+     * Builds the FROM clause.
+     * 
+     * @return null
+     * 
+     */
     protected function buildFrom()
     {
         if ($this->from) {
@@ -522,6 +563,13 @@ class Select extends AbstractQuery implements SelectInterface
         }
     }
     
+    /**
+     * 
+     * Builds the GROUP BY clause.
+     * 
+     * @return null
+     * 
+     */
     protected function buildGroupBy()
     {
         if ($this->group_by) {
@@ -529,6 +577,13 @@ class Select extends AbstractQuery implements SelectInterface
         }
     }
     
+    /**
+     * 
+     * Builds the HAVING clause.
+     * 
+     * @return null
+     * 
+     */
     protected function buildHaving()
     {
         if ($this->having) {
@@ -536,6 +591,13 @@ class Select extends AbstractQuery implements SelectInterface
         }
     }
     
+    /**
+     * 
+     * Builds the FOR UPDATE clause.
+     * 
+     * @return null
+     * 
+     */
     protected function buildForUpdate()
     {
         if ($this->for_update) {

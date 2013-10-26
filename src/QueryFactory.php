@@ -3,7 +3,7 @@
  * 
  * This file is part of Aura for PHP.
  * 
- * @package Aura.Sql
+ * @package Aura.Sql_Query
  * 
  * @license http://opensource.org/licenses/bsd-license.php BSD
  * 
@@ -14,17 +14,38 @@ namespace Aura\Sql_Query;
  * 
  * Creates query statement objects.
  * 
- * @package Aura.Sql
+ * @package Aura.Sql_Query
  * 
  */
 class QueryFactory
 {
     const COMMON = 'common';
     
-    protected $type;
+    /**
+     * 
+     * What database are we building for?
+     * 
+     * @param string
+     * 
+     */
+    protected $db;
     
+    /**
+     * 
+     * Build "common" query objects regardless of database type?
+     * 
+     * @param bool
+     * 
+     */
     protected $common = false;
     
+    /**
+     * 
+     * The quote prefix/suffix to use for each type.
+     * 
+     * @param array
+     * 
+     */
     protected $quotes = [
         'Common' => ['"', '"'],
         'Mysql'  => ['`', '`'],
@@ -33,33 +54,85 @@ class QueryFactory
         'Sqlsrv' => ['[', ']'],
     ];
     
+    /**
+     * 
+     * The quote name prefix extracted from `$quotes`.
+     * 
+     * @var string
+     * 
+     */
     protected $quote_name_prefix;
     
+    /**
+     * 
+     * The quote name suffix extracted from `$quotes`.
+     * 
+     * @var string
+     * 
+     */
     protected $quote_name_suffix;
     
-    public function __construct($type, $common = false)
+    /**
+     * 
+     * Constructor.
+     * 
+     * @param string $db The database type.
+     * 
+     * @param string $common Pass the constant self::COMMON to force common
+     * query objects instead of db-specific ones.
+     * 
+     */
+    public function __construct($db, $common = false)
     {
-        $this->type = ucfirst(strtolower($type));
-        $this->common = $common;
-        $this->quote_name_prefix = $this->quotes[$this->type][0];
-        $this->quote_name_suffix = $this->quotes[$this->type][1];
+        $this->db = ucfirst(strtolower($db));
+        $this->common = ($common === self::COMMON);
+        $this->quote_name_prefix = $this->quotes[$this->db][0];
+        $this->quote_name_suffix = $this->quotes[$this->db][1];
     }
     
+    /**
+     * 
+     * Returns a new SELECT object.
+     * 
+     * @return Common/SelectInterface
+     * 
+     */
     public function newSelect()
     {
         return $this->newInstance('Select');
     }
     
+    /**
+     * 
+     * Returns a new INSERT object.
+     * 
+     * @return Common/InsertInterface
+     * 
+     */
     public function newInsert()
     {
         return $this->newInstance('Insert');
     }
     
+    /**
+     * 
+     * Returns a new UPDATE object.
+     * 
+     * @return Common/UpdateInterface
+     * 
+     */
     public function newUpdate()
     {
         return $this->newInstance('Update');
     }
     
+    /**
+     * 
+     * Returns a new DELETE object.
+     * 
+     * @return Common/DeleteInterface
+     * 
+     */
     public function newDelete()
     {
         return $this->newInstance('Delete');
@@ -71,9 +144,6 @@ class QueryFactory
      * 
      * @param string $query The query object type.
      * 
-     * @param string $type The database backend type to use; if empty,
-     * defaults to the 'Common' type.
-     * 
      * @return AbstractQuery
      * 
      */
@@ -82,7 +152,7 @@ class QueryFactory
         if ($this->common) {
             $class = "Aura\Sql_Query\Common";
         } else {
-            $class = "Aura\Sql_Query\\{$this->type}";
+            $class = "Aura\Sql_Query\\{$this->db}";
         }
         
         $class .= "\\{$query}";

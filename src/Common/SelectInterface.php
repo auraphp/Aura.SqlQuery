@@ -3,7 +3,7 @@
  *
  * This file is part of Aura for PHP.
  *
- * @package Aura.Sql
+ * @package Aura.Sql_Query
  *
  * @license http://opensource.org/licenses/bsd-license.php BSD
  *
@@ -14,9 +14,9 @@ use Aura\Sql_Query\QueryInterface;
 
 /**
  *
- * An interface for common SELECT query functionality.
+ * An interface for SELECT queries.
  *
- * @package Aura.Sql
+ * @package Aura.Sql_Query
  *
  */
 interface SelectInterface extends QueryInterface

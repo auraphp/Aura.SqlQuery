@@ -1,6 +1,22 @@
 <?php
+/**
+ * 
+ * This file is part of Aura for PHP.
+ * 
+ * @package Aura.Sql_Query
+ * 
+ * @license http://opensource.org/licenses/bsd-license.php BSD
+ * 
+ */
 namespace Aura\Sql_Query;
 
+/**
+ * 
+ * Interface for query objects.
+ * 
+ * @package Aura.Sql_Query
+ * 
+ */
 interface QueryInterface
 {
     /**
@@ -12,8 +28,22 @@ interface QueryInterface
      */
     public function __toString();
     
+    /**
+     * 
+     * Returns the prefix to use when quoting identifier names.
+     * 
+     * @return string
+     * 
+     */
     public function getQuoteNamePrefix();
     
+    /**
+     * 
+     * Returns the suffix to use when quoting identifier names.
+     * 
+     * @return string
+     * 
+     */
     public function getQuoteNameSuffix();
     
     /**
@@ -27,6 +57,17 @@ interface QueryInterface
      */
     public function bindValues(array $bind_values);
 
+    /**
+     * 
+     * Binds a single value to the query.
+     * 
+     * @param string $name The placeholder name or number.
+     * 
+     * @param mixes $value The value to bind to the placeholder.
+     * 
+     * @return null
+     * 
+     */
     public function bindValue($name, $value);
     
     /**

@@ -3,7 +3,7 @@
  * 
  * This file is part of Aura for PHP.
  * 
- * @package Aura.Sql
+ * @package Aura.Sql_Query
  * 
  * @license http://opensource.org/licenses/bsd-license.php BSD
  * 
@@ -14,7 +14,7 @@ namespace Aura\Sql_Query;
  * 
  * Abstract query object for Select, Insert, Update, and Delete.
  * 
- * @package Aura.Sql
+ * @package Aura.Sql_Query
  * 
  */
 abstract class AbstractQuery
@@ -64,10 +64,21 @@ abstract class AbstractQuery
      */
     protected $quote_name_suffix = '"';
 
-    public function __construct(
-        $quote_name_prefix,
-        $quote_name_suffix
-    ) {
+    /**
+     * 
+     * Constructor.
+     * 
+     * @param string $quote_name_prefix The prefix to use when quoting
+     * identifier names.
+     * 
+     * @param string $quote_name_suffix The suffix to use when quoting
+     * identifier names.
+     * 
+     * @return null
+     * 
+     */
+    public function __construct($quote_name_prefix, $quote_name_suffix)
+    {
         $this->quote_name_prefix = $quote_name_prefix;
         $this->quote_name_suffix = $quote_name_suffix;
     }
@@ -93,11 +104,25 @@ abstract class AbstractQuery
      */
     abstract protected function build();
     
+    /**
+     * 
+     * Returns the prefix to use when quoting identifier names.
+     * 
+     * @return string
+     * 
+     */
     public function getQuoteNamePrefix()
     {
         return $this->quote_name_prefix;
     }
     
+    /**
+     * 
+     * Returns the suffix to use when quoting identifier names.
+     * 
+     * @return string
+     * 
+     */
     public function getQuoteNameSuffix()
     {
         return $this->quote_name_suffix;

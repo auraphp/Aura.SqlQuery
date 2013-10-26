@@ -3,7 +3,7 @@
  *
  * This file is part of Aura for PHP.
  *
- * @package Aura.Sql
+ * @package Aura.Sql_Query
  *
  * @license http://opensource.org/licenses/bsd-license.php BSD
  *
@@ -17,7 +17,7 @@ use Aura\Sql_Query\Traits;
  *
  * An object for Sqlite UPDATE queries.
  *
- * @package Aura.Sql
+ * @package Aura.Sql_Query
  *
  */
 class Update extends Common\Update
@@ -25,6 +25,13 @@ class Update extends Common\Update
     use Traits\LimitOffsetTrait;
     use Traits\OrderByTrait;
     
+    /**
+     * 
+     * Builds this query object into a string.
+     * 
+     * @return string
+     * 
+     */
     protected function build()
     {
         parent::build();

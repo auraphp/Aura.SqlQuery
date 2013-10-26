@@ -3,7 +3,7 @@
  *
  * This file is part of Aura for PHP.
  *
- * @package Aura.Sql
+ * @package Aura.Sql_Query
  *
  * @license http://opensource.org/licenses/bsd-license.php BSD
  *
@@ -17,7 +17,7 @@ use Aura\Sql_Query\Traits;
  *
  * An object for DELETE queries.
  *
- * @package Aura.Sql
+ * @package Aura.Sql_Query
  *
  */
 class Delete extends AbstractQuery implements DeleteInterface
@@ -48,6 +48,13 @@ class Delete extends AbstractQuery implements DeleteInterface
         return $this;
     }
     
+    /**
+     * 
+     * Builds this query object into a string.
+     * 
+     * @return string
+     * 
+     */
     protected function build()
     {
         $this->stm = 'DELETE';
@@ -57,6 +64,13 @@ class Delete extends AbstractQuery implements DeleteInterface
         return $this->stm;
     }
     
+    /**
+     * 
+     * Builds the FROM clause.
+     *
+     * @return null
+     * 
+     */
     protected function buildFrom()
     {
         $this->stm .= " FROM {$this->from}";
