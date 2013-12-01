@@ -16,7 +16,7 @@ This library is installable and autoloadable via Composer with the following
 `require` element in your `composer.json` file:
 
     "require": {
-        "aura/sql-query": "dev-develop-2"
+        "aura/sql-query": "2.*@dev"
     }
     
 Alternatively, download or clone this repository, then require or include its
