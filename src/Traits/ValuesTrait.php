@@ -31,9 +31,12 @@ trait ValuesTrait
 
     /**
      * 
-     * Sets one column value placeholder.
+     * Sets one column value placeholder; if an optional second parameter is
+     * passed, that value is bound to the placeholder.
      * 
      * @param string $col The column name.
+     * 
+     * @param mixed $val Optional: a value to bind to the placeholder.
      * 
      * @return $this
      * 
@@ -42,22 +45,37 @@ trait ValuesTrait
     {
         $key = $this->quoteName($col);
         $this->values[$key] = ":$col";
+        $args = func_get_args();
+        if (count($args) > 1) {
+            $this->bindValue($col, $args[1]);
+        }
         return $this;
     }
 
     /**
      * 
-     * Sets multiple column value placeholders.
+     * Sets multiple column value placeholders. If an element is a key-value
+     * pair, the key is treated as the column name and the value is bound to
+     * that column.
      * 
-     * @param array $cols A list of column names.
+     * @param array $cols A list of column names, optionally as key-value
+     * pairs where the key is a column name and the value is a bind value for
+     * that column.
      * 
      * @return $this
      * 
      */
     public function cols(array $cols)
     {
-        foreach ($cols as $col) {
-            $this->col($col);
+        foreach ($cols as $key => $val) {
+            if (is_int($key)) {
+                // integer key means the value is the column name
+                $this->col($val);
+            } else {
+                // the key is the column name and the value is a value to
+                // be bound to that column
+                $this->col($key, $val);
+            }
         }
         return $this;
     }
