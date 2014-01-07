@@ -220,6 +220,22 @@ $insert
 ?>
 ```
 
+The `cols()` method allows you to pass an array of key-value pairs where the
+key is the column name and the value is a bind value (not a raw value):
+
+```php
+<?php
+$insert = $query_factory->newInsert();
+
+$insert->into('foo')            // insert into this table
+    ->cols([                    // insert these columns and bind these values
+        'foo' => 'foo_value',
+        'bar' => 'bar_value',
+        'baz' => 'baz_value',
+    ]);
+?>
+```
+
 Once you have built the query, pass it to the database connection of your
 choice as a string, and send the bound values along with it.
 
@@ -258,12 +274,28 @@ $update
     ->set('date', 'NOW()')          // set this col to a raw value
     ->where('zim = :zim')           // AND WHERE these conditions
     ->where('gir = ?', 'doom')      // bind this value to the condition
-    ->orWhere('gir = :gir');        // OR WHERE these conditions
-    ->bindValue('bar', 'bar_val',   // bind one value to a placeholder
+    ->orWhere('gir = :gir')         // OR WHERE these conditions
+    ->bindValue('bar', 'bar_val')   // bind one value to a placeholder
     ->bindValues([                  // bind these values to the query
         'baz' => 99,
         'zim' => 'dib',
         'gir' => 'doom',
+    ]);
+?>
+```
+
+The `cols()` method allows you to pass an array of key-value pairs where the
+key is the column name and the value is a bind value (not a raw value):
+
+```php
+<?php
+$update = $query_factory->newUpdate();
+
+$update->table('foo')           // update this table
+    ->cols([                    // update these columns and bind these values
+        'foo' => 'foo_value',
+        'bar' => 'bar_value',
+        'baz' => 'baz_value',
     ]);
 ?>
 ```
@@ -413,7 +445,7 @@ Microsoft SQL Server query objects will generate sqlsrv-specific variations of
 
 - If only a `LIMIT` is present, it will be translated as a `TOP` clause.
 
-- If both `LIMIT` and `OFFSET` are present, it will be translates as an
+- If both `LIMIT` and `OFFSET` are present, it will be translated as an
   `OFFSET ... ROWS FETCH NEXT ... ROWS ONLY` clause. In this case there *must*
   be an `ORDER BY` clause, as the limiting clause is a sub-clause of `ORDER
   BY`.
