@@ -63,7 +63,6 @@ $update = $query_factory->newUpdate();
 $delete = $query_factory->newDelete();
 ?>
 ```
-?>
 
 The query objects do not execute queries against a database. When you are done
 building the query, you will need to pass it to a database connection of your
