@@ -50,9 +50,9 @@ trait ReturningTrait
     
     /**
      * 
-     * Returns the RETURNING query clause.
+     * Appends the `RETURNING` clause to the statement.
      * 
-     * @return string
+     * @return null
      * 
      */
     protected function buildReturning()

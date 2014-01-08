@@ -104,6 +104,13 @@ trait ValuesTrait
         return $this;
     }
     
+    /**
+     * 
+     * Appends the insert columns and values to the statement.
+     * 
+     * @return null
+     * 
+     */
     protected function buildValuesForInsert()
     {
         $this->stm .= ' ('
@@ -113,6 +120,13 @@ trait ValuesTrait
                     . PHP_EOL . ')';
     }
     
+    /**
+     * 
+     * Appends the update columns and values to the statement.
+     * 
+     * @return null
+     * 
+     */
     protected function buildValuesForUpdate()
     {
         $values = [];

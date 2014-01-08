@@ -47,9 +47,9 @@ trait OrderByTrait
 
     /**
      * 
-     * Returns the ORDER BY query clause.
+     * Appends the `ORDER BY ...` clause to the statement.
      * 
-     * @return string
+     * @return null
      * 
      */
     protected function buildOrderBy()

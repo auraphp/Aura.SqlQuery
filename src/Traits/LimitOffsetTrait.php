@@ -45,6 +45,13 @@ trait LimitOffsetTrait
         return $this;
     }
     
+    /**
+     * 
+     * Appends the `LIMIT ... OFFSET` clause to the statement.
+     * 
+     * @return null
+     * 
+     */
     protected function buildLimit()
     {
         if ($this->limit) {

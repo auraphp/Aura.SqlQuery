@@ -28,6 +28,13 @@ trait WhereTrait
      */
     protected $where = [];
 
+    /**
+     * 
+     * Bind these values to the WHERE conditions.
+     * 
+     * @var array
+     * 
+     */
     protected $bind_where = [];
     
     /**
@@ -118,7 +125,7 @@ trait WhereTrait
     
     /**
      * 
-     * Builds the WHERE conditions into the statement.
+     * Appends the `WHERE` clause to the statement.
      * 
      * @return null
      * 

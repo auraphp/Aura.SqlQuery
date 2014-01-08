@@ -45,13 +45,7 @@ trait LimitTrait
     
     /**
      * 
-     * Modifies an SQL string **in place** to add a `LIMIT ... OFFSET` clause.
-     * 
-     * @param string $text The SQL string.
-     * 
-     * @param int $count The number of rows to return.
-     * 
-     * @param int $offset Skip this many rows first.
+     * Appends the `LIMIT` clause to the statement.
      * 
      * @return null
      * 
