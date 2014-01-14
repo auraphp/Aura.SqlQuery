@@ -81,7 +81,8 @@ under the common _Select_ object with double-quotes for identifiers:
 ```php
 <?php
 $select->cols(['foo', 'bar AS barbar'])
-       ->from(['table1', 'table2'])
+       ->from('table1')
+       ->from('table2')
        ->where('table2.zim = 99');
 
 echo $select->__toString();
@@ -139,7 +140,7 @@ $select
         'name AS namecol',
         'COUNT(foo) AS foo_count',
     ])
-    ->from(['foo AS f'])            // FROM these tables
+    ->from('foo AS f')              // FROM these tables
     ->fromSubselect(                // FROM sub-select AS my_sub
         'SELECT ...',
         'my_sub'
