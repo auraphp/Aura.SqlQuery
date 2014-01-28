@@ -19,7 +19,7 @@ use Aura\Sql_Query\QueryInterface;
  * @package Aura.Sql_Query
  *
  */
-interface DeleteInterface extends QueryInterface
+interface DeleteInterface extends QueryInterface, WhereInterface
 {
     /**
      *
@@ -31,29 +31,4 @@ interface DeleteInterface extends QueryInterface
      *
      */
     public function from($from);
-    
-    /**
-     * 
-     * Adds a WHERE condition to the query by AND.
-     * 
-     * @param string $cond The WHERE condition.
-     * 
-     * @return $this
-     * 
-     */
-    public function where($cond);
-
-    /**
-     * 
-     * Adds a WHERE condition to the query by OR; otherwise identical to 
-     * `where()`.
-     * 
-     * @param string $cond The WHERE condition.
-     * 
-     * @return $this
-     * 
-     * @see where()
-     * 
-     */
-    public function orWhere($cond);
 }

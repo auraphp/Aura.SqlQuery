@@ -23,7 +23,6 @@ use Aura\Sql_Query\Traits;
 class Update extends AbstractQuery implements UpdateInterface
 {
     use Traits\ValuesTrait;
-    use Traits\WhereTrait;
 
     /**
      *
@@ -76,5 +75,51 @@ class Update extends AbstractQuery implements UpdateInterface
     protected function buildTable()
     {
         $this->stm .= " {$this->table}";
+    }
+
+    /**
+     *
+     * Adds a WHERE condition to the query by AND. If the condition has
+     * ?-placeholders, additional arguments to the method will be bound to
+     * those placeholders sequentially.
+     *
+     * @param string $cond The WHERE condition.
+     * @param mixed ...$bind arguments to bind to placeholders
+     *
+     * @return $this
+     *
+     */
+    public function where($cond)
+    {
+        $bind = func_get_args();
+        array_shift($bind);
+
+        $this->addWhere($cond, 'AND', $bind);
+
+        return $this;
+    }
+
+    /**
+     *
+     * Adds a WHERE condition to the query by OR. If the condition has
+     * ?-placeholders, additional arguments to the method will be bound to
+     * those placeholders sequentially.
+     *
+     * @param string $cond The WHERE condition.
+     * @param mixed ...$bind arguments to bind to placeholders
+     *
+     * @return $this
+     *
+     * @see where()
+     *
+     */
+    public function orWhere($cond)
+    {
+        $bind = func_get_args();
+        array_shift($bind);
+
+        $this->addWhere($cond, 'OR', $bind);
+
+        return $this;
     }
 }

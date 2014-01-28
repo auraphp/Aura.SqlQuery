@@ -11,6 +11,7 @@
 namespace Aura\Sql_Query\Common;
 
 use Aura\Sql_Query\QueryInterface;
+use Aura\Sql_Query\Common\WhereInterface;
 
 /**
  *
@@ -19,7 +20,7 @@ use Aura\Sql_Query\QueryInterface;
  * @package Aura.Sql_Query
  *
  */
-interface UpdateInterface extends QueryInterface
+interface UpdateInterface extends QueryInterface, WhereInterface
 {
     /**
      *
@@ -67,29 +68,4 @@ interface UpdateInterface extends QueryInterface
      * 
      */
     public function set($col, $value);
-
-    /**
-     * 
-     * Adds a WHERE condition to the query by AND.
-     * 
-     * @param string $cond The WHERE condition.
-     * 
-     * @return $this
-     * 
-     */
-    public function where($cond);
-
-    /**
-     * 
-     * Adds a WHERE condition to the query by OR; otherwise identical to 
-     * `where()`.
-     * 
-     * @param string $cond The WHERE condition.
-     * 
-     * @return $this
-     * 
-     * @see where()
-     * 
-     */
-    public function orWhere($cond);
 }

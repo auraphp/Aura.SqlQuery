@@ -19,7 +19,7 @@ use Aura\Sql_Query\QueryInterface;
  * @package Aura.Sql_Query
  *
  */
-interface SelectInterface extends QueryInterface
+interface SelectInterface extends QueryInterface, WhereInterface
 {
     /**
      *
@@ -138,31 +138,6 @@ interface SelectInterface extends QueryInterface
      */
     public function joinSubSelect($join, $spec, $name, $cond = null);
 
-    /**
-     * 
-     * Adds a WHERE condition to the query by AND.
-     * 
-     * @param string $cond The WHERE condition.
-     * 
-     * @return $this
-     * 
-     */
-    public function where($cond);
-
-    /**
-     * 
-     * Adds a WHERE condition to the query by OR; otherwise identical to 
-     * `where()`.
-     * 
-     * @param string $cond The WHERE condition.
-     * 
-     * @return $this
-     * 
-     * @see where()
-     * 
-     */
-    public function orWhere($cond);
-    
     /**
      *
      * Adds grouping to the query.

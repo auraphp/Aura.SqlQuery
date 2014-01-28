@@ -30,6 +30,15 @@ abstract class AbstractQuery
 
     /**
      *
+     * The list of WHERE conditions.
+     *
+     * @var array
+     *
+     */
+    protected $where = [];
+
+    /**
+     *
      * The list of flags.
      *
      * @var array
@@ -442,5 +451,51 @@ abstract class AbstractQuery
         $text = preg_replace($find, $repl, $text);
 
         return $text;
+    }
+
+    /**
+     *
+     * Adds a WHERE condition to the query by AND or OR. If the condition has
+     * ?-placeholders, additional arguments to the method will be bound to
+     * those placeholders sequentially.
+     *
+     * @param string $op   operator: 'AND' or 'OR'
+     * @param string $cond The WHERE condition.
+     * @param array $bind arguments to bind to placeholders
+     *
+     * @return $this
+     */
+    protected function addWhere($cond, $op, array $bind)
+    {
+        // quote names in the condition
+        $cond = $this->quoteNamesIn($cond);
+
+        // bind values to the condition
+        foreach ($bind as $value) {
+            $this->bind_values[] = $value;
+        }
+
+        if ($this->where) {
+            $this->where[] = "$op $cond";
+        } else {
+            $this->where[] = $cond;
+        }
+
+        // done
+        return $this;
+    }
+
+    /**
+     *
+     * Appends the `WHERE` clause to the statement.
+     *
+     * @return null
+     *
+     */
+    protected function buildWhere()
+    {
+        if ($this->where) {
+            $this->stm .= PHP_EOL . 'WHERE' . $this->indent($this->where);
+        }
     }
 }
