@@ -22,6 +22,26 @@ class UpdateTest extends Common\UpdateTest
             LIMIT 5
     ";
 
+    public function testOrderByLimit()
+    {
+        $this->query->table('t1')
+                    ->col('c1')
+                    ->orderBy(array('c2'))
+                    ->limit(10);
+                    
+        $actual = $this->query->__toString();
+        $expect = '
+            UPDATE <<t1>>
+                SET
+                    <<c1>> = :c1
+                ORDER BY
+                    c2
+                LIMIT 10
+        ';
+        
+        $this->assertSameSql($expect, $actual);
+    }
+    
     public function testLowPriority()
     {
         $this->query->lowPriority()

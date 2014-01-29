@@ -15,6 +15,23 @@ class DeleteTest extends Common\DeleteTest
                 OR zim = gir
     ";
 
+    public function testOrderByLimit()
+    {
+        $this->query->from('t1')
+                    ->orderBy(array('c1', 'c2'))
+                    ->limit(10);
+        
+        $actual = $this->query->__toString();
+        $expect = '
+            DELETE FROM <<t1>>
+                ORDER BY
+                    c1,
+                    c2
+                LIMIT 10
+        ';
+        $this->assertSameSql($expect, $actual);
+    }
+    
     public function testLowPriority()
     {
         $this->query->lowPriority()

@@ -10,7 +10,8 @@ class UpdateTest extends AbstractQueryTest
     public function testCommon()
     {
         $this->query->table('t1')
-                    ->cols(array('c1', 'c2', 'c3'))
+                    ->cols(array('c1', 'c2'))
+                    ->col('c3')
                     ->set('c4', null)
                     ->set('c5', 'NOW()')
                     ->where('foo = ?', 'bar')
