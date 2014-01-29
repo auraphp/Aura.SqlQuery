@@ -29,7 +29,7 @@ abstract class AbstractQuery
      * @var array
      * 
      */
-    protected $bind_values = [];
+    protected $bind_values = array();
 
     /**
      *
@@ -48,7 +48,7 @@ abstract class AbstractQuery
      * @var array
      *
      */
-    protected $where = [];
+    protected $where = array();
 
     /**
      *
@@ -57,7 +57,7 @@ abstract class AbstractQuery
      * @var array
      *
      */
-    protected $bind_where = [];
+    protected $bind_where = array();
 
     /**
      *
@@ -66,7 +66,7 @@ abstract class AbstractQuery
      * @var array
      *
      */
-    protected $order_by = [];
+    protected $order_by = array();
 
     /**
      *
@@ -93,7 +93,7 @@ abstract class AbstractQuery
      * @var array
      *
      */
-    protected $returning = [];
+    protected $returning = array();
 
     /**
      *
@@ -102,7 +102,7 @@ abstract class AbstractQuery
      * @var array
      *
      */
-    protected $flags = [];
+    protected $flags = array();
 
     /**
      * 
@@ -302,7 +302,7 @@ abstract class AbstractQuery
      */
     protected function resetFlags()
     {
-        $this->flags = [];
+        $this->flags = array();
     }
     
     /**
@@ -645,7 +645,7 @@ abstract class AbstractQuery
      */
     protected function buildValuesForUpdate()
     {
-        $values = [];
+        $values = array();
         foreach ($this->values as $col => $value) {
             $values[] = "{$col} = {$value}";
         }

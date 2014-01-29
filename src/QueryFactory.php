@@ -46,13 +46,13 @@ class QueryFactory
      * @param array
      * 
      */
-    protected $quotes = [
-        'Common' => ['"', '"'],
-        'Mysql'  => ['`', '`'],
-        'Pgsql'  => ['"', '"'],
-        'Sqlite' => ['"', '"'],
-        'Sqlsrv' => ['[', ']'],
-    ];
+    protected $quotes = array(
+        'Common' => array('"', '"'),
+        'Mysql'  => array('`', '`'),
+        'Pgsql'  => array('"', '"'),
+        'Sqlite' => array('"', '"'),
+        'Sqlsrv' => array('[', ']'),
+    );
     
     /**
      * 

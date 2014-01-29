@@ -29,7 +29,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var array
      *
      */
-    protected $union = [];
+    protected $union = array();
 
     /**
      *
@@ -47,7 +47,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var array
      *
      */
-    protected $cols = [];
+    protected $cols = array();
 
     /**
      *
@@ -56,7 +56,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var array
      *
      */
-    protected $from = [];
+    protected $from = array();
 
     /**
      * 
@@ -74,7 +74,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var array
      *
      */
-    protected $group_by = [];
+    protected $group_by = array();
 
     /**
      *
@@ -83,7 +83,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var array
      *
      */
-    protected $having = [];
+    protected $having = array();
 
     /**
      * 
@@ -92,7 +92,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var array
      * 
      */
-    protected $bind_having = [];
+    protected $bind_having = array();
     
     /**
      *
@@ -230,7 +230,7 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function from($spec)
     {
-        $this->from[] = [$this->quoteName($spec)];
+        $this->from[] = array($this->quoteName($spec));
         $this->from_key ++;
         return $this;
     }
@@ -250,11 +250,11 @@ class Select extends AbstractQuery implements SelectInterface
     public function fromSubSelect($spec, $name)
     {
         $spec = ltrim(preg_replace('/^/m', '        ', (string) $spec));
-        $this->from[] = [
+        $this->from[] = array(
             "("
             . PHP_EOL . '        ' . $spec . PHP_EOL
             . "    ) AS " . $this->quoteName($name)
-        ];
+        );
         $this->from_key ++;
         return $this;
     }
@@ -486,13 +486,13 @@ class Select extends AbstractQuery implements SelectInterface
     protected function reset()
     {
         $this->resetFlags();
-        $this->cols       = [];
-        $this->from       = [];
+        $this->cols       = array();
+        $this->from       = array();
         $this->from_key   = -1;
-        $this->where      = [];
-        $this->group_by   = [];
-        $this->having     = [];
-        $this->order_by   = [];
+        $this->where      = array();
+        $this->group_by   = array();
+        $this->having     = array();
+        $this->order_by   = array();
         $this->limit      = 0;
         $this->offset     = 0;
         $this->for_update = false;
@@ -545,7 +545,7 @@ class Select extends AbstractQuery implements SelectInterface
     protected function buildFrom()
     {
         if ($this->from) {
-            $refs = [];
+            $refs = array();
             foreach ($this->from as $from) {
                 $refs[] = implode(PHP_EOL, $from);
             }
