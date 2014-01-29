@@ -19,7 +19,7 @@ class SelectTest extends AbstractQueryTest
     {
         $this->query->distinct()
                      ->from('t1')
-                     ->cols(['t1.c1', 't1.c2', 't1.c3']);
+                     ->cols(array('t1.c1', 't1.c2', 't1.c3'));
 
         $actual = $this->query->__toString();
 
@@ -39,7 +39,7 @@ class SelectTest extends AbstractQueryTest
         $this->query->distinct()
                     ->distinct()
                     ->from('t1')
-                    ->cols(['t1.c1', 't1.c2', 't1.c3']);
+                    ->cols(array('t1.c1', 't1.c2', 't1.c3'));
 
         $actual = $this->query->__toString();
 
@@ -59,7 +59,7 @@ class SelectTest extends AbstractQueryTest
         $this->query->distinct()
                     ->distinct(false)
                     ->from('t1')
-                    ->cols(['t1.c1', 't1.c2', 't1.c3']);
+                    ->cols(array('t1.c1', 't1.c2', 't1.c3'));
 
         $actual = $this->query->__toString();
 
@@ -76,7 +76,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testCols()
     {
-        $this->query->cols(['t1.c1', 'c2', 'COUNT(t1.c3)']);
+        $this->query->cols(array('t1.c1', 'c2', 'COUNT(t1.c3)'));
         $actual = $this->query->__toString();
         $expect = '
             SELECT
@@ -105,7 +105,7 @@ class SelectTest extends AbstractQueryTest
     public function testFromSubSelect()
     {
         $sub = 'SELECT * FROM t2';
-        $this->query->cols(['*'])->fromSubSelect($sub, 'a2');
+        $this->query->cols(array('*'))->fromSubSelect($sub, 'a2');
         $expect = '
             SELECT
                 *
@@ -121,9 +121,9 @@ class SelectTest extends AbstractQueryTest
     public function testFromSubSelectObject()
     {
         $sub = $this->newQuery();
-        $sub->cols(['*'])->from('t2');
+        $sub->cols(array('*'))->from('t2');
 
-        $this->query->cols(['*'])->fromSubSelect($sub, 'a2');
+        $this->query->cols(array('*'))->fromSubSelect($sub, 'a2');
         $expect = '
             SELECT
                 *
@@ -192,7 +192,7 @@ class SelectTest extends AbstractQueryTest
     public function testJoinSubSelectObject()
     {
         $sub = $this->newQuery();
-        $sub->cols(['*'])->from('t2');
+        $sub->cols(array('*'))->from('t2');
 
         $this->query->from('t1');
         $this->query->joinSubSelect('left', $sub, 'a3', 't2.c1 = a3.c1');
@@ -247,7 +247,7 @@ class SelectTest extends AbstractQueryTest
         $this->assertSameSql($expect, $actual);
         
         $actual = $this->query->getBindValues();
-        $expect = [1 => 'foo'];
+        $expect = array(1 => 'foo');
         $this->assertSame($expect, $actual);
     }
 
@@ -267,13 +267,13 @@ class SelectTest extends AbstractQueryTest
         $this->assertSameSql($expect, $actual);
         
         $actual = $this->query->getBindValues();
-        $expect = [1 => 'foo'];
+        $expect = array(1 => 'foo');
         $this->assertSame($expect, $actual);
     }
 
     public function testGroupBy()
     {
-        $this->query->groupBy(['c1', 't2.c2']);
+        $this->query->groupBy(array('c1', 't2.c2'));
         $expect = '
             SELECT
             GROUP BY
@@ -300,7 +300,7 @@ class SelectTest extends AbstractQueryTest
         $this->assertSameSql($expect, $actual);
         
         $actual = $this->query->getBindValues();
-        $expect = [1 => 'foo'];
+        $expect = array(1 => 'foo');
         $this->assertSame($expect, $actual);
     }
 
@@ -319,13 +319,13 @@ class SelectTest extends AbstractQueryTest
         $this->assertSameSql($expect, $actual);
         
         $actual = $this->query->getBindValues();
-        $expect = [1 => 'foo'];
+        $expect = array(1 => 'foo');
         $this->assertSame($expect, $actual);
     }
 
     public function testOrderBy()
     {
-        $this->query->orderBy(['c1', 'UPPER(t2.c2)', ]);
+        $this->query->orderBy(array('c1', 'UPPER(t2.c2)', ));
         $expect = '
             SELECT
             ORDER BY
@@ -380,10 +380,10 @@ class SelectTest extends AbstractQueryTest
 
     public function testUnion()
     {
-        $this->query->cols(['c1'])
+        $this->query->cols(array('c1'))
                      ->from('t1')
                      ->union()
-                     ->cols(['c2'])
+                     ->cols(array('c2'))
                      ->from('t2');
         $expect = '
             SELECT
@@ -403,10 +403,10 @@ class SelectTest extends AbstractQueryTest
 
     public function testUnionAll()
     {
-        $this->query->cols(['c1'])
+        $this->query->cols(array('c1'))
                      ->from('t1')
                      ->unionAll()
-                     ->cols(['c2'])
+                     ->cols(array('c2'))
                      ->from('t2');
         $expect = '
             SELECT
@@ -427,7 +427,7 @@ class SelectTest extends AbstractQueryTest
     public function testAutobind()
     {
         // do these out of order
-        $this->query->having('baz IN (?)', ['dib', 'zim', 'gir']);
+        $this->query->having('baz IN (?)', array('dib', 'zim', 'gir'));
         $this->query->where('foo = ?', 'bar');
         
         $expect = '
@@ -440,10 +440,10 @@ class SelectTest extends AbstractQueryTest
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
         
-        $expect = [
+        $expect = array(
             1 => 'bar',
-            2 => ['dib', 'zim', 'gir'],
-        ];
+            2 => array('dib', 'zim', 'gir'),
+        );
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);
     }

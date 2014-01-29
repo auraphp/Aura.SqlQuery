@@ -12,7 +12,6 @@ namespace Aura\Sql_Query\Common;
 
 use Aura\Sql_Query\AbstractQuery;
 use Aura\Sql_Query\Exception;
-use Aura\Sql_Query\Traits;
 
 /**
  *
@@ -23,19 +22,6 @@ use Aura\Sql_Query\Traits;
  */
 class Select extends AbstractQuery implements SelectInterface
 {
-    use Traits\LimitOffsetTrait;
-    use Traits\OrderByTrait;
-    use Traits\WhereTrait;
-
-    /**
-     * 
-     * The statement being built.
-     * 
-     * @var string
-     * 
-     */
-    protected $stm;
-    
     /**
      *
      * An array of union SELECT statements.
@@ -43,7 +29,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var array
      *
      */
-    protected $union = [];
+    protected $union = array();
 
     /**
      *
@@ -61,7 +47,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var array
      *
      */
-    protected $cols = [];
+    protected $cols = array();
 
     /**
      *
@@ -70,7 +56,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var array
      *
      */
-    protected $from = [];
+    protected $from = array();
 
     /**
      * 
@@ -88,7 +74,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var array
      *
      */
-    protected $group_by = [];
+    protected $group_by = array();
 
     /**
      *
@@ -97,7 +83,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var array
      *
      */
-    protected $having = [];
+    protected $having = array();
 
     /**
      * 
@@ -106,7 +92,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var array
      * 
      */
-    protected $bind_having = [];
+    protected $bind_having = array();
     
     /**
      *
@@ -244,7 +230,7 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function from($spec)
     {
-        $this->from[] = [$this->quoteName($spec)];
+        $this->from[] = array($this->quoteName($spec));
         $this->from_key ++;
         return $this;
     }
@@ -264,11 +250,11 @@ class Select extends AbstractQuery implements SelectInterface
     public function fromSubSelect($spec, $name)
     {
         $spec = ltrim(preg_replace('/^/m', '        ', (string) $spec));
-        $this->from[] = [
+        $this->from[] = array(
             "("
             . PHP_EOL . '        ' . $spec . PHP_EOL
             . "    ) AS " . $this->quoteName($name)
-        ];
+        );
         $this->from_key ++;
         return $this;
     }
@@ -284,6 +270,8 @@ class Select extends AbstractQuery implements SelectInterface
      * @param string $cond Join on this condition.
      *
      * @return $this
+     *
+     * @throws Exception
      *
      */
     public function join($join, $spec, $cond = null)
@@ -320,6 +308,8 @@ class Select extends AbstractQuery implements SelectInterface
      * @param string $cond Join on this condition.
      *
      * @return $this
+     *
+     * @throws Exception
      *
      */
     public function joinSubSelect($join, $spec, $name, $cond = null)
@@ -496,13 +486,13 @@ class Select extends AbstractQuery implements SelectInterface
     protected function reset()
     {
         $this->resetFlags();
-        $this->cols       = [];
-        $this->from       = [];
+        $this->cols       = array();
+        $this->from       = array();
         $this->from_key   = -1;
-        $this->where      = [];
-        $this->group_by   = [];
-        $this->having     = [];
-        $this->order_by   = [];
+        $this->where      = array();
+        $this->group_by   = array();
+        $this->having     = array();
+        $this->order_by   = array();
         $this->limit      = 0;
         $this->offset     = 0;
         $this->for_update = false;
@@ -555,7 +545,7 @@ class Select extends AbstractQuery implements SelectInterface
     protected function buildFrom()
     {
         if ($this->from) {
-            $refs = [];
+            $refs = array();
             foreach ($this->from as $from) {
                 $refs[] = implode(PHP_EOL, $from);
             }
@@ -603,5 +593,95 @@ class Select extends AbstractQuery implements SelectInterface
         if ($this->for_update) {
             $this->stm .= PHP_EOL . 'FOR UPDATE';
         }
+    }
+
+    /**
+     *
+     * Adds a WHERE condition to the query by AND. If the condition has
+     * ?-placeholders, additional arguments to the method will be bound to
+     * those placeholders sequentially.
+     *
+     * @param string $cond The WHERE condition.
+     * @param mixed ...$bind arguments to bind to placeholders
+     *
+     * @return $this
+     *
+     */
+    public function where($cond)
+    {
+        $bind = func_get_args();
+        array_shift($bind);
+
+        $this->addWhere($cond, 'AND', $bind);
+
+        return $this;
+    }
+
+    /**
+     *
+     * Adds a WHERE condition to the query by OR. If the condition has
+     * ?-placeholders, additional arguments to the method will be bound to
+     * those placeholders sequentially.
+     *
+     * @param string $cond The WHERE condition.
+     * @param mixed ...$bind arguments to bind to placeholders
+     *
+     * @return $this
+     *
+     * @see where()
+     *
+     */
+    public function orWhere($cond)
+    {
+        $bind = func_get_args();
+        array_shift($bind);
+
+        $this->addWhere($cond, 'OR', $bind);
+
+        return $this;
+    }
+
+    /**
+     *
+     * Sets a limit count on the query.
+     *
+     * @param int $limit The number of rows to select.
+     *
+     * @return $this
+     *
+     */
+    public function limit($limit)
+    {
+        $this->limit = (int) $limit;
+        return $this;
+    }
+
+    /**
+     *
+     * Sets a limit offset on the query.
+     *
+     * @param int $offset Start returning after this many rows.
+     *
+     * @return $this
+     *
+     */
+    public function offset($offset)
+    {
+        $this->offset = (int) $offset;
+        return $this;
+    }
+
+    /**
+     *
+     * Adds a column order to the query.
+     *
+     * @param array $spec The columns and direction to order by.
+     *
+     * @return $this
+     *
+     */
+    public function orderBy(array $spec)
+    {
+        return $this->addOrderBy($spec);
     }
 }

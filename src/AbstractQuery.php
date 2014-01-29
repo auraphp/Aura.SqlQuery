@@ -10,6 +10,9 @@
  */
 namespace Aura\Sql_Query;
 
+use Aura\Sql_Query\Common\LimitInterface;
+use Aura\Sql_Query\Common\LimitOffsetInterface;
+
 /**
  * 
  * Abstract query object for Select, Insert, Update, and Delete.
@@ -26,7 +29,71 @@ abstract class AbstractQuery
      * @var array
      * 
      */
-    protected $bind_values = [];
+    protected $bind_values = array();
+
+    /**
+     *
+     * Column values for INSERT or UPDATE queries; the key is the column name and the
+     * value is the column value.
+     *
+     * @param array
+     *
+     */
+    protected $values;
+
+    /**
+     *
+     * The list of WHERE conditions.
+     *
+     * @var array
+     *
+     */
+    protected $where = array();
+
+    /**
+     *
+     * Bind these values to the WHERE conditions.
+     *
+     * @var array
+     *
+     */
+    protected $bind_where = array();
+
+    /**
+     *
+     * ORDER BY these columns.
+     *
+     * @var array
+     *
+     */
+    protected $order_by = array();
+
+    /**
+     *
+     * The number of rows to select
+     *
+     * @var int
+     *
+     */
+    protected $limit = 0;
+
+    /**
+     *
+     * Return rows after this offset.
+     *
+     * @var int
+     *
+     */
+    protected $offset = 0;
+
+    /**
+     *
+     * The columns to be returned.
+     *
+     * @var array
+     *
+     */
+    protected $returning = array();
 
     /**
      *
@@ -35,7 +102,7 @@ abstract class AbstractQuery
      * @var array
      *
      */
-    protected $flags = [];
+    protected $flags = array();
 
     /**
      * 
@@ -182,7 +249,7 @@ abstract class AbstractQuery
      * 
      * @param string $name The placeholder name or number.
      * 
-     * @param mixes $value The value to bind to the placeholder.
+     * @param mixed $value The value to bind to the placeholder.
      * 
      * @return null
      * 
@@ -191,19 +258,7 @@ abstract class AbstractQuery
     {
         $this->bind_values[$name] = $value;
     }
-    
-    /**
-     * 
-     * Gets the values to bind to placeholders.
-     * 
-     * @return array
-     * 
-     */
-    public function getBindValues()
-    {
-        return $this->bind_values;
-    }
-    
+
     /**
      * 
      * Returns the flags as a space-separated string.
@@ -247,7 +302,7 @@ abstract class AbstractQuery
      */
     protected function resetFlags()
     {
-        $this->flags = [];
+        $this->flags = array();
     }
     
     /**
@@ -442,5 +497,245 @@ abstract class AbstractQuery
         $text = preg_replace($find, $repl, $text);
 
         return $text;
+    }
+
+    /**
+     *
+     * Adds a WHERE condition to the query by AND or OR. If the condition has
+     * ?-placeholders, additional arguments to the method will be bound to
+     * those placeholders sequentially.
+     *
+     * @param string $op   operator: 'AND' or 'OR'
+     * @param string $cond The WHERE condition.
+     * @param array $bind arguments to bind to placeholders
+     *
+     * @return $this
+     */
+    protected function addWhere($cond, $op, array $bind)
+    {
+        // quote names in the condition
+        $cond = $this->quoteNamesIn($cond);
+
+        // bind values to the condition
+        foreach ($bind as $value) {
+            $this->bind_where[] = $value;
+        }
+
+        if ($this->where) {
+            $this->where[] = "$op $cond";
+        } else {
+            $this->where[] = $cond;
+        }
+
+        // done
+        return $this;
+    }
+
+    /**
+     *
+     * Appends the `WHERE` clause to the statement.
+     *
+     * @return null
+     *
+     */
+    protected function buildWhere()
+    {
+        if ($this->where) {
+            $this->stm .= PHP_EOL . 'WHERE' . $this->indent($this->where);
+        }
+    }
+
+    /**
+     *
+     * Sets one column value placeholder; if an optional second parameter is
+     * passed, that value is bound to the placeholder.
+     *
+     * @param string $col The column name.
+     *
+     * @param mixed $val Optional: a value to bind to the placeholder.
+     *
+     * @return $this
+     *
+     */
+    protected function addCol($col)
+    {
+        $key = $this->quoteName($col);
+        $this->values[$key] = ":$col";
+        $args = func_get_args();
+        if (count($args) > 1) {
+            $this->bindValue($col, $args[1]);
+        }
+        return $this;
+    }
+
+    /**
+     *
+     * Sets multiple column value placeholders. If an element is a key-value
+     * pair, the key is treated as the column name and the value is bound to
+     * that column.
+     *
+     * @param array $cols A list of column names, optionally as key-value
+     * pairs where the key is a column name and the value is a bind value for
+     * that column.
+     *
+     * @return $this
+     *
+     */
+    protected function addCols(array $cols)
+    {
+        foreach ($cols as $key => $val) {
+            if (is_int($key)) {
+                // integer key means the value is the column name
+                $this->addCol($val);
+            } else {
+                // the key is the column name and the value is a value to
+                // be bound to that column
+                $this->addCol($key, $val);
+            }
+        }
+        return $this;
+    }
+
+    /**
+     *
+     * Sets a column value directly; the value will not be escaped, although
+     * fully-qualified identifiers in the value will be quoted.
+     *
+     * @param string $col The column name.
+     *
+     * @param string $value The column value expression.
+     *
+     * @return $this
+     *
+     */
+    protected function setCol($col, $value)
+    {
+        if ($value === null) {
+            $value = 'NULL';
+        }
+
+        $key = $this->quoteName($col);
+        $value = $this->quoteNamesIn($value);
+        $this->values[$key] = $value;
+        return $this;
+    }
+
+    /**
+     *
+     * Appends the insert columns and values to the statement.
+     *
+     * @return null
+     *
+     */
+    protected function buildValuesForInsert()
+    {
+        $this->stm .= ' ('
+            . $this->indentCsv(array_keys($this->values))
+            . PHP_EOL . ') VALUES ('
+            . $this->indentCsv(array_values($this->values))
+            . PHP_EOL . ')';
+    }
+
+    /**
+     *
+     * Appends the update columns and values to the statement.
+     *
+     * @return null
+     *
+     */
+    protected function buildValuesForUpdate()
+    {
+        $values = array();
+        foreach ($this->values as $col => $value) {
+            $values[] = "{$col} = {$value}";
+        }
+        $this->stm .= PHP_EOL . 'SET' . $this->indentCsv($values);
+    }
+
+    /**
+     *
+     * Adds a column order to the query.
+     *
+     * @param array $spec The columns and direction to order by.
+     *
+     * @return $this
+     *
+     */
+    protected function addOrderBy(array $spec)
+    {
+        foreach ($spec as $col) {
+            $this->order_by[] = $this->quoteNamesIn($col);
+        }
+        return $this;
+    }
+
+    /**
+     *
+     * Appends the `ORDER BY ...` clause to the statement.
+     *
+     * @return null
+     *
+     */
+    protected function buildOrderBy()
+    {
+        if ($this->order_by) {
+            $this->stm .= PHP_EOL . 'ORDER BY' . $this->indentCsv($this->order_by);
+        }
+    }
+
+    /**
+     *
+     * Appends the `LIMIT ... OFFSET` clause to the statement.
+     *
+     * @return null
+     *
+     */
+    protected function buildLimit()
+    {
+        $has_limit = $this instanceof LimitInterface;
+        $has_offset = $this instanceof LimitOffsetInterface;
+
+        if ($has_offset && $this->limit) {
+            $this->stm .= PHP_EOL . "LIMIT {$this->limit}";
+            if ($this->offset) {
+                $this->stm .= " OFFSET {$this->offset}";
+            }
+        } else if ($has_limit && $this->limit) {
+            $this->stm .= PHP_EOL . "LIMIT {$this->limit}";
+        }
+    }
+
+    /**
+     *
+     * Adds returning columns to the query.
+     *
+     * Multiple calls to returning() will append to the list of columns, not
+     * overwrite the previous columns.
+     *
+     * @param array $cols The column(s) to add to the query.
+     *
+     * @return $this
+     *
+     */
+    protected function addReturning(array $cols)
+    {
+        foreach ($cols as $col) {
+            $this->returning[] = $this->quoteNamesIn($col);
+        }
+        return $this;
+    }
+
+    /**
+     *
+     * Appends the `RETURNING` clause to the statement.
+     *
+     * @return null
+     *
+     */
+    protected function buildReturning()
+    {
+        if ($this->returning) {
+            $this->stm .= PHP_EOL . 'RETURNING' . $this->indentCsv($this->returning);
+        }
     }
 }

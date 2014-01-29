@@ -10,14 +10,14 @@ class UpdateTest extends Common\UpdateTest
     public function testReturning()
     {
         $this->query->table('t1')
-                    ->cols(['c1', 'c2', 'c3'])
+                    ->cols(array('c1', 'c2', 'c3'))
                     ->set('c4', null)
                     ->set('c5', 'NOW()')
                     ->where('foo = ?', 'bar')
                     ->where('baz = ?', 'dib')
                     ->orWhere('zim = gir')
-                    ->returning(['c1', 'c2'])
-                    ->returning(['c3']);
+                    ->returning(array('c1', 'c2'))
+                    ->returning(array('c3'));
 
         $actual = $this->query->__toString();
         $expect = "
@@ -40,10 +40,10 @@ class UpdateTest extends Common\UpdateTest
         $this->assertSameSql($expect, $actual);
         
         $actual = $this->query->getBindValues();
-        $expect = [
+        $expect = array(
             1 => 'bar',
             2 => 'dib',
-        ];
+        );
         $this->assertSame($expect, $actual);
     }
 }

@@ -22,7 +22,7 @@ class SelectTest extends Common\SelectTest
                     ->distinct()
                     ->noCache()
                     ->from('t1')
-                    ->cols(['t1.c1', 't1.c2', 't1.c3']);
+                    ->cols(array('t1.c1', 't1.c2', 't1.c3'));
 
         $actual = $this->query->__toString();
 
@@ -34,7 +34,7 @@ class SelectTest extends Common\SelectTest
     {
         $this->query->calcFoundRows()
                      ->from('t1')
-                     ->cols(['t1.c1', 't1.c2', 't1.c3']);
+                     ->cols(array('t1.c1', 't1.c2', 't1.c3'));
 
         $actual = $this->query->__toString();
 
@@ -46,7 +46,7 @@ class SelectTest extends Common\SelectTest
     {
         $this->query->cache()
                      ->from('t1')
-                     ->cols(['t1.c1', 't1.c2', 't1.c3']);
+                     ->cols(array('t1.c1', 't1.c2', 't1.c3'));
 
         $actual = $this->query->__toString();
 
@@ -58,7 +58,7 @@ class SelectTest extends Common\SelectTest
     {
         $this->query->noCache()
                      ->from('t1')
-                     ->cols(['t1.c1', 't1.c2', 't1.c3']);
+                     ->cols(array('t1.c1', 't1.c2', 't1.c3'));
 
         $actual = $this->query->__toString();
 
@@ -70,7 +70,7 @@ class SelectTest extends Common\SelectTest
     {
         $this->query->straightJoin()
                      ->from('t1')
-                     ->cols(['t1.c1', 't1.c2', 't1.c3']);
+                     ->cols(array('t1.c1', 't1.c2', 't1.c3'));
 
         $actual = $this->query->__toString();
 
@@ -82,7 +82,7 @@ class SelectTest extends Common\SelectTest
     {
         $this->query->highPriority()
                      ->from('t1')
-                     ->cols(['t1.c1', 't1.c2', 't1.c3']);
+                     ->cols(array('t1.c1', 't1.c2', 't1.c3'));
 
         $actual = $this->query->__toString();
 
@@ -94,7 +94,7 @@ class SelectTest extends Common\SelectTest
     {
         $this->query->smallResult()
                      ->from('t1')
-                     ->cols(['t1.c1', 't1.c2', 't1.c3']);
+                     ->cols(array('t1.c1', 't1.c2', 't1.c3'));
 
         $actual = $this->query->__toString();
 
@@ -106,7 +106,7 @@ class SelectTest extends Common\SelectTest
     {
         $this->query->bigResult()
                      ->from('t1')
-                     ->cols(['t1.c1', 't1.c2', 't1.c3']);
+                     ->cols(array('t1.c1', 't1.c2', 't1.c3'));
 
         $actual = $this->query->__toString();
 
@@ -118,7 +118,7 @@ class SelectTest extends Common\SelectTest
     {
         $this->query->bufferResult()
                      ->from('t1')
-                     ->cols(['t1.c1', 't1.c2', 't1.c3']);
+                     ->cols(array('t1.c1', 't1.c2', 't1.c3'));
 
         $actual = $this->query->__toString();
 

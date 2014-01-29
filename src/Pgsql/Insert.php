@@ -11,7 +11,6 @@
 namespace Aura\Sql_Query\Pgsql;
 
 use Aura\Sql_Query\Common;
-use Aura\Sql_Query\Traits;
 
 /**
  *
@@ -20,10 +19,8 @@ use Aura\Sql_Query\Traits;
  * @package Aura.Sql_Query
  *
  */
-class Insert extends Common\Insert
+class Insert extends Common\Insert implements Common\ReturningInterface
 {
-    use Traits\ReturningTrait;
-    
     /**
      * 
      * Builds this query object into a string.
@@ -50,5 +47,22 @@ class Insert extends Common\Insert
     public function getLastInsertIdName($col)
     {
         return "{$this->into}_{$col}_seq";
+    }
+
+    /**
+     *
+     * Adds returning columns to the query.
+     *
+     * Multiple calls to returning() will append to the list of columns, not
+     * overwrite the previous columns.
+     *
+     * @param array $cols The column(s) to add to the query.
+     *
+     * @return $this
+     *
+     */
+    public function returning(array $cols)
+    {
+        return $this->addReturning($cols);
     }
 }

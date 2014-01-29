@@ -11,7 +11,6 @@
 namespace Aura\Sql_Query\Mysql;
 
 use Aura\Sql_Query\Common;
-use Aura\Sql_Query\Traits;
 
 /**
  *
@@ -20,11 +19,8 @@ use Aura\Sql_Query\Traits;
  * @package Aura.Sql_Query
  *
  */
-class Update extends Common\Update
+class Update extends Common\Update implements Common\OrderByInterface, Common\LimitInterface
 {
-    use Traits\LimitTrait;
-    use Traits\OrderByTrait;
-    
     /**
      * 
      * Converts this query object to a string.
@@ -68,5 +64,34 @@ class Update extends Common\Update
     {
         $this->setFlag('IGNORE', $enable);
         return $this;
+    }
+
+    /**
+     *
+     * Sets a limit count on the query.
+     *
+     * @param int $limit The number of rows to select.
+     *
+     * @return $this
+     *
+     */
+    public function limit($limit)
+    {
+        $this->limit = (int) $limit;
+        return $this;
+    }
+
+    /**
+     *
+     * Adds a column order to the query.
+     *
+     * @param array $spec The columns and direction to order by.
+     *
+     * @return $this
+     *
+     */
+    public function orderBy(array $spec)
+    {
+        return $this->addOrderBy($spec);
     }
 }

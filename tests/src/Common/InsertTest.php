@@ -10,10 +10,10 @@ class InsertTest extends AbstractQueryTest
     public function testCommon()
     {
         $this->query->into('t1')
-                    ->cols(['c1', 'c2', 'c3'])
+                    ->cols(array('c1', 'c2', 'c3'))
                     ->set('c4', 'NOW()')
                     ->set('c5', null)
-                    ->cols(['cx' => 'cx_value']);
+                    ->cols(array('cx' => 'cx_value'));
         
         $actual = $this->query->__toString();
         $expect = '

@@ -11,7 +11,6 @@
 namespace Aura\Sql_Query\Sqlite;
 
 use Aura\Sql_Query\Common;
-use Aura\Sql_Query\Traits;
 
 /**
  *
@@ -20,11 +19,8 @@ use Aura\Sql_Query\Traits;
  * @package Aura.Sql_Query
  *
  */
-class Update extends Common\Update
+class Update extends Common\Update implements Common\OrderByInterface, Common\LimitOffsetInterface
 {
-    use Traits\LimitOffsetTrait;
-    use Traits\OrderByTrait;
-    
     /**
      * 
      * Builds this query object into a string.
@@ -113,5 +109,49 @@ class Update extends Common\Update
     {
         $this->setFlag('OR ROLLBACK', $enable);
         return $this;
+    }
+
+    /**
+     *
+     * Sets a limit count on the query.
+     *
+     * @param int $limit The number of rows to select.
+     *
+     * @return $this
+     *
+     */
+    public function limit($limit)
+    {
+        $this->limit = (int) $limit;
+        return $this;
+    }
+
+    /**
+     *
+     * Sets a limit offset on the query.
+     *
+     * @param int $offset Start returning after this many rows.
+     *
+     * @return $this
+     *
+     */
+    public function offset($offset)
+    {
+        $this->offset = (int) $offset;
+        return $this;
+    }
+
+    /**
+     *
+     * Adds a column order to the query.
+     *
+     * @param array $spec The columns and direction to order by.
+     *
+     * @return $this
+     *
+     */
+    public function orderBy(array $spec)
+    {
+        return $this->addOrderBy($spec);
     }
 }

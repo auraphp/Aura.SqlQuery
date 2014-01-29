@@ -10,11 +10,11 @@ class InsertTest extends Common\InsertTest
     public function testReturning()
     {
         $this->query->into('t1')
-                    ->cols(['c1', 'c2', 'c3'])
+                    ->cols(array('c1', 'c2', 'c3'))
                     ->set('c4', 'NOW()')
                     ->set('c5', null)
-                    ->returning(['c1', 'c2'])
-                    ->returning(['c3']);
+                    ->returning(array('c1', 'c2'))
+                    ->returning(array('c3'));
 
         $actual = $this->query->__toString();
         $expect = "

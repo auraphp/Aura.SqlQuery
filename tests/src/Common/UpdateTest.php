@@ -10,7 +10,7 @@ class UpdateTest extends AbstractQueryTest
     public function testCommon()
     {
         $this->query->table('t1')
-                    ->cols(['c1', 'c2', 'c3'])
+                    ->cols(array('c1', 'c2', 'c3'))
                     ->set('c4', null)
                     ->set('c5', 'NOW()')
                     ->where('foo = ?', 'bar')
@@ -35,10 +35,10 @@ class UpdateTest extends AbstractQueryTest
         $this->assertSameSql($expect, $actual);
         
         $actual = $this->query->getBindValues();
-        $expect = [
+        $expect = array(
             1 => 'bar',
             2 => 'dib',
-        ];
+        );
         $this->assertSame($expect, $actual);
     }
 }

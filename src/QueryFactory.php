@@ -46,13 +46,13 @@ class QueryFactory
      * @param array
      * 
      */
-    protected $quotes = [
-        'Common' => ['"', '"'],
-        'Mysql'  => ['`', '`'],
-        'Pgsql'  => ['"', '"'],
-        'Sqlite' => ['"', '"'],
-        'Sqlsrv' => ['[', ']'],
-    ];
+    protected $quotes = array(
+        'Common' => array('"', '"'),
+        'Mysql'  => array('`', '`'),
+        'Pgsql'  => array('"', '"'),
+        'Sqlite' => array('"', '"'),
+        'Sqlsrv' => array('[', ']'),
+    );
     
     /**
      * 
@@ -94,7 +94,7 @@ class QueryFactory
      * 
      * Returns a new SELECT object.
      * 
-     * @return Common/SelectInterface
+     * @return Common\SelectInterface
      * 
      */
     public function newSelect()
@@ -106,7 +106,7 @@ class QueryFactory
      * 
      * Returns a new INSERT object.
      * 
-     * @return Common/InsertInterface
+     * @return Common\InsertInterface
      * 
      */
     public function newInsert()
@@ -118,7 +118,7 @@ class QueryFactory
      * 
      * Returns a new UPDATE object.
      * 
-     * @return Common/UpdateInterface
+     * @return Common\UpdateInterface
      * 
      */
     public function newUpdate()
@@ -130,7 +130,7 @@ class QueryFactory
      * 
      * Returns a new DELETE object.
      * 
-     * @return Common/DeleteInterface
+     * @return Common\DeleteInterface
      * 
      */
     public function newDelete()
