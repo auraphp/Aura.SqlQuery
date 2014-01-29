@@ -67,6 +67,15 @@ abstract class AbstractQuery
 
     /**
      *
+     * The columns to be returned.
+     *
+     * @var array
+     *
+     */
+    protected $returning = [];
+
+    /**
+     *
      * The list of flags.
      *
      * @var array
@@ -650,6 +659,40 @@ abstract class AbstractQuery
     {
         if ($this->order_by) {
             $this->stm .= PHP_EOL . 'ORDER BY' . $this->indentCsv($this->order_by);
+        }
+    }
+
+    /**
+     *
+     * Adds returning columns to the query.
+     *
+     * Multiple calls to returning() will append to the list of columns, not
+     * overwrite the previous columns.
+     *
+     * @param array $cols The column(s) to add to the query.
+     *
+     * @return $this
+     *
+     */
+    protected function addReturning(array $cols)
+    {
+        foreach ($cols as $col) {
+            $this->returning[] = $this->quoteNamesIn($col);
+        }
+        return $this;
+    }
+
+    /**
+     *
+     * Appends the `RETURNING` clause to the statement.
+     *
+     * @return null
+     *
+     */
+    protected function buildReturning()
+    {
+        if ($this->returning) {
+            $this->stm .= PHP_EOL . 'RETURNING' . $this->indentCsv($this->returning);
         }
     }
 }

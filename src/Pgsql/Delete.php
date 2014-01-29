@@ -20,10 +20,8 @@ use Aura\Sql_Query\Traits;
  * @package Aura.Sql_Query
  *
  */
-class Delete extends Common\Delete
+class Delete extends Common\Delete implements Common\ReturningInterface
 {
-    use Traits\ReturningTrait;
-    
     /**
      * 
      * Converts this query object to a string.
@@ -36,5 +34,22 @@ class Delete extends Common\Delete
         parent::build();
         $this->buildReturning();
         return $this->stm;
+    }
+
+    /**
+     *
+     * Adds returning columns to the query.
+     *
+     * Multiple calls to returning() will append to the list of columns, not
+     * overwrite the previous columns.
+     *
+     * @param array $cols The column(s) to add to the query.
+     *
+     * @return $this
+     *
+     */
+    public function returning(array $cols)
+    {
+        return $this->addReturning($cols);
     }
 }
