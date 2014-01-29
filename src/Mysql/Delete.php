@@ -11,7 +11,6 @@
 namespace Aura\Sql_Query\Mysql;
 
 use Aura\Sql_Query\Common;
-use Aura\Sql_Query\Traits;
 
 /**
  *
@@ -20,10 +19,8 @@ use Aura\Sql_Query\Traits;
  * @package Aura.Sql_Query
  *
  */
-class Delete extends Common\Delete implements Common\OrderByInterface
+class Delete extends Common\Delete implements Common\OrderByInterface, Common\LimitInterface
 {
-    use Traits\LimitTrait;
-
     /**
      * 
      * Converts this query object to a string.
@@ -81,6 +78,21 @@ class Delete extends Common\Delete implements Common\OrderByInterface
     public function quick($enable = true)
     {
         $this->setFlag('QUICK', $enable);
+        return $this;
+    }
+
+    /**
+     *
+     * Sets a limit count on the query.
+     *
+     * @param int $limit The number of rows to select.
+     *
+     * @return $this
+     *
+     */
+    public function limit($limit)
+    {
+        $this->limit = (int) $limit;
         return $this;
     }
 

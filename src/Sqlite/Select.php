@@ -11,7 +11,6 @@
 namespace Aura\Sql_Query\Sqlite;
 
 use Aura\Sql_Query\Common;
-use Aura\Sql_Query\Traits;
 
 /**
  *

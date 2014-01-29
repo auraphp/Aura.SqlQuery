@@ -10,6 +10,9 @@
  */
 namespace Aura\Sql_Query;
 
+use Aura\Sql_Query\Common\LimitInterface;
+use Aura\Sql_Query\Common\LimitOffsetInterface;
+
 /**
  * 
  * Abstract query object for Select, Insert, Update, and Delete.
@@ -64,6 +67,24 @@ abstract class AbstractQuery
      *
      */
     protected $order_by = [];
+
+    /**
+     *
+     * The number of rows to select
+     *
+     * @var int
+     *
+     */
+    protected $limit = 0;
+
+    /**
+     *
+     * Return rows after this offset.
+     *
+     * @var int
+     *
+     */
+    protected $offset = 0;
 
     /**
      *
@@ -659,6 +680,28 @@ abstract class AbstractQuery
     {
         if ($this->order_by) {
             $this->stm .= PHP_EOL . 'ORDER BY' . $this->indentCsv($this->order_by);
+        }
+    }
+
+    /**
+     *
+     * Appends the `LIMIT ... OFFSET` clause to the statement.
+     *
+     * @return null
+     *
+     */
+    protected function buildLimit()
+    {
+        $has_limit = $this instanceof LimitInterface;
+        $has_offset = $this instanceof LimitOffsetInterface;
+
+        if ($has_offset && $this->limit) {
+            $this->stm .= PHP_EOL . "LIMIT {$this->limit}";
+            if ($this->offset) {
+                $this->stm .= " OFFSET {$this->offset}";
+            }
+        } else if ($has_limit && $this->limit) {
+            $this->stm .= PHP_EOL . "LIMIT {$this->limit}";
         }
     }
 
