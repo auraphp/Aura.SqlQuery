@@ -192,17 +192,6 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
 
     /**
      *
-     * Adds a column order to the query.
-     *
-     * @param array $spec The columns and direction to order by.
-     *
-     * @return $this
-     *
-     */
-    public function orderBy(array $spec);
-    
-    /**
-     *
      * Sets the limit and count by page number.
      *
      * @param int $page Limit results to this page number.
@@ -212,28 +201,6 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      */
     public function page($page);
 
-    /**
-     *
-     * Sets a limit count on the query.
-     *
-     * @param int $limit The number of rows to select.
-     *
-     * @return $this
-     *
-     */
-    public function limit($limit);
-    
-    /**
-     *
-     * Sets a limit offset on the query.
-     *
-     * @param int $offset Start returning after this many rows.
-     *
-     * @return $this
-     *
-     */
-    public function offset($offset);
-    
     /**
      *
      * Takes the current select properties and retains them, then sets

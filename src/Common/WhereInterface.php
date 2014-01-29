@@ -33,13 +33,4 @@ interface WhereInterface
      *
      */
     public function orWhere($cond);
-
-    /**
-     *
-     * Gets the values to bind to placeholders.
-     *
-     * @return array
-     *
-     */
-    public function getBindValues();
 }
