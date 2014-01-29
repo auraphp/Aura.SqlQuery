@@ -27,7 +27,7 @@ class InsertTest extends Common\InsertTest
     {
         $this->query->orAbort()
                     ->into('t1')
-                    ->cols(['c1', 'c2', 'c3'])
+                    ->cols(array('c1', 'c2', 'c3'))
                     ->set('c4', 'NOW()')
                     ->set('c5', null);
 
@@ -41,7 +41,7 @@ class InsertTest extends Common\InsertTest
     {
         $this->query->orFail()
                     ->into('t1')
-                    ->cols(['c1', 'c2', 'c3'])
+                    ->cols(array('c1', 'c2', 'c3'))
                     ->set('c4', 'NOW()')
                     ->set('c5', null);
 
@@ -55,7 +55,7 @@ class InsertTest extends Common\InsertTest
     {
         $this->query->orIgnore()
                     ->into('t1')
-                    ->cols(['c1', 'c2', 'c3'])
+                    ->cols(array('c1', 'c2', 'c3'))
                     ->set('c4', 'NOW()')
                     ->set('c5', null);
 
@@ -69,7 +69,7 @@ class InsertTest extends Common\InsertTest
     {
         $this->query->orReplace()
                     ->into('t1')
-                    ->cols(['c1', 'c2', 'c3'])
+                    ->cols(array('c1', 'c2', 'c3'))
                     ->set('c4', 'NOW()')
                     ->set('c5', null);
 
@@ -83,7 +83,7 @@ class InsertTest extends Common\InsertTest
     {
         $this->query->orRollback()
                     ->into('t1')
-                    ->cols(['c1', 'c2', 'c3'])
+                    ->cols(array('c1', 'c2', 'c3'))
                     ->set('c4', 'NOW()')
                     ->set('c5', null);
 

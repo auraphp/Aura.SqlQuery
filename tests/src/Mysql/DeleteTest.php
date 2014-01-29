@@ -28,10 +28,10 @@ class DeleteTest extends Common\DeleteTest
         $this->assertSameSql($expect, $actual);
         
         $actual = $this->query->getBindValues();
-        $expect = [
+        $expect = array(
             1 => 'bar',
             2 => 'dib',
-        ];
+        );
         $this->assertSame($expect, $actual);
     }
 
@@ -48,10 +48,10 @@ class DeleteTest extends Common\DeleteTest
         $this->assertSameSql($expect, $actual);
         
         $actual = $this->query->getBindValues();
-        $expect = [
+        $expect = array(
             1 => 'bar',
             2 => 'dib',
-        ];
+        );
         $this->assertSame($expect, $actual);
     }
 
@@ -68,10 +68,10 @@ class DeleteTest extends Common\DeleteTest
         $this->assertSameSql($expect, $actual);
         
         $actual = $this->query->getBindValues();
-        $expect = [
+        $expect = array(
             1 => 'bar',
             2 => 'dib',
-        ];
+        );
         $this->assertSame($expect, $actual);
     }
 }

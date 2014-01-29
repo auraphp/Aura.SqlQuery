@@ -27,7 +27,7 @@ class InsertTest extends Common\InsertTest
     {
         $this->query->highPriority()
                     ->into('t1')
-                    ->cols(['c1', 'c2', 'c3'])
+                    ->cols(array('c1', 'c2', 'c3'))
                     ->set('c4', 'NOW()')
                     ->set('c5', null);
 
@@ -41,7 +41,7 @@ class InsertTest extends Common\InsertTest
     {
         $this->query->lowPriority()
                     ->into('t1')
-                    ->cols(['c1', 'c2', 'c3'])
+                    ->cols(array('c1', 'c2', 'c3'))
                     ->set('c4', 'NOW()')
                     ->set('c5', null);
 
@@ -55,7 +55,7 @@ class InsertTest extends Common\InsertTest
     {
         $this->query->delayed()
                     ->into('t1')
-                    ->cols(['c1', 'c2', 'c3'])
+                    ->cols(array('c1', 'c2', 'c3'))
                     ->set('c4', 'NOW()')
                     ->set('c5', null);
 
@@ -69,7 +69,7 @@ class InsertTest extends Common\InsertTest
     {
         $this->query->ignore()
                     ->into('t1')
-                    ->cols(['c1', 'c2', 'c3'])
+                    ->cols(array('c1', 'c2', 'c3'))
                     ->set('c4', 'NOW()')
                     ->set('c5', null);
 

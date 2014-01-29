@@ -50,15 +50,15 @@ abstract class AbstractQueryTest extends \PHPUnit_Framework_TestCase
     public function testBindValues()
     {
         $actual = $this->query->getBindValues();
-        $this->assertSame([], $actual);
+        $this->assertSame(array(), $actual);
         
-        $expect = ['foo' => 'bar', 'baz' => 'dib'];
+        $expect = array('foo' => 'bar', 'baz' => 'dib');
         $this->query->bindValues($expect);
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);
         
-        $this->query->bindValues(['zim' => 'gir']);
-        $expect = ['foo' => 'bar', 'baz' => 'dib', 'zim' => 'gir'];
+        $this->query->bindValues(array('zim' => 'gir'));
+        $expect = array('foo' => 'bar', 'baz' => 'dib', 'zim' => 'gir');
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);
     }
