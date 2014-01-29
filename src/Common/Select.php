@@ -27,15 +27,6 @@ class Select extends AbstractQuery implements SelectInterface
     use Traits\OrderByTrait;
 
     /**
-     * 
-     * The statement being built.
-     * 
-     * @var string
-     * 
-     */
-    protected $stm;
-    
-    /**
      *
      * An array of union SELECT statements.
      *
