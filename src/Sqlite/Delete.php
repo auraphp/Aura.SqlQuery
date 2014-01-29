@@ -20,11 +20,10 @@ use Aura\Sql_Query\Traits;
  * @package Aura.Sql_Query
  *
  */
-class Delete extends Common\Delete
+class Delete extends Common\Delete implements Common\OrderByInterface
 {
     use Traits\LimitOffsetTrait;
-    use Traits\OrderByTrait;
-    
+
     /**
      * 
      * Builds this query object into a string.
@@ -38,5 +37,19 @@ class Delete extends Common\Delete
         $this->buildOrderBy();
         $this->buildLimit();
         return $this->stm;
+    }
+
+    /**
+     *
+     * Adds a column order to the query.
+     *
+     * @param array $spec The columns and direction to order by.
+     *
+     * @return $this
+     *
+     */
+    public function orderBy(array $spec)
+    {
+        return $this->addOrderBy($spec);
     }
 }

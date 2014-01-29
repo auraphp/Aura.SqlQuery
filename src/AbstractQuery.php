@@ -58,6 +58,15 @@ abstract class AbstractQuery
 
     /**
      *
+     * ORDER BY these columns.
+     *
+     * @var array
+     *
+     */
+    protected $order_by = [];
+
+    /**
+     *
      * The list of flags.
      *
      * @var array
@@ -611,5 +620,36 @@ abstract class AbstractQuery
             $values[] = "{$col} = {$value}";
         }
         $this->stm .= PHP_EOL . 'SET' . $this->indentCsv($values);
+    }
+
+    /**
+     *
+     * Adds a column order to the query.
+     *
+     * @param array $spec The columns and direction to order by.
+     *
+     * @return $this
+     *
+     */
+    protected function addOrderBy(array $spec)
+    {
+        foreach ($spec as $col) {
+            $this->order_by[] = $this->quoteNamesIn($col);
+        }
+        return $this;
+    }
+
+    /**
+     *
+     * Appends the `ORDER BY ...` clause to the statement.
+     *
+     * @return null
+     *
+     */
+    protected function buildOrderBy()
+    {
+        if ($this->order_by) {
+            $this->stm .= PHP_EOL . 'ORDER BY' . $this->indentCsv($this->order_by);
+        }
     }
 }

@@ -24,7 +24,6 @@ use Aura\Sql_Query\Traits;
 class Select extends AbstractQuery implements SelectInterface
 {
     use Traits\LimitOffsetTrait;
-    use Traits\OrderByTrait;
 
     /**
      *
@@ -639,5 +638,19 @@ class Select extends AbstractQuery implements SelectInterface
         $this->addWhere($cond, 'OR', $bind);
 
         return $this;
+    }
+
+    /**
+     *
+     * Adds a column order to the query.
+     *
+     * @param array $spec The columns and direction to order by.
+     *
+     * @return $this
+     *
+     */
+    public function orderBy(array $spec)
+    {
+        return $this->addOrderBy($spec);
     }
 }

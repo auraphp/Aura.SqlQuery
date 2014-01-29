@@ -20,11 +20,10 @@ use Aura\Sql_Query\Traits;
  * @package Aura.Sql_Query
  *
  */
-class Update extends Common\Update
+class Update extends Common\Update implements Common\OrderByInterface
 {
     use Traits\LimitOffsetTrait;
-    use Traits\OrderByTrait;
-    
+
     /**
      * 
      * Builds this query object into a string.
@@ -113,5 +112,19 @@ class Update extends Common\Update
     {
         $this->setFlag('OR ROLLBACK', $enable);
         return $this;
+    }
+
+    /**
+     *
+     * Adds a column order to the query.
+     *
+     * @param array $spec The columns and direction to order by.
+     *
+     * @return $this
+     *
+     */
+    public function orderBy(array $spec)
+    {
+        return $this->addOrderBy($spec);
     }
 }
