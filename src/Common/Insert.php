@@ -22,8 +22,6 @@ use Aura\Sql_Query\Traits;
  */
 class Insert extends AbstractQuery implements InsertInterface
 {
-    use Traits\ValuesTrait;
-
     /**
      *
      * The table to insert into.
@@ -89,5 +87,69 @@ class Insert extends AbstractQuery implements InsertInterface
     public function getLastInsertIdName($col)
     {
         return null;
+    }
+
+    /**
+     *
+     * Sets one column value placeholder; if an optional second parameter is
+     * passed, that value is bound to the placeholder.
+     *
+     * @param string $col The column name.
+     *
+     * @param mixed  $val Optional: a value to bind to the placeholder.
+     *
+     * @return $this
+     *
+     */
+    public function col($col)
+    {
+        return call_user_func_array(array($this, 'addCol'), func_get_args());
+    }
+
+    /**
+     *
+     * Sets multiple column value placeholders. If an element is a key-value
+     * pair, the key is treated as the column name and the value is bound to
+     * that column.
+     *
+     * @param array $cols A list of column names, optionally as key-value
+     *                    pairs where the key is a column name and the value is a bind value for
+     *                    that column.
+     *
+     * @return $this
+     *
+     */
+    public function cols(array $cols)
+    {
+        return $this->addCols($cols);
+    }
+
+    /**
+     *
+     * Sets a column value directly; the value will not be escaped, although
+     * fully-qualified identifiers in the value will be quoted.
+     *
+     * @param string $col   The column name.
+     *
+     * @param string $value The column value expression.
+     *
+     * @return $this
+     *
+     */
+    public function set($col, $value)
+    {
+        return $this->setCol($col, $value);
+    }
+
+    /**
+     *
+     * Gets the values to bind to placeholders.
+     *
+     * @return array
+     *
+     */
+    public function getBindValues()
+    {
+        return $this->bind_values;
     }
 }

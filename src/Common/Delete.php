@@ -119,4 +119,22 @@ class Delete extends AbstractQuery implements DeleteInterface
 
         return $this;
     }
+
+    /**
+     *
+     * Gets the values to bind to placeholders.
+     *
+     * @return array
+     *
+     */
+    public function getBindValues()
+    {
+        $bind_values = $this->bind_values;
+        $i = 1;
+        foreach ($this->bind_where as $val) {
+            $bind_values[$i] = $val;
+            $i ++;
+        }
+        return $bind_values;
+    }
 }
