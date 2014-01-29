@@ -700,7 +700,7 @@ abstract class AbstractQuery
             if ($this->offset) {
                 $this->stm .= " OFFSET {$this->offset}";
             }
-        } else if ($has_limit && $this->limit) {
+        } elseif ($has_limit && $this->limit) {
             $this->stm .= PHP_EOL . "LIMIT {$this->limit}";
         }
     }
