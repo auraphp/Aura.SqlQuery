@@ -63,7 +63,7 @@ interface QueryInterface
      * 
      * @param string $name The placeholder name or number.
      * 
-     * @param mixes $value The value to bind to the placeholder.
+     * @param mixed $value The value to bind to the placeholder.
      * 
      * @return null
      * 

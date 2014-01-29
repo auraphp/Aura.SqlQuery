@@ -11,7 +11,6 @@
 namespace Aura\Sql_Query\Common;
 
 use Aura\Sql_Query\QueryInterface;
-use Aura\Sql_Query\Common\WhereInterface;
 
 /**
  *

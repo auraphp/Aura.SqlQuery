@@ -271,6 +271,8 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @return $this
      *
+     * @throws Exception
+     *
      */
     public function join($join, $spec, $cond = null)
     {
@@ -306,6 +308,8 @@ class Select extends AbstractQuery implements SelectInterface
      * @param string $cond Join on this condition.
      *
      * @return $this
+     *
+     * @throws Exception
      *
      */
     public function joinSubSelect($join, $spec, $name, $cond = null)
