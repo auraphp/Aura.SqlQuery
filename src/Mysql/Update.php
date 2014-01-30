@@ -30,10 +30,9 @@ class Update extends Common\Update implements Common\OrderByInterface, Common\Li
      */
     protected function build()
     {
-        parent::build();
-        $this->buildOrderBy();
-        $this->buildLimit();
-        return $this->stm;
+        return parent::build()
+            . $this->buildOrderBy()
+            . $this->buildLimit();
     }
 
     /**

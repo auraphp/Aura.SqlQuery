@@ -507,92 +507,100 @@ class Select extends AbstractQuery implements SelectInterface
      */
     protected function build()
     {
-        $this->stm = 'SELECT';
-        $this->buildFlags();
-        $this->buildCols();
-        $this->buildFrom(); // includes JOIN
-        $this->buildWhere();
-        $this->buildGroupBy();
-        $this->buildHaving();
-        $this->buildOrderBy();
-        $this->buildLimit();
-        $this->buildForUpdate();
-        return $this->stm;
+        return 'SELECT'
+            . $this->buildFlags()
+            . $this->buildCols()
+            . $this->buildFrom() // includes JOIN
+            . $this->buildWhere()
+            . $this->buildGroupBy()
+            . $this->buildHaving()
+            . $this->buildOrderBy()
+            . $this->buildLimit()
+            . $this->buildForUpdate();
     }
     
     /**
      * 
      * Builds the columns clause.
      * 
-     * @return null
+     * @return string
      * 
      */
     protected function buildCols()
     {
-        if ($this->cols) {
-            $this->stm .= $this->indentCsv($this->cols);
-            return;
+        if (! $this->cols) {
+            return ''; // not applicable
         }
+
+        return $this->indentCsv($this->cols);
     }
     
     /**
      * 
      * Builds the FROM clause.
      * 
-     * @return null
+     * @return string
      * 
      */
     protected function buildFrom()
     {
-        if ($this->from) {
-            $refs = array();
-            foreach ($this->from as $from) {
-                $refs[] = implode(PHP_EOL, $from);
-            }
-            $this->stm .= PHP_EOL . 'FROM' . $this->indentCsv($refs);
+        if (! $this->from) {
+            return ''; // not applicable
         }
+
+        $refs = array();
+        foreach ($this->from as $from) {
+            $refs[] = implode(PHP_EOL, $from);
+        }
+        return PHP_EOL . 'FROM' . $this->indentCsv($refs);
     }
     
     /**
      * 
      * Builds the GROUP BY clause.
      * 
-     * @return null
+     * @return string
      * 
      */
     protected function buildGroupBy()
     {
-        if ($this->group_by) {
-            $this->stm .= PHP_EOL . 'GROUP BY' . $this->indentCsv($this->group_by);
+        if (! $this->group_by) {
+            return ''; // not applicable
         }
+
+        return PHP_EOL . 'GROUP BY' . $this->indentCsv($this->group_by);
     }
     
     /**
      * 
      * Builds the HAVING clause.
      * 
-     * @return null
+     * @return string
      * 
      */
     protected function buildHaving()
     {
-        if ($this->having) {
-            $this->stm .= PHP_EOL . 'HAVING' . $this->indent($this->having);
+        if (! $this->having) {
+            return ''; // not applicable
         }
+
+        return PHP_EOL . 'HAVING' . $this->indent($this->having);
     }
     
     /**
      * 
      * Builds the FOR UPDATE clause.
      * 
-     * @return null
+     * @return string
      * 
      */
     protected function buildForUpdate()
     {
-        if ($this->for_update) {
-            $this->stm .= PHP_EOL . 'FOR UPDATE';
+        if (! $this->for_update) {
+            return ''; // not applicable
         }
+
+        return PHP_EOL . 'FOR UPDATE';
     }
 
     /**

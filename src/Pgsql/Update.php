@@ -30,9 +30,8 @@ class Update extends Common\Update implements Common\ReturningInterface
      */
     protected function build()
     {
-        parent::build();
-        $this->buildReturning();
-        return $this->stm;
+        return parent::build()
+            . $this->buildReturning();
     }
 
     /**

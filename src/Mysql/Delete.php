@@ -30,10 +30,9 @@ class Delete extends Common\Delete implements Common\OrderByInterface, Common\Li
      */
     protected function build()
     {
-        parent::build();
-        $this->buildOrderBy();
-        $this->buildLimit();
-        return $this->stm;
+        return parent::build()
+            . $this->buildOrderBy()
+            . $this->buildLimit();
     }
 
     /**

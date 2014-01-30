@@ -115,15 +115,6 @@ abstract class AbstractQuery
 
     /**
      * 
-     * The statement being built.
-     * 
-     * @var string
-     * 
-     */
-    protected $stm;
-    
-    /**
-     * 
      * The suffix to use when quoting identifier names.
      * 
      * @var string
@@ -140,9 +131,7 @@ abstract class AbstractQuery
      * 
      * @param string $quote_name_suffix The suffix to use when quoting
      * identifier names.
-     * 
-     * @return null
-     * 
+     *
      */
     public function __construct($quote_name_prefix, $quote_name_suffix)
     {
@@ -261,16 +250,18 @@ abstract class AbstractQuery
 
     /**
      * 
-     * Returns the flags as a space-separated string.
+     * Builds the flags as a space-separated string.
      *
      * @return string
      * 
      */
     protected function buildFlags()
     {
-        if ($this->flags) {
-            $this->stm .= ' ' . implode(' ', array_keys($this->flags));
+        if (! $this->flags) {
+            return ''; // not applicable
         }
+
+        return ' ' . implode(' ', array_keys($this->flags));
     }
 
     /**
@@ -533,16 +524,18 @@ abstract class AbstractQuery
 
     /**
      *
-     * Appends the `WHERE` clause to the statement.
+     * Builds the `WHERE` clause of the statement.
      *
-     * @return null
+     * @return string
      *
      */
     protected function buildWhere()
     {
-        if ($this->where) {
-            $this->stm .= PHP_EOL . 'WHERE' . $this->indent($this->where);
+        if (! $this->where) {
+            return ''; // not applicable
         }
+
+        return PHP_EOL . 'WHERE' . $this->indent($this->where);
     }
 
     /**
@@ -622,14 +615,14 @@ abstract class AbstractQuery
 
     /**
      *
-     * Appends the insert columns and values to the statement.
+     * Builds the inserted columns and values of the statement.
      *
-     * @return null
+     * @return string
      *
      */
     protected function buildValuesForInsert()
     {
-        $this->stm .= ' ('
+        return ' ('
             . $this->indentCsv(array_keys($this->values))
             . PHP_EOL . ') VALUES ('
             . $this->indentCsv(array_values($this->values))
@@ -638,9 +631,9 @@ abstract class AbstractQuery
 
     /**
      *
-     * Appends the update columns and values to the statement.
+     * Builds the updated columns and values of the statement.
      *
-     * @return null
+     * @return string
      *
      */
     protected function buildValuesForUpdate()
@@ -649,7 +642,7 @@ abstract class AbstractQuery
         foreach ($this->values as $col => $value) {
             $values[] = "{$col} = {$value}";
         }
-        $this->stm .= PHP_EOL . 'SET' . $this->indentCsv($values);
+        return PHP_EOL . 'SET' . $this->indentCsv($values);
     }
 
     /**
@@ -671,23 +664,25 @@ abstract class AbstractQuery
 
     /**
      *
-     * Appends the `ORDER BY ...` clause to the statement.
+     * Builds the `ORDER BY ...` clause of the statement.
      *
-     * @return null
+     * @return string
      *
      */
     protected function buildOrderBy()
     {
-        if ($this->order_by) {
-            $this->stm .= PHP_EOL . 'ORDER BY' . $this->indentCsv($this->order_by);
+        if (! $this->order_by) {
+            return ''; // not applicable
         }
+
+        return PHP_EOL . 'ORDER BY' . $this->indentCsv($this->order_by);
     }
 
     /**
      *
-     * Appends the `LIMIT ... OFFSET` clause to the statement.
+     * Builds the `LIMIT ... OFFSET` clause of the statement.
      *
-     * @return null
+     * @return string
      *
      */
     protected function buildLimit()
@@ -696,13 +691,16 @@ abstract class AbstractQuery
         $has_offset = $this instanceof LimitOffsetInterface;
 
         if ($has_offset && $this->limit) {
-            $this->stm .= PHP_EOL . "LIMIT {$this->limit}";
+            $clause = PHP_EOL . "LIMIT {$this->limit}";
             if ($this->offset) {
-                $this->stm .= " OFFSET {$this->offset}";
+                $clause .= " OFFSET {$this->offset}";
             }
+            return $clause;
         } elseif ($has_limit && $this->limit) {
-            $this->stm .= PHP_EOL . "LIMIT {$this->limit}";
+            return PHP_EOL . "LIMIT {$this->limit}";
         }
+
+        return ''; // not applicable
     }
 
     /**
@@ -727,15 +725,17 @@ abstract class AbstractQuery
 
     /**
      *
-     * Appends the `RETURNING` clause to the statement.
+     * Builds the `RETURNING` clause of the statement.
      *
-     * @return null
+     * @return string
      *
      */
     protected function buildReturning()
     {
-        if ($this->returning) {
-            $this->stm .= PHP_EOL . 'RETURNING' . $this->indentCsv($this->returning);
+        if (! $this->returning) {
+            return ''; // not applicable
         }
+
+        return PHP_EOL . 'RETURNING' . $this->indentCsv($this->returning);
     }
 }

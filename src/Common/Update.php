@@ -54,12 +54,11 @@ class Update extends AbstractQuery implements UpdateInterface
      */
     protected function build()
     {
-        $this->stm = 'UPDATE';
-        $this->buildFlags();
-        $this->buildTable();
-        $this->buildValuesForUpdate();
-        $this->buildWhere();
-        return $this->stm;
+        return 'UPDATE'
+            . $this->buildFlags()
+            . $this->buildTable()
+            . $this->buildValuesForUpdate()
+            . $this->buildWhere();
     }
     
     /**
@@ -71,7 +70,7 @@ class Update extends AbstractQuery implements UpdateInterface
      */
     protected function buildTable()
     {
-        $this->stm .= " {$this->table}";
+        return " {$this->table}";
     }
 
     /**
