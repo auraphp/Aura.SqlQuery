@@ -23,19 +23,6 @@ class Insert extends Common\Insert implements Common\ReturningInterface
 {
     /**
      * 
-     * Builds this query object into a string.
-     * 
-     * @return string
-     * 
-     */
-    protected function build()
-    {
-        return parent::build()
-            . $this->buildReturning();
-    }
-    
-    /**
-     * 
      * Returns the proper name for passing to `PDO::lastInsertId()`.
      * 
      * @param string $col The last insert ID column.

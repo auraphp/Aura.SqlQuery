@@ -57,7 +57,10 @@ class Delete extends AbstractQuery implements DeleteInterface
         return 'DELETE'
             . $this->buildFlags()
             . $this->buildFrom()
-            . $this->buildWhere();
+            . $this->buildWhere()
+            . $this->buildOrderBy()
+            . $this->buildLimit()
+            . $this->buildReturning();
     }
     
     /**

@@ -58,7 +58,8 @@ class Insert extends AbstractQuery implements InsertInterface
         return 'INSERT'
             . $this->buildFlags()
             . $this->buildInto()
-            . $this->buildValuesForInsert();
+            . $this->buildValuesForInsert()
+            . $this->buildReturning();
     }
     
     /**

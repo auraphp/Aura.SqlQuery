@@ -58,7 +58,10 @@ class Update extends AbstractQuery implements UpdateInterface
             . $this->buildFlags()
             . $this->buildTable()
             . $this->buildValuesForUpdate()
-            . $this->buildWhere();
+            . $this->buildWhere()
+            . $this->buildOrderBy()
+            . $this->buildLimit()
+            . $this->buildReturning();
     }
     
     /**
