@@ -55,23 +55,23 @@ class Insert extends AbstractQuery implements InsertInterface
      */
     protected function build()
     {
-        $this->stm = 'INSERT';
-        $this->buildFlags();
-        $this->buildInto();
-        $this->buildValuesForInsert();
-        return $this->stm;
+        return 'INSERT'
+            . $this->buildFlags()
+            . $this->buildInto()
+            . $this->buildValuesForInsert()
+            . $this->buildReturning();
     }
     
     /**
      * 
      * Builds the INTO clause.
      * 
-     * @return null
+     * @return string
      * 
      */
     protected function buildInto()
     {
-        $this->stm .= " INTO " . $this->quoteName($this->into);
+        return " INTO " . $this->quoteName($this->into);
     }
     
     /**

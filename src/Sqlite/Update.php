@@ -22,21 +22,6 @@ use Aura\Sql_Query\Common;
 class Update extends Common\Update implements Common\OrderByInterface, Common\LimitOffsetInterface
 {
     /**
-     * 
-     * Builds this query object into a string.
-     * 
-     * @return string
-     * 
-     */
-    protected function build()
-    {
-        parent::build();
-        $this->buildOrderBy();
-        $this->buildLimit();
-        return $this->stm;
-    }
-
-    /**
      *
      * Adds or removes OR ABORT flag.
      *

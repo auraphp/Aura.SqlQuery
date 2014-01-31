@@ -22,20 +22,6 @@ use Aura\Sql_Query\Common;
 class Update extends Common\Update implements Common\ReturningInterface
 {
     /**
-     * 
-     * Builds this query object into a string.
-     * 
-     * @return string
-     * 
-     */
-    protected function build()
-    {
-        parent::build();
-        $this->buildReturning();
-        return $this->stm;
-    }
-
-    /**
      *
      * Adds returning columns to the query.
      *

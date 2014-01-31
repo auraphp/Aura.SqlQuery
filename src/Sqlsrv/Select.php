@@ -22,34 +22,53 @@ use Aura\Sql_Query\Common;
 class Select extends Common\Select
 {
     /**
-     * 
-     * Builds the limit/offset equivalent portions of the statement.
-     * 
-     * @return null
-     * 
+     *
+     * Builds this query object into a string.
+     *
+     * @return string
+     *
+     */
+    protected function build()
+    {
+        return $this->applyLimit(parent::build());
+    }
+
+    /**
+     * @see build()
+     * @see applyLimit()
      */
     protected function buildLimit()
     {
-        // neither limit nor offset?
+        return ''; // limit equivalent will be applied by applyLimit()
+    }
+
+    /**
+     * 
+     * Modify the statement applying limit/offset equivalent portions to it.
+     *
+     * @param string $stm SQL statement
+     * @return string SQL statement with limit/offset applied
+     * 
+     */
+    protected function applyLimit($stm)
+    {
         if (! $this->limit && ! $this->offset) {
-            // no changes
-            return;
+            return $stm; // no limit or offset
         }
         
         // limit but no offset?
         if ($this->limit && ! $this->offset) {
             // use TOP in place
-            $this->stm = preg_replace(
+            return preg_replace(
                 '/^(SELECT( DISTINCT)?)/',
                 "$1 TOP {$this->limit}",
-                $this->stm
+                $stm
             );
-            return;
         }
         
         // both limit and offset. must have an ORDER clause to work; OFFSET is
         // a sub-clause of the ORDER clause. cannot use FETCH without OFFSET.
-        $this->stm .= PHP_EOL . "OFFSET {$this->offset} ROWS "
+        return $stm . PHP_EOL . "OFFSET {$this->offset} ROWS "
                     . "FETCH NEXT {$this->limit} ROWS ONLY";
     }
 }
