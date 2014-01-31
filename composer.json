@@ -26,12 +26,12 @@
         }
     ],
     "require": {
-        "php": ">=5.4.0"
+        "php": ">=5.3.0"
     },
     "autoload": {
-        "files": [
-            "autoload.php"
-        ]
+        "psr-4": {
+            "Aura\\Sql_Query\\": "src/"
+        }
     },
     "extra": {
         "aura": {
