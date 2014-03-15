@@ -22,21 +22,6 @@ use Aura\Sql_Query\Common;
 class Delete extends Common\Delete implements Common\OrderByInterface, Common\LimitOffsetInterface
 {
     /**
-     * 
-     * Builds this query object into a string.
-     * 
-     * @return string
-     * 
-     */
-    protected function build()
-    {
-        parent::build();
-        $this->buildOrderBy();
-        $this->buildLimit();
-        return $this->stm;
-    }
-
-    /**
      *
      * Sets a limit count on the query.
      *

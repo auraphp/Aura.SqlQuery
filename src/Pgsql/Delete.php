@@ -22,20 +22,6 @@ use Aura\Sql_Query\Common;
 class Delete extends Common\Delete implements Common\ReturningInterface
 {
     /**
-     * 
-     * Converts this query object to a string.
-     * 
-     * @return string
-     * 
-     */
-    protected function build()
-    {
-        parent::build();
-        $this->buildReturning();
-        return $this->stm;
-    }
-
-    /**
      *
      * Adds returning columns to the query.
      *
