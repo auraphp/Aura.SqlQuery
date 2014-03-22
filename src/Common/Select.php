@@ -295,6 +295,42 @@ class Select extends AbstractQuery implements SelectInterface
 
     /**
      *
+     * Adds a INNER JOIN table and columns to the query.
+     *
+     * @param string $spec The table specification; "foo" or "foo AS bar".
+     *
+     * @param string $cond Join on this condition.
+     *
+     * @return $this
+     *
+     * @throws Exception
+     *
+     */
+    public function innerJoin($spec, $cond = null)
+    {
+        return $this->join('INNER', $spec, $cond);
+    }
+
+    /**
+     *
+     * Adds a LEFT JOIN table and columns to the query.
+     *
+     * @param string $spec The table specification; "foo" or "foo AS bar".
+     *
+     * @param string $cond Join on this condition.
+     *
+     * @return $this
+     *
+     * @throws Exception
+     *
+     */
+    public function leftJoin($spec, $cond = null)
+    {
+        return $this->join('LEFT', $spec, $cond);
+    }
+
+    /**
+     *
      * Adds a JOIN to an aliased subselect and columns to the query.
      *
      * @param string $join The join type: inner, left, natural, etc.
