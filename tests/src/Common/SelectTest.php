@@ -162,6 +162,29 @@ class SelectTest extends AbstractQueryTest
         $select->join('left', 't2', 't1.id = t2.id');
     }
 
+    public function testLeftAndInnerJoin()
+    {
+        $this->query->from('t1');
+        $this->query->leftJoin('t2', 't1.id = t2.id');
+        $this->query->innerJoin('t3 AS a3', 't2.id = a3.id');
+        $this->query->join('natural', 't4');
+        $expect = '
+            SELECT
+            FROM
+                <<t1>>
+            LEFT JOIN <<t2>> ON <<t1>>.<<id>> = <<t2>>.<<id>>
+            INNER JOIN <<t3>> AS <<a3>> ON <<t2>>.<<id>> = <<a3>>.<<id>>
+            NATURAL JOIN <<t4>>
+        ';
+        $actual = $this->query->__toString();
+        $this->assertSameSql($expect, $actual);
+        
+        // try to join without from
+        $select = $this->newQuery();
+        $this->setExpectedException('Aura\Sql_Query\Exception');
+        $select->leftJoin('left', 't2', 't1.id = t2.id');
+    }
+
     public function testJoinSubSelect()
     {
         $sub1 = 'SELECT * FROM t2';
