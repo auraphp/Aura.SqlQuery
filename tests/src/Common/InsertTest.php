@@ -46,4 +46,14 @@ class InsertTest extends AbstractQueryTest
     {
         $this->assertNull($this->query->getLastInsertIdName('no matter'));
     }
+    
+    public function testBindValues()
+    {
+        $this->assertInstanceOf('\Aura\Sql_Query\AbstractQuery', $this->query->bindValues(array('bar', 'bar value')));
+    }
+    
+    public function testBindValue()
+    {
+        $this->assertInstanceOf('\Aura\Sql_Query\AbstractQuery', $this->query->bindValue('bar', 'bar value'));
+    }
 }

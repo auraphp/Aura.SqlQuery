@@ -220,7 +220,7 @@ abstract class AbstractQuery
      * 
      * @param array $bind_values Values to bind to placeholders.
      * 
-     * @return null
+     * @return $this
      * 
      */
     public function bindValues(array $bind_values)
@@ -230,6 +230,7 @@ abstract class AbstractQuery
         foreach ($bind_values as $key => $val) {
             $this->bindValue($key, $val);
         }
+        return $this;
     }
 
     /**
@@ -240,12 +241,13 @@ abstract class AbstractQuery
      * 
      * @param mixed $value The value to bind to the placeholder.
      * 
-     * @return null
+     * @return $this
      * 
      */
     public function bindValue($name, $value)
     {
         $this->bind_values[$name] = $value;
+        return $this;
     }
 
     /**
