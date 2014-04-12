@@ -1,7 +1,7 @@
 <?php
 namespace Aura\Sql_Query;
 
-class MockQuery extends AbstractQuery
+class FakeQuery extends AbstractQuery
 {
     public function build()
     {
