@@ -117,10 +117,10 @@ abstract class AbstractQuery
      * 
      * Constructor.
      * 
-     * @param Quoter $quotee A helper for quoting identifier names.
+     * @param Quoter $quoter A helper for quoting identifier names.
      * 
      */
-    public function __construct($quoter)
+    public function __construct(Quoter $quoter)
     {
         $this->quoter = $quoter;
     }
