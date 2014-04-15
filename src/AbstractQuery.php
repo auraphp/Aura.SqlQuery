@@ -340,42 +340,40 @@ abstract class AbstractQuery
      */
     protected function quoteName($spec)
     {
-        // remove extraneous spaces
         $spec = trim($spec);
-
-        // `original` AS `alias` ... note the 'rr' in strripos
-        $pos = strripos($spec, ' AS ');
-        if ($pos) {
-            // recurse to allow for "table.col"
-            $orig  = $this->quoteName(substr($spec, 0, $pos));
-            // use as-is
-            $alias = $this->replaceName(substr($spec, $pos + 4));
-            // done
-            return "$orig AS $alias";
+        switch (true) {
+            // these are assignments, not comparisons,
+            // and perhaps just a bit too clever
+            case $quoted = $this->quoteNameWithAlias($spec, ' AS '):
+            case $quoted = $this->quoteNameWithAlias($spec, ' '):
+            case $quoted = $this->quoteNameWithDot($spec):
+                return $quoted;
+                break;
+            default:
+                return $this->replaceName($spec);
+                break;
         }
+    }
 
-        // `original` `alias`
-        $pos = strrpos($spec, ' ');
+    protected function quoteNameWithAlias($spec, $sep)
+    {
+        $pos = strripos($spec, $sep);
         if ($pos) {
-            // recurse to allow for "table.col"
-            $orig = $this->quoteName(substr($spec, 0, $pos));
-            // use as-is
-            $alias = $this->replaceName(substr($spec, $pos + 1));
-            // done
-            return "$orig $alias";
+            $len = strlen($sep);
+            $name = $this->quoteName(substr($spec, 0, $pos));
+            $alias = $this->replaceName(substr($spec, $pos + $len));
+            return "{$name}{$sep}{$alias}";
         }
+    }
 
-        // `table`.`column`
+    protected function quoteNameWithDot($spec)
+    {
         $pos = strrpos($spec, '.');
         if ($pos) {
-            // use both as-is
             $table = $this->replaceName(substr($spec, 0, $pos));
-            $col   = $this->replaceName(substr($spec, $pos + 1));
-            return "$table.$col";
+            $col = $this->replaceName(substr($spec, $pos + 1));
+            return "{$table}.{$col}";
         }
-
-        // `name`
-        return $this->replaceName($spec);
     }
 
     /**
@@ -415,42 +413,42 @@ abstract class AbstractQuery
         $text = null;
         $last = count($list) - 1;
         foreach ($list as $key => $val) {
-
             // skip elements 2, 5, 8, 11, etc. as artifacts of the back-
             // referenced split; these are the trailing/ending quote
             // portions, and already included in the previous element.
             // this is the same as every third element from zero.
-            if (($key+1) % 3 == 0) {
-                continue;
-            }
-
-            // is there an apos or quot anywhere in the part?
-            $is_string = strpos($val, $apos) !== false ||
-                         strpos($val, $quot) !== false;
-
-            if ($is_string) {
-                // string literal
-                $text .= $val;
-            } else {
-                // sql language.
-                // look for an AS alias if this is the last element.
-                if ($key == $last) {
-                    // note the 'rr' in strripos
-                    $pos = strripos($val, ' AS ');
-                    if ($pos) {
-                        // quote the alias name directly
-                        $alias = $this->replaceName(substr($val, $pos + 4));
-                        $val = substr($val, 0, $pos) . " AS $alias";
-                    }
-                }
-
-                // now quote names in the language.
-                $text .= $this->replaceNamesIn($val);
+            if (($key+1) % 3 != 0) {
+                $text .= $this->quoteNamesInLoop($key, $val, $last);
             }
         }
 
-        // done!
         return $text;
+    }
+
+    protected function quoteNamesInLoop($key, $val, $last)
+    {
+        // is there an apos or quot anywhere in the part?
+        $is_string = strpos($val, "'") !== false
+                  || strpos($val, '"') !== false;
+
+        if ($is_string) {
+            // string literal
+            return $val;
+        }
+
+        // sql language. look for an AS alias if this is the last element.
+        if ($key == $last) {
+            // note the 'rr' in strripos
+            $pos = strripos($val, ' AS ');
+            if ($pos) {
+                // quote the alias name directly
+                $alias = $this->replaceName(substr($val, $pos + 4));
+                $val = substr($val, 0, $pos) . " AS $alias";
+            }
+        }
+
+        // now quote names in the language.
+        return $this->replaceNamesIn($val);
     }
 
     /**
