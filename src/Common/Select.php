@@ -282,15 +282,38 @@ class Select extends AbstractQuery implements SelectInterface
         
         $join = strtoupper(ltrim("$join JOIN"));
         $spec = $this->quoteName($spec);
-        
-        if ($cond) {
-            $cond = $this->quoteNamesIn($cond);
-            $this->from[$this->from_key][] = "$join $spec ON $cond";
-        } else {
-            $this->from[$this->from_key][] = "$join $spec";
+        $cond = $this->fixJoinCondition($cond);
+        $this->from[$this->from_key][] = rtrim("$join $spec $cond");
+        return $this;
+    }
+
+    /**
+     * 
+     * Fixes a JOIN condition to quote names in the condition and prefix it
+     * with a condition type ('ON' is the default and 'USING' is recognized).
+     * 
+     * @param string $cond Join on this condition.
+     *
+     * @return string
+     * 
+     */
+    protected function fixJoinCondition($cond)
+    {
+        if (! $cond) {
+            return;
         }
 
-        return $this;
+        $cond = $this->quoteNamesIn($cond);
+
+        if (strtoupper(substr(ltrim($cond), 0, 3)) == 'ON ') {
+            return $cond;
+        }
+
+        if (strtoupper(substr(ltrim($cond), 0, 6)) == 'USING ') {
+            return $cond;
+        }
+
+        return 'ON ' . $cond;
     }
 
     /**

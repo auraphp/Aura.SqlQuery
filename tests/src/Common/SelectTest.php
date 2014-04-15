@@ -275,6 +275,25 @@ class SelectTest extends AbstractQueryTest
         $this->assertSameSql($expect, $actual);
     }
 
+    public function testJoinOnAndUsing()
+    {
+        $this->query->cols(array('*'));
+        $this->query
+            ->from('t1')
+            ->join('inner', 't2', 'ON t2.id = t1.id')
+            ->join('left', 't3', 'USING (id)');
+        $expect = '
+            SELECT
+                *
+            FROM
+                <<t1>>
+            INNER JOIN <<t2>> ON <<t2>>.<<id>> = <<t1>>.<<id>>
+            LEFT JOIN <<t3>> USING (id)
+        ';
+        $actual = $this->query->__toString();
+        $this->assertSameSql($expect, $actual);
+    }
+
     public function testWhere()
     {
         $this->query->cols(array('*'));
