@@ -212,11 +212,11 @@ $insert = $query_factory->newInsert();
 
 $insert
     ->into('foo')                   // INTO this table
-    ->cols([                        // insert these as "(col) VALUES (:col)"
+    ->cols([                        // bind values as "(col) VALUES (:col)"
         'bar',
         'baz',
     ])
-    ->set('id', 'NULL')             // insert raw values for this column
+    ->set('ts', 'NOW()')            // raw value as "(ts) VALUES (NOW())"
     ->bindValue('foo', 'foo_val')   // bind one value to a placeholder
     ->bindValues([                  // bind these values
         'bar' => 'foo',
@@ -272,11 +272,11 @@ $update = $query_factory->newUpdate();
 
 $update
     ->table('foo')                  // update this table
-    ->cols([                        // these cols as "SET bar = :bar"
+    ->cols([                        // bind values as "SET bar = :bar"
         'bar',
         'baz',
     ])
-    ->set('date', 'NOW()')          // set this col to a raw value
+    ->set('ts', 'NOW()')            // raw value as "(ts) VALUES (NOW())"
     ->where('zim = :zim')           // AND WHERE these conditions
     ->where('gir = ?', 'doom')      // bind this value to the condition
     ->orWhere('gir = :gir')         // OR WHERE these conditions
