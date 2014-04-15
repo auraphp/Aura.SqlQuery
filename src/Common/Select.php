@@ -561,11 +561,13 @@ class Select extends AbstractQuery implements SelectInterface
      * 
      * @return string
      * 
+     * @throws Exception when there are no columns in the SELECT.
+     * 
      */
     protected function buildCols()
     {
         if (! $this->cols) {
-            return ''; // not applicable
+            throw new Exception('No columns in the SELECT.');
         }
 
         return $this->indentCsv($this->cols);

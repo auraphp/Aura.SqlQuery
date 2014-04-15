@@ -7,6 +7,14 @@ class SelectTest extends AbstractQueryTest
 {
     protected $query_type = 'select';
 
+    public function testExceptionWithNoCols()
+    {
+        $this->query->from('t1');
+        $this->setExpectedException('Aura\Sql_Query\Exception');
+        $this->query->__toString();
+
+    }
+    
     public function testSetAndGetPaging()
     {
         $expect = 88;
@@ -89,12 +97,14 @@ class SelectTest extends AbstractQueryTest
 
     public function testFrom()
     {
+        $this->query->cols(array('*'));
         $this->query->from('t1')
-                     ->from('t2');
+                    ->from('t2');
 
         $actual = $this->query->__toString();
         $expect = '
             SELECT
+                *
             FROM
                 <<t1>>,
                 <<t2>>
@@ -141,12 +151,14 @@ class SelectTest extends AbstractQueryTest
 
     public function testJoin()
     {
+        $this->query->cols(array('*'));
         $this->query->from('t1');
         $this->query->join('left', 't2', 't1.id = t2.id');
         $this->query->join('inner', 't3 AS a3', 't2.id = a3.id');
         $this->query->join('natural', 't4');
         $expect = '
             SELECT
+                *
             FROM
                 <<t1>>
             LEFT JOIN <<t2>> ON <<t1>>.<<id>> = <<t2>>.<<id>>
@@ -164,12 +176,14 @@ class SelectTest extends AbstractQueryTest
 
     public function testLeftAndInnerJoin()
     {
+        $this->query->cols(array('*'));
         $this->query->from('t1');
         $this->query->leftJoin('t2', 't1.id = t2.id');
         $this->query->innerJoin('t3 AS a3', 't2.id = a3.id');
         $this->query->join('natural', 't4');
         $expect = '
             SELECT
+                *
             FROM
                 <<t1>>
             LEFT JOIN <<t2>> ON <<t1>>.<<id>> = <<t2>>.<<id>>
@@ -189,11 +203,13 @@ class SelectTest extends AbstractQueryTest
     {
         $sub1 = 'SELECT * FROM t2';
         $sub2 = 'SELECT * FROM t3';
+        $this->query->cols(array('*'));
         $this->query->from('t1');
         $this->query->joinSubSelect('left', $sub1, 'a2', 't2.c1 = a3.c1');
         $this->query->joinSubSelect('natural', $sub2, 'a3');
         $expect = '
             SELECT
+                *
             FROM
                 <<t1>>
             LEFT JOIN (
@@ -217,10 +233,12 @@ class SelectTest extends AbstractQueryTest
         $sub = $this->newQuery();
         $sub->cols(array('*'))->from('t2');
 
+        $this->query->cols(array('*'));
         $this->query->from('t1');
         $this->query->joinSubSelect('left', $sub, 'a3', 't2.c1 = a3.c1');
         $expect = '
             SELECT
+                *
             FROM
                 <<t1>>
             LEFT JOIN (
@@ -236,6 +254,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testJoinOrder()
     {
+        $this->query->cols(array('*'));
         $this->query
             ->from('t1')
             ->join('inner', 't2', 't2.id = t1.id')
@@ -244,6 +263,7 @@ class SelectTest extends AbstractQueryTest
             ->join('inner', 't5', 't5.id = t4.id');
         $expect = '
             SELECT
+                *
             FROM
                 <<t1>>
             INNER JOIN <<t2>> ON <<t2>>.<<id>> = <<t1>>.<<id>>
@@ -257,10 +277,12 @@ class SelectTest extends AbstractQueryTest
 
     public function testWhere()
     {
+        $this->query->cols(array('*'));
         $this->query->where('c1 = c2')
                      ->where('c3 = ?', 'foo');
         $expect = '
             SELECT
+                *
             WHERE
                 c1 = c2
                 AND c3 = ?
@@ -276,11 +298,13 @@ class SelectTest extends AbstractQueryTest
 
     public function testOrWhere()
     {
+        $this->query->cols(array('*'));
         $this->query->orWhere('c1 = c2')
                      ->orWhere('c3 = ?', 'foo');
 
         $expect = '
             SELECT
+                *
             WHERE
                 c1 = c2
                 OR c3 = ?
@@ -296,9 +320,11 @@ class SelectTest extends AbstractQueryTest
 
     public function testGroupBy()
     {
+        $this->query->cols(array('*'));
         $this->query->groupBy(array('c1', 't2.c2'));
         $expect = '
             SELECT
+                *
             GROUP BY
                 c1,
                 <<t2>>.<<c2>>
@@ -310,10 +336,12 @@ class SelectTest extends AbstractQueryTest
 
     public function testHaving()
     {
+        $this->query->cols(array('*'));
         $this->query->having('c1 = c2')
                      ->having('c3 = ?', 'foo');
         $expect = '
             SELECT
+                *
             HAVING
                 c1 = c2
                 AND c3 = ?
@@ -329,10 +357,12 @@ class SelectTest extends AbstractQueryTest
 
     public function testOrHaving()
     {
+        $this->query->cols(array('*'));
         $this->query->orHaving('c1 = c2')
                      ->orHaving('c3 = ?', 'foo');
         $expect = '
             SELECT
+                *
             HAVING
                 c1 = c2
                 OR c3 = ?
@@ -348,9 +378,11 @@ class SelectTest extends AbstractQueryTest
 
     public function testOrderBy()
     {
+        $this->query->cols(array('*'));
         $this->query->orderBy(array('c1', 'UPPER(t2.c2)', ));
         $expect = '
             SELECT
+                *
             ORDER BY
                 c1,
                 UPPER(<<t2>>.<<c2>>)
@@ -362,9 +394,11 @@ class SelectTest extends AbstractQueryTest
 
     public function testLimitOffset()
     {
+        $this->query->cols(array('*'));
         $this->query->limit(10);
         $expect = '
             SELECT
+                *
             LIMIT 10
         ';
         $actual = $this->query->__toString();
@@ -373,6 +407,7 @@ class SelectTest extends AbstractQueryTest
         $this->query->offset(40);
         $expect = '
             SELECT
+                *
             LIMIT 10 OFFSET 40
         ';
         $actual = $this->query->__toString();
@@ -381,9 +416,11 @@ class SelectTest extends AbstractQueryTest
 
     public function testPage()
     {
+        $this->query->cols(array('*'));
         $this->query->page(5);
         $expect = '
             SELECT
+                *
             LIMIT 10 OFFSET 40
         ';
         $actual = $this->query->__toString();
@@ -392,9 +429,11 @@ class SelectTest extends AbstractQueryTest
 
     public function testForUpdate()
     {
+        $this->query->cols(array('*'));
         $this->query->forUpdate();
         $expect = '
             SELECT
+                *
             FOR UPDATE
         ';
         $actual = $this->query->__toString();
@@ -452,9 +491,11 @@ class SelectTest extends AbstractQueryTest
         // do these out of order
         $this->query->having('baz IN (?)', array('dib', 'zim', 'gir'));
         $this->query->where('foo = ?', 'bar');
+        $this->query->cols(array('*'));
         
         $expect = '
             SELECT
+                *
             WHERE
                 foo = ?
             HAVING

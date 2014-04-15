@@ -9,9 +9,11 @@ class SelectTest extends Common\SelectTest
 
     public function testLimitOffset()
     {
+        $this->query->cols(array('*'));
         $this->query->limit(10);
         $expect = '
             SELECT TOP 10
+                *
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
@@ -19,6 +21,7 @@ class SelectTest extends Common\SelectTest
         $this->query->offset(40);
         $expect = '
             SELECT
+                *
             OFFSET 40 ROWS FETCH NEXT 10 ROWS ONLY
         ';
         $actual = $this->query->__toString();
@@ -27,9 +30,11 @@ class SelectTest extends Common\SelectTest
     
     public function testPage()
     {
+        $this->query->cols(array('*'));
         $this->query->page(5);
         $expect = '
             SELECT
+                *
             OFFSET 40 ROWS FETCH NEXT 10 ROWS ONLY
         ';
         $actual = $this->query->__toString();
