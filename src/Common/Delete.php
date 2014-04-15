@@ -89,11 +89,7 @@ class Delete extends AbstractQuery implements DeleteInterface
      */
     public function where($cond)
     {
-        $bind = func_get_args();
-        array_shift($bind);
-
-        $this->addWhere($cond, 'AND', $bind);
-
+        $this->addWhere('AND', func_get_args());
         return $this;
     }
 
@@ -113,11 +109,7 @@ class Delete extends AbstractQuery implements DeleteInterface
      */
     public function orWhere($cond)
     {
-        $bind = func_get_args();
-        array_shift($bind);
-
-        $this->addWhere($cond, 'OR', $bind);
-
+        $this->addWhere('OR', func_get_args());
         return $this;
     }
 

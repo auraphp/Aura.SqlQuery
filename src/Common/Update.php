@@ -90,11 +90,7 @@ class Update extends AbstractQuery implements UpdateInterface
      */
     public function where($cond)
     {
-        $bind = func_get_args();
-        array_shift($bind);
-
-        $this->addWhere($cond, 'AND', $bind);
-
+        $this->addWhere('AND', func_get_args());
         return $this;
     }
 
@@ -114,11 +110,7 @@ class Update extends AbstractQuery implements UpdateInterface
      */
     public function orWhere($cond)
     {
-        $bind = func_get_args();
-        array_shift($bind);
-
-        $this->addWhere($cond, 'OR', $bind);
-
+        $this->addWhere('OR', func_get_args());
         return $this;
     }
 

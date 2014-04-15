@@ -418,23 +418,7 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function having($cond)
     {
-        // quote names in the condition
-        $cond = $this->quoteNamesIn($cond);
-        
-        // bind values to the condition
-        $bind = func_get_args();
-        array_shift($bind);
-        foreach ($bind as $value) {
-            $this->bind_having[] = $value;
-        }
-
-        if ($this->having) {
-            $this->having[] = "AND $cond";
-        } else {
-            $this->having[] = $cond;
-        }
-
-        // done
+        $this->addHaving('AND', func_get_args());
         return $this;
     }
 
@@ -453,24 +437,27 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function orHaving($cond)
     {
+        $this->addHaving('OR', func_get_args());
+        return $this;
+    }
+
+    protected function addHaving($andor, $args)
+    {
+        $cond = array_shift($args);
+
         // quote names in the condition
         $cond = $this->quoteNamesIn($cond);
         
         // bind values to the condition
-        $bind = func_get_args();
-        array_shift($bind);
-        foreach ($bind as $value) {
+        foreach ($args as $value) {
             $this->bind_having[] = $value;
         }
 
         if ($this->having) {
-            $this->having[] = "OR $cond";
+            $this->having[] = "$andor $cond";
         } else {
             $this->having[] = $cond;
         }
-
-        // done
-        return $this;
     }
 
     /**
@@ -673,11 +660,7 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function where($cond)
     {
-        $bind = func_get_args();
-        array_shift($bind);
-
-        $this->addWhere($cond, 'AND', $bind);
-
+        $this->addWhere('AND', func_get_args());
         return $this;
     }
 
@@ -697,11 +680,7 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function orWhere($cond)
     {
-        $bind = func_get_args();
-        array_shift($bind);
-
-        $this->addWhere($cond, 'OR', $bind);
-
+        $this->addWhere('OR', func_get_args());
         return $this;
     }
 

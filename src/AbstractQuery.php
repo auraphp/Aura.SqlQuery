@@ -504,18 +504,20 @@ abstract class AbstractQuery
      *
      * @return $this
      */
-    protected function addWhere($cond, $op, array $bind)
+    protected function addWhere($andor, $args)
     {
+        $cond = array_shift($args);
+
         // quote names in the condition
         $cond = $this->quoteNamesIn($cond);
 
         // bind values to the condition
-        foreach ($bind as $value) {
+        foreach ($args as $value) {
             $this->bind_where[] = $value;
         }
 
         if ($this->where) {
-            $this->where[] = "$op $cond";
+            $this->where[] = "$andor $cond";
         } else {
             $this->where[] = $cond;
         }
