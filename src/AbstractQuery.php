@@ -341,28 +341,22 @@ abstract class AbstractQuery
     protected function quoteName($spec)
     {
         $spec = trim($spec);
-        switch (true) {
-            // these are assignments, not comparisons,
-            // and perhaps just a bit too clever
-            case $quoted = $this->quoteNameWithSeparator($spec, ' AS '):
-            case $quoted = $this->quoteNameWithSeparator($spec, ' '):
-            case $quoted = $this->quoteNameWithSeparator($spec, '.'):
-                return $quoted;
-            default:
-                return $this->replaceName($spec);
+        $seps = array(' AS ', ' ', '.');
+        foreach ($seps as $sep) {
+            $pos = strripos($spec, $sep);
+            if ($pos) {
+                return $this->quoteNameWithSeparator($spec, $sep, $pos);
+            }
         }
+        return $this->replaceName($spec);
     }
 
-    protected function quoteNameWithSeparator($spec, $sep)
+    protected function quoteNameWithSeparator($spec, $sep, $pos)
     {
-        $pos = strripos($spec, $sep);
-        if ($pos) {
-            $len = strlen($sep);
-            // recurse to allow for aliases to dotted names
-            $part1 = $this->quoteName(substr($spec, 0, $pos));
-            $part2 = $this->replaceName(substr($spec, $pos + $len));
-            return "{$part1}{$sep}{$part2}";
-        }
+        $len = strlen($sep);
+        $part1 = $this->quoteName(substr($spec, 0, $pos));
+        $part2 = $this->replaceName(substr($spec, $pos + $len));
+        return "{$part1}{$sep}{$part2}";
     }
 
     /**
