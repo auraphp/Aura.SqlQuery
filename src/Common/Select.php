@@ -383,13 +383,8 @@ class Select extends AbstractQuery implements SelectInterface
               . PHP_EOL;
         $name = $this->quoteName($name);
         
-        if ($cond) {
-            $cond = $this->quoteNamesIn($cond);
-            $this->from[$this->from_key][] = "$join ($spec) AS $name ON $cond";
-        } else {
-            $this->from[$this->from_key][] = "$join ($spec) AS $name";
-        }
-
+        $cond = $this->fixJoinCondition($cond);
+        $this->from[$this->from_key][] = rtrim("$join ($spec) AS $name $cond");
         return $this;
     }
 
