@@ -567,7 +567,7 @@ abstract class AbstractQuery
     protected function addCol($col)
     {
         $key = $this->quoteName($col);
-        $this->values[$key] = ":$col";
+        $this->col_values[$key] = ":$col";
         $args = func_get_args();
         if (count($args) > 1) {
             $this->bindValue($col, $args[1]);
@@ -623,7 +623,7 @@ abstract class AbstractQuery
 
         $key = $this->quoteName($col);
         $value = $this->quoteNamesIn($value);
-        $this->values[$key] = $value;
+        $this->col_values[$key] = $value;
         return $this;
     }
 
@@ -637,9 +637,9 @@ abstract class AbstractQuery
     protected function buildValuesForInsert()
     {
         return ' ('
-            . $this->indentCsv(array_keys($this->values))
+            . $this->indentCsv(array_keys($this->col_values))
             . PHP_EOL . ') VALUES ('
-            . $this->indentCsv(array_values($this->values))
+            . $this->indentCsv(array_values($this->col_values))
             . PHP_EOL . ')';
     }
 
@@ -653,7 +653,7 @@ abstract class AbstractQuery
     protected function buildValuesForUpdate()
     {
         $values = array();
-        foreach ($this->values as $col => $value) {
+        foreach ($this->col_values as $col => $value) {
             $values[] = "{$col} = {$value}";
         }
         return PHP_EOL . 'SET' . $this->indentCsv($values);
