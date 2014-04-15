@@ -139,16 +139,4 @@ class Insert extends AbstractQuery implements InsertInterface
     {
         return $this->setCol($col, $value);
     }
-
-    /**
-     *
-     * Gets the values to bind to placeholders.
-     *
-     * @return array
-     *
-     */
-    public function getBindValues()
-    {
-        return $this->bind_values;
-    }
 }

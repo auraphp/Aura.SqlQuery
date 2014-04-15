@@ -165,22 +165,4 @@ class Update extends AbstractQuery implements UpdateInterface
     {
         return $this->setCol($col, $value);
     }
-
-    /**
-     *
-     * Gets the values to bind to placeholders.
-     *
-     * @return array
-     *
-     */
-    public function getBindValues()
-    {
-        $bind_values = $this->bind_values;
-        $i = 1;
-        foreach ($this->bind_where as $val) {
-            $bind_values[$i] = $val;
-            $i ++;
-        }
-        return $bind_values;
-    }
 }
