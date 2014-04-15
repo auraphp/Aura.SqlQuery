@@ -214,7 +214,7 @@ class Select extends AbstractQuery implements SelectInterface
     public function cols(array $cols)
     {
         foreach ($cols as $col) {
-            $this->cols[] = $this->quoteNamesIn($col);
+            $this->cols[] = $this->quoter->quoteNamesIn($col);
         }
         return $this;
     }
@@ -230,7 +230,7 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function from($spec)
     {
-        $this->from[] = array($this->quoteName($spec));
+        $this->from[] = array($this->quoter->quoteName($spec));
         $this->from_key ++;
         return $this;
     }
@@ -253,7 +253,7 @@ class Select extends AbstractQuery implements SelectInterface
         $this->from[] = array(
             "("
             . PHP_EOL . '        ' . $spec . PHP_EOL
-            . "    ) AS " . $this->quoteName($name)
+            . "    ) AS " . $this->quoter->quoteName($name)
         );
         $this->from_key ++;
         return $this;
@@ -281,7 +281,7 @@ class Select extends AbstractQuery implements SelectInterface
         }
         
         $join = strtoupper(ltrim("$join JOIN"));
-        $spec = $this->quoteName($spec);
+        $spec = $this->quoter->quoteName($spec);
         $cond = $this->fixJoinCondition($cond);
         $this->from[$this->from_key][] = rtrim("$join $spec $cond");
         return $this;
@@ -303,7 +303,7 @@ class Select extends AbstractQuery implements SelectInterface
             return;
         }
 
-        $cond = $this->quoteNamesIn($cond);
+        $cond = $this->quoter->quoteNamesIn($cond);
 
         if (strtoupper(substr(ltrim($cond), 0, 3)) == 'ON ') {
             return $cond;
@@ -381,7 +381,7 @@ class Select extends AbstractQuery implements SelectInterface
         $spec = PHP_EOL . '    '
               . ltrim(preg_replace('/^/m', '    ', (string) $spec))
               . PHP_EOL;
-        $name = $this->quoteName($name);
+        $name = $this->quoter->quoteName($name);
         
         $cond = $this->fixJoinCondition($cond);
         $this->from[$this->from_key][] = rtrim("$join ($spec) AS $name $cond");
@@ -400,7 +400,7 @@ class Select extends AbstractQuery implements SelectInterface
     public function groupBy(array $spec)
     {
         foreach ($spec as $col) {
-            $this->group_by[] = $this->quoteNamesIn($col);
+            $this->group_by[] = $this->quoter->quoteNamesIn($col);
         }
         return $this;
     }

@@ -157,9 +157,9 @@ class QueryFactory
         
         $class .= "\\{$query}";
         
-        return new $class(
+        return new $class(new Quoter(
             $this->quote_name_prefix,
             $this->quote_name_suffix
-        );
+        ));
     }
 }

@@ -41,7 +41,7 @@ class Update extends AbstractQuery implements UpdateInterface
      */
     public function table($table)
     {
-        $this->table = $this->quoteName($table);
+        $this->table = $this->quoter->quoteName($table);
         return $this;
     }
     

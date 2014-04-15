@@ -41,7 +41,7 @@ class Delete extends AbstractQuery implements DeleteInterface
      */
     public function from($table)
     {
-        $this->from = $this->quoteName($table);
+        $this->from = $this->quoter->quoteName($table);
         return $this;
     }
     

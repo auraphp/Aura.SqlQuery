@@ -71,7 +71,7 @@ class Insert extends AbstractQuery implements InsertInterface
      */
     protected function buildInto()
     {
-        return " INTO " . $this->quoteName($this->into);
+        return " INTO " . $this->quoter->quoteName($this->into);
     }
     
     /**
