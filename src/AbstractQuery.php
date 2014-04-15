@@ -39,7 +39,7 @@ abstract class AbstractQuery
      * @param array
      *
      */
-    protected $values;
+    protected $col_values;
 
     /**
      *
