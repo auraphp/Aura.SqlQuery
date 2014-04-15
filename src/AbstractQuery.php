@@ -341,7 +341,6 @@ abstract class AbstractQuery
     protected function quoteName($spec)
     {
         $spec = trim($spec);
-        $quoted = null;
         switch (true) {
             // these are assignments, not comparisons,
             // and perhaps just a bit too clever
@@ -359,6 +358,7 @@ abstract class AbstractQuery
         $pos = strripos($spec, $sep);
         if ($pos) {
             $len = strlen($sep);
+            // recurse to allow for aliases to dotted names
             $part1 = $this->quoteName(substr($spec, 0, $pos));
             $part2 = $this->replaceName(substr($spec, $pos + $len));
             return "{$part1}{$sep}{$part2}";
@@ -385,57 +385,52 @@ abstract class AbstractQuery
      */
     protected function quoteNamesIn($text)
     {
-        // single and double quotes
-        $apos = "'";
-        $quot = '"';
+        $list = $this->getListForQuoteNamesIn($text);
+        $last = count($list) - 1;
+        $text = null;
+        foreach ($list as $key => $val) {
+            // skip elements 2, 5, 8, 11, etc. as artifacts of the back-
+            // referenced split; these are the trailing/ending quote
+            // portions, and already included in the previous element.
+            // this is the same as skipping every third element from zero.
+            if (($key+1) % 3) {
+                $text .= $this->quoteNamesInLoop($val, $key == $last);
+            }
+        }
+        return $text;
+    }
 
+    protected function getListForQuoteNamesIn($text)
+    {
         // look for ', ", \', or \" in the string.
         // match closing quotes against the same number of opening quotes.
-        $list = preg_split(
+        $apos = "'";
+        $quot = '"';
+        return preg_split(
             "/(($apos+|$quot+|\\$apos+|\\$quot+).*?\\2)/",
             $text,
             -1,
             PREG_SPLIT_DELIM_CAPTURE
         );
-
-        // concat the pieces back together, quoting names as we go.
-        $text = null;
-        $last = count($list) - 1;
-        foreach ($list as $key => $val) {
-            // skip elements 2, 5, 8, 11, etc. as artifacts of the back-
-            // referenced split; these are the trailing/ending quote
-            // portions, and already included in the previous element.
-            // this is the same as every third element from zero.
-            if (($key+1) % 3 != 0) {
-                $text .= $this->quoteNamesInLoop($key, $val, $last);
-            }
-        }
-
-        return $text;
     }
 
-    protected function quoteNamesInLoop($key, $val, $last)
+    protected function quoteNamesInLoop($val, $is_last)
     {
-        $is_string_literal = strpos($val, "'") !== false
-                        || strpos($val, '"') !== false;
-
-        if ($is_string_literal) {
-            return $val;
-        }
-
-        if ($key != $last) {
-            return $this->replaceNamesIn($val);
-        }
-
-        // this is the last element, look for an AS alias
-        // note the 'rr' in strripos
-        $pos = strripos($val, ' AS ');
-        if ($pos) {
-            // quote the alias name directly
-            $alias = $this->replaceName(substr($val, $pos + 4));
-            $val = substr($val, 0, $pos) . " AS $alias";
+        if ($is_last) {
+            return $this->replaceNamesAndAliasIn($val);
         }
         return $this->replaceNamesIn($val);
+    }
+
+    protected function replaceNamesAndAliasIn($val)
+    {
+        $quoted = $this->replaceNamesIn($val);
+        $pos = strripos($quoted, ' AS ');
+        if ($pos) {
+            $alias = $this->replaceName(substr($quoted, $pos + 4));
+            $quoted = substr($quoted, 0, $pos) . " AS $alias";
+        }
+        return $quoted;
     }
 
     /**
@@ -455,11 +450,11 @@ abstract class AbstractQuery
         $name = trim($name);
         if ($name == '*') {
             return $name;
-        } else {
-            return $this->quote_name_prefix
-                 . $name
-                 . $this->quote_name_suffix;
         }
+
+        return $this->quote_name_prefix
+             . $name
+             . $this->quote_name_suffix;
     }
 
     /**
@@ -476,6 +471,12 @@ abstract class AbstractQuery
      */
     protected function replaceNamesIn($text)
     {
+        $is_string_literal = strpos($text, "'") !== false
+                        || strpos($text, '"') !== false;
+        if ($is_string_literal) {
+            return $text;
+        }
+
         $word = "[a-z_][a-z0-9_]+";
 
         $find = "/(\\b)($word)\\.($word)(\\b)/i";
