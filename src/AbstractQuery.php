@@ -506,24 +506,29 @@ abstract class AbstractQuery
      */
     protected function addWhere($andor, $args)
     {
-        $cond = array_shift($args);
+        $this->addClauseCondWithBind('where', $andor, $args);
+        return $this;
+    }
 
-        // quote names in the condition
+    protected function addClauseCondWithBind($clause, $andor, $args)
+    {
+        // remove the condition from the args and quote names in it
+        $cond = array_shift($args);
         $cond = $this->quoteNamesIn($cond);
 
-        // bind values to the condition
+        // remaining args are bind values; e.g., $this->bind_where
+        $bind =& $this->{"bind_{$clause}"};
         foreach ($args as $value) {
-            $this->bind_where[] = $value;
+            $bind[] = $value;
         }
 
-        if ($this->where) {
-            $this->where[] = "$andor $cond";
+        // add condition to clause; $this->where
+        $clause =& $this->$clause;
+        if ($clause) {
+            $clause[] = "$andor $cond";
         } else {
-            $this->where[] = $cond;
+            $clause[] = $cond;
         }
-
-        // done
-        return $this;
     }
 
     /**

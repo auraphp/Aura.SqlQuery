@@ -418,7 +418,7 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function having($cond)
     {
-        $this->addHaving('AND', func_get_args());
+        $this->addClauseCondWithBind('having', 'AND', func_get_args());
         return $this;
     }
 
@@ -437,27 +437,8 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function orHaving($cond)
     {
-        $this->addHaving('OR', func_get_args());
+        $this->addClauseCondWithBind('having', 'OR', func_get_args());
         return $this;
-    }
-
-    protected function addHaving($andor, $args)
-    {
-        $cond = array_shift($args);
-
-        // quote names in the condition
-        $cond = $this->quoteNamesIn($cond);
-        
-        // bind values to the condition
-        foreach ($args as $value) {
-            $this->bind_having[] = $value;
-        }
-
-        if ($this->having) {
-            $this->having[] = "$andor $cond";
-        } else {
-            $this->having[] = $cond;
-        }
     }
 
     /**
