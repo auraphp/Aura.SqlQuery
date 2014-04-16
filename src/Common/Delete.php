@@ -10,7 +10,7 @@
  */
 namespace Aura\Sql_Query\Common;
 
-use Aura\Sql_Query\AbstractQuery;
+use Aura\Sql_Query\AbstractDmlQuery;
 
 /**
  *
@@ -19,7 +19,7 @@ use Aura\Sql_Query\AbstractQuery;
  * @package Aura.Sql_Query
  *
  */
-class Delete extends AbstractQuery implements DeleteInterface
+class Delete extends AbstractDmlQuery implements DeleteInterface
 {
     /**
      *

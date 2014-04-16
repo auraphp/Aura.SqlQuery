@@ -10,7 +10,7 @@
  */
 namespace Aura\Sql_Query\Common;
 
-use Aura\Sql_Query\AbstractQuery;
+use Aura\Sql_Query\AbstractDmlQuery;
 
 /**
  *
@@ -19,7 +19,7 @@ use Aura\Sql_Query\AbstractQuery;
  * @package Aura.Sql_Query
  *
  */
-class Update extends AbstractQuery implements UpdateInterface
+class Update extends AbstractDmlQuery implements UpdateInterface
 {
     /**
      *
@@ -164,5 +164,21 @@ class Update extends AbstractQuery implements UpdateInterface
     public function set($col, $value)
     {
         return $this->setCol($col, $value);
+    }
+
+    /**
+     *
+     * Builds the updated columns and values of the statement.
+     *
+     * @return string
+     *
+     */
+    protected function buildValuesForUpdate()
+    {
+        $values = array();
+        foreach ($this->col_values as $col => $value) {
+            $values[] = "{$col} = {$value}";
+        }
+        return PHP_EOL . 'SET' . $this->indentCsv($values);
     }
 }

@@ -10,7 +10,7 @@
  */
 namespace Aura\Sql_Query\Common;
 
-use Aura\Sql_Query\AbstractQuery;
+use Aura\Sql_Query\AbstractDmlQuery;
 
 /**
  *
@@ -19,7 +19,7 @@ use Aura\Sql_Query\AbstractQuery;
  * @package Aura.Sql_Query
  *
  */
-class Insert extends AbstractQuery implements InsertInterface
+class Insert extends AbstractDmlQuery implements InsertInterface
 {
     /**
      *
@@ -138,5 +138,21 @@ class Insert extends AbstractQuery implements InsertInterface
     public function set($col, $value)
     {
         return $this->setCol($col, $value);
+    }
+
+    /**
+     *
+     * Builds the inserted columns and values of the statement.
+     *
+     * @return string
+     *
+     */
+    protected function buildValuesForInsert()
+    {
+        return ' ('
+            . $this->indentCsv(array_keys($this->col_values))
+            . PHP_EOL . ') VALUES ('
+            . $this->indentCsv(array_values($this->col_values))
+            . PHP_EOL . ')';
     }
 }
