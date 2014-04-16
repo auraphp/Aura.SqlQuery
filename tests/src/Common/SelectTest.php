@@ -84,12 +84,16 @@ class SelectTest extends AbstractQueryTest
 
     public function testCols()
     {
-        $this->query->cols(array('t1.c1', 'c2', 'COUNT(t1.c3)'));
+        $this->query->cols(array(
+            't1.c1',
+            'c2' => 'a2',
+            'COUNT(t1.c3)'
+        ));
         $actual = $this->query->__toString();
         $expect = '
             SELECT
                 <<t1>>.<<c1>>,
-                c2,
+                c2 AS <<a2>>,
                 COUNT(<<t1>>.<<c3>>)
         ';
         $this->assertSameSql($expect, $actual);

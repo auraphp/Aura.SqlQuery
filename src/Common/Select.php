@@ -206,17 +206,27 @@ class Select extends AbstractQuery implements SelectInterface
      * Multiple calls to cols() will append to the list of columns, not
      * overwrite the previous columns.
      *
-     * @param array $cols The column(s) to add to the query.
+     * @param array $cols The column(s) to add to the query. The elements can be
+     * any mix of these: `array("col", "col AS alias", "col" => "alias")`
      *
      * @return $this
      *
      */
     public function cols(array $cols)
     {
-        foreach ($cols as $col) {
-            $this->cols[] = $this->quoter->quoteNamesIn($col);
+        foreach ($cols as $key => $val) {
+            $this->addCol($key, $val);
         }
         return $this;
+    }
+
+    protected function addCol($key, $val)
+    {
+        if (is_int($key)) {
+            $this->cols[] = $this->quoter->quoteNamesIn($val);
+        } else {
+            $this->cols[] = $this->quoter->quoteNamesIn("$key AS $val");
+        }
     }
 
     /**
