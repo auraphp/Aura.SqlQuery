@@ -3,18 +3,18 @@
  * 
  * This file is part of Aura for PHP.
  * 
- * @package Aura.Sql_Query
+ * @package Aura.SqlQuery
  * 
  * @license http://opensource.org/licenses/bsd-license.php BSD
  * 
  */
-namespace Aura\Sql_Query;
+namespace Aura\SqlQuery;
 
 /**
  * 
  * Creates query statement objects.
  * 
- * @package Aura.Sql_Query
+ * @package Aura.SqlQuery
  * 
  */
 class QueryFactory
@@ -150,9 +150,9 @@ class QueryFactory
     protected function newInstance($query)
     {
         if ($this->common) {
-            $class = "Aura\Sql_Query\Common";
+            $class = "Aura\SqlQuery\Common";
         } else {
-            $class = "Aura\Sql_Query\\{$this->db}";
+            $class = "Aura\SqlQuery\\{$this->db}";
         }
         
         $class .= "\\{$query}";

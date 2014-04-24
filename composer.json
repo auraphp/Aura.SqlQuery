@@ -1,5 +1,5 @@
 {
-    "name": "aura/sql-query",
+    "name": "aura/sqlquery",
     "type": "library",
     "description": "Object-oriented query builders for MySQL, Postgres, SQLite, and SQLServer; can be used with any database connection library.",
     "keywords": [
@@ -15,14 +15,18 @@
         "select",
         "insert",
         "update",
-        "delete"
+        "delete",
+        "db",
+        "database",
+        "sql",
+        "dml"
     ],
-    "homepage": "https://github.com/auraphp/Aura.Sql_Query/releases",
+    "homepage": "https://github.com/auraphp/Aura.SqlQuery/releases",
     "license": "BSD-2-Clause",
     "authors": [
         {
-            "name": "Aura.Sql_Query Contributors",
-            "homepage": "https://github.com/auraphp/Aura.Sql_Query/contributors"
+            "name": "Aura.SqlQuery Contributors",
+            "homepage": "https://github.com/auraphp/Aura.SqlQuery/contributors"
         }
     ],
     "require": {
@@ -30,7 +34,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Aura\\Sql_Query\\": "src/"
+            "Aura\\SqlQuery\\": "src/"
         }
     },
     "extra": {
@@ -42,6 +46,6 @@
         }
     },
     "suggest": {
-        "aura/sql": "Provides an extension to the native PDO along with a profiler and connection locator. Use version dev-develop-2"
+        "aura/sql": "Provides an extension to the native PDO along with a profiler and connection locator. Use version 2.*."
     }
 }

@@ -1,4 +1,4 @@
-# Aura.Sql_Query
+# Aura.SqlQuery
 
 Provides query builders for MySQL, Postgres, SQLite, and Microsoft SQL Server.
 These builders are independent of any particular database connection library,
@@ -12,13 +12,13 @@ This library requires PHP 5.3 or later, and has no userland dependencies.
 
 It is installable and autoloadable via Composer as [aura/sql-query](https://packagist.org/packages/aura/sql-query).
 
-Alternatively, [download a release](https://github.com/auraphp/Aura.Sql_Query/releases) or clone this repository, then require or include its _autoload.php_ file.
+Alternatively, [download a release](https://github.com/auraphp/Aura.SqlQuery/releases) or clone this repository, then require or include its _autoload.php_ file.
 
 ### Quality
 
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/auraphp/Aura.Sql_Query/badges/quality-score.png?s=3b6f3b65e575bd776779e86b8a365132164f43a4)](https://scrutinizer-ci.com/g/auraphp/Aura.Sql_Query/)
-[![Code Coverage](https://scrutinizer-ci.com/g/auraphp/Aura.Sql_Query/badges/coverage.png?s=ffecfcb1b73534e177171df54edff677090e3953)](https://scrutinizer-ci.com/g/auraphp/Aura.Sql_Query/)
-[![Build Status](https://travis-ci.org/auraphp/Aura.Sql_Query.png?branch=develop-2)](https://travis-ci.org/auraphp/Aura.Sql_Query)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/auraphp/Aura.SqlQuery/badges/quality-score.png?s=3b6f3b65e575bd776779e86b8a365132164f43a4)](https://scrutinizer-ci.com/g/auraphp/Aura.SqlQuery/)
+[![Code Coverage](https://scrutinizer-ci.com/g/auraphp/Aura.SqlQuery/badges/coverage.png?s=ffecfcb1b73534e177171df54edff677090e3953)](https://scrutinizer-ci.com/g/auraphp/Aura.SqlQuery/)
+[![Build Status](https://travis-ci.org/auraphp/Aura.SqlQuery.png?branch=develop-2)](https://travis-ci.org/auraphp/Aura.SqlQuery)
 
 To run the [PHPUnit][] tests at the command line, go to the _tests_ directory and issue `phpunit`.
 
@@ -41,7 +41,7 @@ First, instantiate a _QueryFactory_ with a database type:
 
 ```php
 <?php
-use Aura\Sql_Query\QueryFactory;
+use Aura\SqlQuery\QueryFactory;
 
 $query_factory = new QueryFactory('sqlite');
 ?>
@@ -106,7 +106,7 @@ helps with writing database-portable applications. To do so, pass the constant
 
 ```php
 <?php
-use Aura\Sql_Query\QueryFactory;
+use Aura\SqlQuery\QueryFactory;
 
 // return Common, not SQLite-specific, query objects
 $query_factory = new QueryFactory('sqlite', QueryFactory::COMMON);

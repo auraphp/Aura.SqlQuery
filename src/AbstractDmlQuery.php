@@ -1,5 +1,5 @@
 <?php
-namespace Aura\Sql_Query;
+namespace Aura\SqlQuery;
 
 abstract class AbstractDmlQuery extends AbstractQuery
 {

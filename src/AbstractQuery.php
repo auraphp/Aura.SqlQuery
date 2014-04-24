@@ -3,21 +3,21 @@
  * 
  * This file is part of Aura for PHP.
  * 
- * @package Aura.Sql_Query
+ * @package Aura.SqlQuery
  * 
  * @license http://opensource.org/licenses/bsd-license.php BSD
  * 
  */
-namespace Aura\Sql_Query;
+namespace Aura\SqlQuery;
 
-use Aura\Sql_Query\Common\LimitInterface;
-use Aura\Sql_Query\Common\LimitOffsetInterface;
+use Aura\SqlQuery\Common\LimitInterface;
+use Aura\SqlQuery\Common\LimitOffsetInterface;
 
 /**
  * 
  * Abstract query object for Select, Insert, Update, and Delete.
  * 
- * @package Aura.Sql_Query
+ * @package Aura.SqlQuery
  * 
  */
 abstract class AbstractQuery

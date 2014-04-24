@@ -1,7 +1,7 @@
 <?php
-namespace Aura\Sql_Query\Common;
+namespace Aura\SqlQuery\Common;
 
-use Aura\Sql_Query\AbstractQueryTest;
+use Aura\SqlQuery\AbstractQueryTest;
 
 class InsertTest extends AbstractQueryTest
 {
@@ -49,11 +49,11 @@ class InsertTest extends AbstractQueryTest
     
     public function testBindValues()
     {
-        $this->assertInstanceOf('\Aura\Sql_Query\AbstractQuery', $this->query->bindValues(array('bar', 'bar value')));
+        $this->assertInstanceOf('\Aura\SqlQuery\AbstractQuery', $this->query->bindValues(array('bar', 'bar value')));
     }
     
     public function testBindValue()
     {
-        $this->assertInstanceOf('\Aura\Sql_Query\AbstractQuery', $this->query->bindValue('bar', 'bar value'));
+        $this->assertInstanceOf('\Aura\SqlQuery\AbstractQuery', $this->query->bindValue('bar', 'bar value'));
     }
 }

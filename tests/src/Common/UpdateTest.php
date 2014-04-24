@@ -1,7 +1,7 @@
 <?php
-namespace Aura\Sql_Query\Common;
+namespace Aura\SqlQuery\Common;
 
-use Aura\Sql_Query\AbstractQueryTest;
+use Aura\SqlQuery\AbstractQueryTest;
 
 class UpdateTest extends AbstractQueryTest
 {

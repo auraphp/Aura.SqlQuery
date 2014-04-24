@@ -1,7 +1,7 @@
 <?php
-namespace Aura\Sql_Query\Common;
+namespace Aura\SqlQuery\Common;
 
-use Aura\Sql_Query\AbstractQueryTest;
+use Aura\SqlQuery\AbstractQueryTest;
 
 class SelectTest extends AbstractQueryTest
 {
@@ -10,7 +10,7 @@ class SelectTest extends AbstractQueryTest
     public function testExceptionWithNoCols()
     {
         $this->query->from('t1');
-        $this->setExpectedException('Aura\Sql_Query\Exception');
+        $this->setExpectedException('Aura\SqlQuery\Exception');
         $this->query->__toString();
 
     }
@@ -174,7 +174,7 @@ class SelectTest extends AbstractQueryTest
         
         // try to join without from
         $select = $this->newQuery();
-        $this->setExpectedException('Aura\Sql_Query\Exception');
+        $this->setExpectedException('Aura\SqlQuery\Exception');
         $select->join('left', 't2', 't1.id = t2.id');
     }
 
@@ -199,7 +199,7 @@ class SelectTest extends AbstractQueryTest
         
         // try to join without from
         $select = $this->newQuery();
-        $this->setExpectedException('Aura\Sql_Query\Exception');
+        $this->setExpectedException('Aura\SqlQuery\Exception');
         $select->leftJoin('left', 't2', 't1.id = t2.id');
     }
 
@@ -228,7 +228,7 @@ class SelectTest extends AbstractQueryTest
         
         // try to join without from
         $select = $this->newQuery();
-        $this->setExpectedException('Aura\Sql_Query\Exception');
+        $this->setExpectedException('Aura\SqlQuery\Exception');
         $select->joinSubSelect('left', $sub1, 'a2', 't2.c1 = a3.c1');
     }
 

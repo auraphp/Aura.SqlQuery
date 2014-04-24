@@ -1,5 +1,5 @@
 <?php
-namespace Aura\Sql_Query;
+namespace Aura\SqlQuery;
 
 abstract class AbstractQueryTest extends \PHPUnit_Framework_TestCase
 {

@@ -3,21 +3,21 @@
  *
  * This file is part of Aura for PHP.
  *
- * @package Aura.Sql_Query
+ * @package Aura.SqlQuery
  *
  * @license http://opensource.org/licenses/bsd-license.php BSD
  *
  */
-namespace Aura\Sql_Query\Common;
+namespace Aura\SqlQuery\Common;
 
-use Aura\Sql_Query\AbstractQuery;
-use Aura\Sql_Query\Exception;
+use Aura\SqlQuery\AbstractQuery;
+use Aura\SqlQuery\Exception;
 
 /**
  *
  * An object for SELECT queries.
  *
- * @package Aura.Sql_Query
+ * @package Aura.SqlQuery
  *
  */
 class Select extends AbstractQuery implements SelectInterface

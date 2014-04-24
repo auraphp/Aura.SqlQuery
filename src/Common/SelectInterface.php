@@ -3,20 +3,20 @@
  *
  * This file is part of Aura for PHP.
  *
- * @package Aura.Sql_Query
+ * @package Aura.SqlQuery
  *
  * @license http://opensource.org/licenses/bsd-license.php BSD
  *
  */
-namespace Aura\Sql_Query\Common;
+namespace Aura\SqlQuery\Common;
 
-use Aura\Sql_Query\QueryInterface;
+use Aura\SqlQuery\QueryInterface;
 
 /**
  *
  * An interface for SELECT queries.
  *
- * @package Aura.Sql_Query
+ * @package Aura.SqlQuery
  *
  */
 interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterface, LimitOffsetInterface

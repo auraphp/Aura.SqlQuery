@@ -3,20 +3,20 @@
  *
  * This file is part of Aura for PHP.
  *
- * @package Aura.Sql_Query
+ * @package Aura.SqlQuery
  *
  * @license http://opensource.org/licenses/bsd-license.php BSD
  *
  */
-namespace Aura\Sql_Query\Pgsql;
+namespace Aura\SqlQuery\Pgsql;
 
-use Aura\Sql_Query\Common;
+use Aura\SqlQuery\Common;
 
 /**
  *
  * An object for PgSQL UPDATE queries.
  *
- * @package Aura.Sql_Query
+ * @package Aura.SqlQuery
  *
  */
 class Delete extends Common\Delete implements Common\ReturningInterface

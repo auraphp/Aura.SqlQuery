@@ -1,6 +1,6 @@
 <?php
 
-namespace Aura\Sql_Query\Common;
+namespace Aura\SqlQuery\Common;
 
 interface LimitOffsetInterface extends LimitInterface
 {
