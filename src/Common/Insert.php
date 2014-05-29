@@ -32,6 +32,30 @@ class Insert extends AbstractDmlQuery implements InsertInterface
 
     /**
      *
+     * A map of fully-qualified `table.column` names to last-insert-id names.
+     * This is used to look up the right last-insert-id name for a given table
+     * and column. Generally useful only for extended tables in Posgres.
+     *
+     * @var array
+     *
+     */
+    protected $last_insert_id_names;
+
+    /**
+     *
+     * Sets the map of fully-qualified `table.column` names to last-insert-id
+     * names. Generally useful only for extended tables in Posgres.
+     *
+     * @param array $insert_id_names
+     *
+     */
+    public function setLastInsertIdNames(array $last_insert_id_names)
+    {
+        $this->last_insert_id_names = $last_insert_id_names;
+    }
+
+    /**
+     *
      * Sets the table to insert into.
      *
      * @param string $into The table to insert into.
@@ -47,11 +71,11 @@ class Insert extends AbstractDmlQuery implements InsertInterface
     }
 
     /**
-     * 
+     *
      * Builds this query object into a string.
-     * 
+     *
      * @return string
-     * 
+     *
      */
     protected function build()
     {
@@ -61,31 +85,35 @@ class Insert extends AbstractDmlQuery implements InsertInterface
             . $this->buildValuesForInsert()
             . $this->buildReturning();
     }
-    
+
     /**
-     * 
+     *
      * Builds the INTO clause.
-     * 
+     *
      * @return string
-     * 
+     *
      */
     protected function buildInto()
     {
         return " INTO " . $this->quoter->quoteName($this->into);
     }
-    
+
     /**
-     * 
+     *
      * Returns the proper name for passing to `PDO::lastInsertId()`.
-     * 
+     *
      * @param string $col The last insert ID column.
-     * 
-     * @return null Normally null, since most drivers do not need a name.
-     * 
+     *
+     * @return mixed Normally null, since most drivers do not need a name;
+     * alternatively, a string from `$last_insert_id_names`.
+     *
      */
     public function getLastInsertIdName($col)
     {
-        return null;
+        $key = $this->into . '.' . $col;
+        if (isset($this->last_insert_id_names[$key])) {
+            return $this->last_insert_id_names[$key];
+        }
     }
 
     /**

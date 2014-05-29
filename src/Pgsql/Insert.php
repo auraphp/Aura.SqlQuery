@@ -22,17 +22,22 @@ use Aura\SqlQuery\Common;
 class Insert extends Common\Insert implements Common\ReturningInterface
 {
     /**
-     * 
+     *
      * Returns the proper name for passing to `PDO::lastInsertId()`.
-     * 
+     *
      * @param string $col The last insert ID column.
-     * 
-     * @return string The sequence name "{$into_table}_{$col}_seq".
-     * 
+     *
+     * @return string The sequence name "{$into_table}_{$col}_seq", or the
+     * value from `$last_insert_id_names`.
+     *
      */
     public function getLastInsertIdName($col)
     {
-        return "{$this->into}_{$col}_seq";
+        $name = parent::getLastInsertIdName($col);
+        if (! $name) {
+            $name = "{$this->into}_{$col}_seq";
+        }
+        return $name;
     }
 
     /**
