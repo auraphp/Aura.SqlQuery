@@ -44,13 +44,13 @@ class Delete extends AbstractDmlQuery implements DeleteInterface
         $this->from = $this->quoter->quoteName($table);
         return $this;
     }
-    
+
     /**
-     * 
+     *
      * Builds this query object into a string.
-     * 
+     *
      * @return string
-     * 
+     *
      */
     protected function build()
     {
@@ -62,13 +62,13 @@ class Delete extends AbstractDmlQuery implements DeleteInterface
             . $this->buildLimit()
             . $this->buildReturning();
     }
-    
+
     /**
-     * 
+     *
      * Builds the FROM clause.
      *
      * @return string
-     * 
+     *
      */
     protected function buildFrom()
     {

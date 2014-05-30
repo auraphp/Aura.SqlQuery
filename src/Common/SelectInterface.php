@@ -103,7 +103,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      */
     public function fromSubSelect($spec, $name);
-    
+
     /**
      *
      * Adds a JOIN table and columns to the query.

@@ -14,7 +14,7 @@ class SelectTest extends AbstractQueryTest
         $this->query->__toString();
 
     }
-    
+
     public function testSetAndGetPaging()
     {
         $expect = 88;
@@ -171,7 +171,7 @@ class SelectTest extends AbstractQueryTest
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
-        
+
         // try to join without from
         $select = $this->newQuery();
         $this->setExpectedException('Aura\SqlQuery\Exception');
@@ -196,7 +196,7 @@ class SelectTest extends AbstractQueryTest
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
-        
+
         // try to join without from
         $select = $this->newQuery();
         $this->setExpectedException('Aura\SqlQuery\Exception');
@@ -225,7 +225,7 @@ class SelectTest extends AbstractQueryTest
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
-        
+
         // try to join without from
         $select = $this->newQuery();
         $this->setExpectedException('Aura\SqlQuery\Exception');
@@ -313,7 +313,7 @@ class SelectTest extends AbstractQueryTest
 
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
-        
+
         $actual = $this->query->getBindValues();
         $expect = array(1 => 'foo');
         $this->assertSame($expect, $actual);
@@ -335,7 +335,7 @@ class SelectTest extends AbstractQueryTest
 
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
-        
+
         $actual = $this->query->getBindValues();
         $expect = array(1 => 'foo');
         $this->assertSame($expect, $actual);
@@ -372,7 +372,7 @@ class SelectTest extends AbstractQueryTest
 
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
-        
+
         $actual = $this->query->getBindValues();
         $expect = array(1 => 'foo');
         $this->assertSame($expect, $actual);
@@ -393,7 +393,7 @@ class SelectTest extends AbstractQueryTest
 
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
-        
+
         $actual = $this->query->getBindValues();
         $expect = array(1 => 'foo');
         $this->assertSame($expect, $actual);
@@ -426,7 +426,7 @@ class SelectTest extends AbstractQueryTest
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
-        
+
         $this->query->offset(40);
         $expect = '
             SELECT
@@ -508,14 +508,14 @@ class SelectTest extends AbstractQueryTest
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
     }
-    
+
     public function testAutobind()
     {
         // do these out of order
         $this->query->having('baz IN (?)', array('dib', 'zim', 'gir'));
         $this->query->where('foo = ?', 'bar');
         $this->query->cols(array('*'));
-        
+
         $expect = '
             SELECT
                 *
@@ -526,7 +526,7 @@ class SelectTest extends AbstractQueryTest
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
-        
+
         $expect = array(
             1 => 'bar',
             2 => array('dib', 'zim', 'gir'),

@@ -28,7 +28,7 @@ class DeleteTest extends Common\DeleteTest
                 zim
         ";
         $this->assertSameSql($expect, $actual);
-        
+
         $actual = $this->query->getBindValues();
         $expect = array(
             1 => 'bar',

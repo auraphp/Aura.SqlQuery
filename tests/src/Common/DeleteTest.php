@@ -6,14 +6,14 @@ use Aura\SqlQuery\AbstractQueryTest;
 class DeleteTest extends AbstractQueryTest
 {
     protected $query_type = 'delete';
-    
+
     public function testCommon()
     {
         $this->query->from('t1')
                     ->where('foo = ?', 'bar')
                     ->where('baz = ?', 'dib')
                     ->orWhere('zim = gir');
-                    
+
         $actual = $this->query->__toString();
         $expect = "
             DELETE FROM <<t1>>
@@ -22,9 +22,9 @@ class DeleteTest extends AbstractQueryTest
                 AND baz = ?
                 OR zim = gir
         ";
-        
+
         $this->assertSameSql($expect, $actual);
-        
+
         $actual = $this->query->getBindValues();
         $expect = array(
             1 => 'bar',

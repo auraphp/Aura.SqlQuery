@@ -54,7 +54,7 @@ class UpdateTest extends Common\UpdateTest
             LIMIT 5 OFFSET 10
         ";
         $this->assertSameSql($expect, $actual);
-        
+
         $actual = $this->query->getBindValues();
         $expect = array(
             1 => 'bar',
@@ -78,7 +78,7 @@ class UpdateTest extends Common\UpdateTest
         $actual = $this->query->__toString();
         $expect = sprintf($this->expected_sql_with_flag, 'OR ABORT');
         $this->assertSameSql($expect, $actual);
-        
+
         $actual = $this->query->getBindValues();
         $expect = array(
             1 => 'bar',
@@ -102,7 +102,7 @@ class UpdateTest extends Common\UpdateTest
         $actual = $this->query->__toString();
         $expect = sprintf($this->expected_sql_with_flag, 'OR FAIL');
         $this->assertSameSql($expect, $actual);
-        
+
         $actual = $this->query->getBindValues();
         $expect = array(
             1 => 'bar',
@@ -126,7 +126,7 @@ class UpdateTest extends Common\UpdateTest
         $actual = $this->query->__toString();
         $expect = sprintf($this->expected_sql_with_flag, 'OR IGNORE');
         $this->assertSameSql($expect, $actual);
-        
+
         $actual = $this->query->getBindValues();
         $expect = array(
             1 => 'bar',
@@ -150,7 +150,7 @@ class UpdateTest extends Common\UpdateTest
         $actual = $this->query->__toString();
         $expect = sprintf($this->expected_sql_with_flag, 'OR REPLACE');
         $this->assertSameSql($expect, $actual);
-        
+
         $actual = $this->query->getBindValues();
         $expect = array(
             1 => 'bar',
@@ -158,7 +158,7 @@ class UpdateTest extends Common\UpdateTest
         );
         $this->assertSame($expect, $actual);
     }
-    
+
     public function testOrRollback()
     {
         $this->query->orRollback()
@@ -174,7 +174,7 @@ class UpdateTest extends Common\UpdateTest
         $actual = $this->query->__toString();
         $expect = sprintf($this->expected_sql_with_flag, 'OR ROLLBACK');
         $this->assertSameSql($expect, $actual);
-        
+
         $actual = $this->query->getBindValues();
         $expect = array(
             1 => 'bar',

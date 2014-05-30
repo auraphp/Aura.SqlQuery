@@ -80,7 +80,7 @@ class Update extends Common\Update implements Common\OrderByInterface, Common\Li
         $this->setFlag('OR REPLACE', $enable);
         return $this;
     }
-    
+
     /**
      *
      * Adds or removes OR ROLLBACK flag.

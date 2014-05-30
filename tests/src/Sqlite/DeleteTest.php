@@ -16,7 +16,7 @@ class DeleteTest extends Common\DeleteTest
                     ->orderBy(array('zim DESC'))
                     ->limit(5)
                     ->offset(10);
-                    
+
         $actual = $this->query->__toString();
         $expect = "
             DELETE FROM <<t1>>
@@ -26,10 +26,10 @@ class DeleteTest extends Common\DeleteTest
                 OR zim = gir
             ORDER BY
                 zim DESC
-            LIMIT 5 OFFSET 10    
+            LIMIT 5 OFFSET 10
         ";
         $this->assertSameSql($expect, $actual);
-        
+
         $actual = $this->query->getBindValues();
         $expect = array(
             1 => 'bar',

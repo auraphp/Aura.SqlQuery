@@ -44,13 +44,13 @@ class Update extends AbstractDmlQuery implements UpdateInterface
         $this->table = $this->quoter->quoteName($table);
         return $this;
     }
-    
+
     /**
-     * 
+     *
      * Builds this query object into a string.
-     * 
+     *
      * @return string
-     * 
+     *
      */
     protected function build()
     {
@@ -63,13 +63,13 @@ class Update extends AbstractDmlQuery implements UpdateInterface
             . $this->buildLimit()
             . $this->buildReturning();
     }
-    
+
     /**
-     * 
+     *
      * Builds the table clause.
-     * 
+     *
      * @return null
-     * 
+     *
      */
     protected function buildTable()
     {

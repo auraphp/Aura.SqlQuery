@@ -13,7 +13,7 @@ class QueryFactoryTest extends \PHPUnit_Framework_TestCase
         $actual = $query_factory->$method();
         $this->assertInstanceOf($expect, $actual);
     }
-    
+
     public function provider()
     {
         return array(
@@ -38,7 +38,7 @@ class QueryFactoryTest extends \PHPUnit_Framework_TestCase
             array('Sqlsrv', false, 'Insert', 'Aura\SqlQuery\Sqlsrv\Insert'),
             array('Sqlsrv', false, 'Update', 'Aura\SqlQuery\Sqlsrv\Update'),
             array('Sqlsrv', false, 'Delete', 'Aura\SqlQuery\Sqlsrv\Delete'),
-            
+
             // force common
             array('Common', QueryFactory::COMMON, 'Select', 'Aura\SqlQuery\Common\Select'),
             array('Common', QueryFactory::COMMON, 'Insert', 'Aura\SqlQuery\Common\Insert'),

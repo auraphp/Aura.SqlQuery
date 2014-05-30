@@ -43,19 +43,19 @@ class Select extends Common\Select
     }
 
     /**
-     * 
+     *
      * Modify the statement applying limit/offset equivalent portions to it.
      *
      * @param string $stm SQL statement
      * @return string SQL statement with limit/offset applied
-     * 
+     *
      */
     protected function applyLimit($stm)
     {
         if (! $this->limit && ! $this->offset) {
             return $stm; // no limit or offset
         }
-        
+
         // limit but no offset?
         if ($this->limit && ! $this->offset) {
             // use TOP in place
@@ -65,7 +65,7 @@ class Select extends Common\Select
                 $stm
             );
         }
-        
+
         // both limit and offset. must have an ORDER clause to work; OFFSET is
         // a sub-clause of the ORDER clause. cannot use FETCH without OFFSET.
         return $stm . PHP_EOL . "OFFSET {$this->offset} ROWS "

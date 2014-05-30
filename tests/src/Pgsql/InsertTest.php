@@ -39,7 +39,7 @@ class InsertTest extends Common\InsertTest
 
         $this->assertSameSql($expect, $actual);
     }
-    
+
     public function testGetLastInsertIdName()
     {
         $this->query->into('table');

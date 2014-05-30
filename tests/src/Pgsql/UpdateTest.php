@@ -38,7 +38,7 @@ class UpdateTest extends Common\UpdateTest
                 c3
         ";
         $this->assertSameSql($expect, $actual);
-        
+
         $actual = $this->query->getBindValues();
         $expect = array(
             1 => 'bar',
