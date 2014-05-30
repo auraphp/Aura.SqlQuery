@@ -4,30 +4,30 @@ namespace Aura\SqlQuery;
 class Quoter
 {
     /**
-     * 
+     *
      * The prefix to use when quoting identifier names.
-     * 
+     *
      * @var string
-     * 
+     *
      */
     protected $quote_name_prefix = '"';
 
     /**
-     * 
+     *
      * The suffix to use when quoting identifier names.
-     * 
+     *
      * @var string
-     * 
+     *
      */
     protected $quote_name_suffix = '"';
 
     /**
-     * 
+     *
      * Constructor.
-     * 
+     *
      * @param string $quote_name_prefix The prefix to use when quoting
      * identifier names.
-     * 
+     *
      * @param string $quote_name_suffix The suffix to use when quoting
      * identifier names.
      *
@@ -37,51 +37,51 @@ class Quoter
         $this->quote_name_prefix = $quote_name_prefix;
         $this->quote_name_suffix = $quote_name_suffix;
     }
-    
+
     /**
-     * 
+     *
      * Returns the prefix to use when quoting identifier names.
-     * 
+     *
      * @return string
-     * 
+     *
      */
     public function getQuoteNamePrefix()
     {
         return $this->quote_name_prefix;
     }
-    
+
     /**
-     * 
+     *
      * Returns the suffix to use when quoting identifier names.
-     * 
+     *
      * @return string
-     * 
+     *
      */
     public function getQuoteNameSuffix()
     {
         return $this->quote_name_suffix;
     }
-    
+
     /**
-     * 
-     * Quotes a single identifier name (table, table alias, table column, 
+     *
+     * Quotes a single identifier name (table, table alias, table column,
      * index, sequence).
-     * 
+     *
      * If the name contains `' AS '`, this method will separately quote the
      * parts before and after the `' AS '`.
-     * 
+     *
      * If the name contains a space, this method will separately quote the
      * parts before and after the space.
-     * 
+     *
      * If the name contains a dot, this method will separately quote the
      * parts before and after the dot.
-     * 
+     *
      * @param string $spec The identifier name to quote.
-     * 
+     *
      * @return string|array The quoted identifier name.
-     * 
+     *
      * @see replaceName()
-     * 
+     *
      */
     public function quoteName($spec)
     {
@@ -105,22 +105,22 @@ class Quoter
     }
 
     /**
-     * 
+     *
      * Quotes all fully-qualified identifier names ("table.col") in a string,
      * typically an SQL snippet for a SELECT clause.
-     * 
+     *
      * Does not quote identifier names that are string literals (i.e., inside
      * single or double quotes).
-     * 
+     *
      * Looks for a trailing ' AS alias' and quotes the alias as well.
-     * 
+     *
      * @param string $text The string in which to quote fully-qualified
      * identifier names to quote.
-     * 
+     *
      * @return string|array The string with names quoted in it.
-     * 
+     *
      * @see replaceNamesIn()
-     * 
+     *
      */
     public function quoteNamesIn($text)
     {
@@ -173,16 +173,16 @@ class Quoter
     }
 
     /**
-     * 
+     *
      * Quotes an identifier name (table, index, etc); ignores empty values and
      * values of '*'.
-     * 
+     *
      * @param string $name The identifier name to quote.
-     * 
+     *
      * @return string The quoted identifier name.
-     * 
+     *
      * @see quoteName()
-     * 
+     *
      */
     protected function replaceName($name)
     {
@@ -197,16 +197,16 @@ class Quoter
     }
 
     /**
-     * 
+     *
      * Quotes all fully-qualified identifier names ("table.col") in a string.
-     * 
+     *
      * @param string $text The string in which to quote fully-qualified
      * identifier names to quote.
-     * 
+     *
      * @return string|array The string with names quoted in it.
-     * 
+     *
      * @see quoteNamesIn()
-     * 
+     *
      */
     protected function replaceNamesIn($text)
     {

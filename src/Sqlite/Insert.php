@@ -80,7 +80,7 @@ class Insert extends Common\Insert
         $this->setFlag('OR REPLACE', $enable);
         return $this;
     }
-    
+
     /**
      *
      * Adds or removes OR ROLLBACK flag.

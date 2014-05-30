@@ -59,14 +59,14 @@ class Select extends AbstractQuery implements SelectInterface
     protected $from = array();
 
     /**
-     * 
+     *
      * The current key in the `$from` array.
-     * 
+     *
      * @var int
-     * 
+     *
      */
     protected $from_key = -1;
-    
+
     /**
      *
      * GROUP BY these columns.
@@ -86,14 +86,14 @@ class Select extends AbstractQuery implements SelectInterface
     protected $having = array();
 
     /**
-     * 
+     *
      * Bind values in the HAVING clause.
-     * 
+     *
      * @var array
-     * 
+     *
      */
     protected $bind_having = array();
-    
+
     /**
      *
      * The number of rows per page.
@@ -147,11 +147,11 @@ class Select extends AbstractQuery implements SelectInterface
     }
 
     /**
-     * 
+     *
      * Gets the values to bind to placeholders.
-     * 
+     *
      * @return array
-     * 
+     *
      */
     public function getBindValues()
     {
@@ -167,7 +167,7 @@ class Select extends AbstractQuery implements SelectInterface
         }
         return $bind_values;
     }
-    
+
     /**
      *
      * Makes the select FOR UPDATE (or not).
@@ -289,7 +289,7 @@ class Select extends AbstractQuery implements SelectInterface
         if (! $this->from) {
             throw new Exception('Cannot join() without from() first.');
         }
-        
+
         $join = strtoupper(ltrim("$join JOIN"));
         $spec = $this->quoter->quoteName($spec);
         $cond = $this->fixJoinCondition($cond);
@@ -298,14 +298,14 @@ class Select extends AbstractQuery implements SelectInterface
     }
 
     /**
-     * 
+     *
      * Fixes a JOIN condition to quote names in the condition and prefix it
      * with a condition type ('ON' is the default and 'USING' is recognized).
-     * 
+     *
      * @param string $cond Join on this condition.
      *
      * @return string
-     * 
+     *
      */
     protected function fixJoinCondition($cond)
     {
@@ -386,13 +386,13 @@ class Select extends AbstractQuery implements SelectInterface
         if (! $this->from) {
             throw new Exception('Cannot join() without from() first.');
         }
-        
+
         $join = strtoupper(ltrim("$join JOIN"));
         $spec = PHP_EOL . '    '
               . ltrim(preg_replace('/^/m', '    ', (string) $spec))
               . PHP_EOL;
         $name = $this->quoter->quoteName($name);
-        
+
         $cond = $this->fixJoinCondition($cond);
         $this->from[$this->from_key][] = rtrim("$join ($spec) AS $name $cond");
         return $this;
@@ -529,13 +529,13 @@ class Select extends AbstractQuery implements SelectInterface
         $this->offset     = 0;
         $this->for_update = false;
     }
-    
+
     /**
-     * 
+     *
      * Builds this query object into a string.
-     * 
+     *
      * @return string
-     * 
+     *
      */
     protected function build()
     {
@@ -550,15 +550,15 @@ class Select extends AbstractQuery implements SelectInterface
             . $this->buildLimit()
             . $this->buildForUpdate();
     }
-    
+
     /**
-     * 
+     *
      * Builds the columns clause.
-     * 
+     *
      * @return string
-     * 
+     *
      * @throws Exception when there are no columns in the SELECT.
-     * 
+     *
      */
     protected function buildCols()
     {
@@ -568,13 +568,13 @@ class Select extends AbstractQuery implements SelectInterface
 
         return $this->indentCsv($this->cols);
     }
-    
+
     /**
-     * 
+     *
      * Builds the FROM clause.
-     * 
+     *
      * @return string
-     * 
+     *
      */
     protected function buildFrom()
     {
@@ -588,13 +588,13 @@ class Select extends AbstractQuery implements SelectInterface
         }
         return PHP_EOL . 'FROM' . $this->indentCsv($refs);
     }
-    
+
     /**
-     * 
+     *
      * Builds the GROUP BY clause.
-     * 
+     *
      * @return string
-     * 
+     *
      */
     protected function buildGroupBy()
     {
@@ -604,13 +604,13 @@ class Select extends AbstractQuery implements SelectInterface
 
         return PHP_EOL . 'GROUP BY' . $this->indentCsv($this->group_by);
     }
-    
+
     /**
-     * 
+     *
      * Builds the HAVING clause.
-     * 
+     *
      * @return string
-     * 
+     *
      */
     protected function buildHaving()
     {
@@ -620,13 +620,13 @@ class Select extends AbstractQuery implements SelectInterface
 
         return PHP_EOL . 'HAVING' . $this->indent($this->having);
     }
-    
+
     /**
-     * 
+     *
      * Builds the FOR UPDATE clause.
-     * 
+     *
      * @return string
-     * 
+     *
      */
     protected function buildForUpdate()
     {

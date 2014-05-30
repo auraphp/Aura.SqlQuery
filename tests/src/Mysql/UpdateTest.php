@@ -28,7 +28,7 @@ class UpdateTest extends Common\UpdateTest
                     ->col('c1')
                     ->orderBy(array('c2'))
                     ->limit(10);
-                    
+
         $actual = $this->query->__toString();
         $expect = '
             UPDATE <<t1>>
@@ -38,10 +38,10 @@ class UpdateTest extends Common\UpdateTest
                     c2
                 LIMIT 10
         ';
-        
+
         $this->assertSameSql($expect, $actual);
     }
-    
+
     public function testLowPriority()
     {
         $this->query->lowPriority()
@@ -57,7 +57,7 @@ class UpdateTest extends Common\UpdateTest
         $actual = $this->query->__toString();
         $expect = sprintf($this->expected_sql_with_flag, ' LOW_PRIORITY');
         $this->assertSameSql($expect, $actual);
-        
+
         $actual = $this->query->getBindValues();
         $expect = array(
             1 => 'bar',
@@ -81,7 +81,7 @@ class UpdateTest extends Common\UpdateTest
         $actual = $this->query->__toString();
         $expect = sprintf($this->expected_sql_with_flag, ' IGNORE');
         $this->assertSameSql($expect, $actual);
-        
+
         $actual = $this->query->getBindValues();
         $expect = array(
             1 => 'bar',

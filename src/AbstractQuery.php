@@ -1,12 +1,12 @@
 <?php
 /**
- * 
+ *
  * This file is part of Aura for PHP.
- * 
+ *
  * @package Aura.SqlQuery
- * 
+ *
  * @license http://opensource.org/licenses/bsd-license.php BSD
- * 
+ *
  */
 namespace Aura\SqlQuery;
 
@@ -14,20 +14,20 @@ use Aura\SqlQuery\Common\LimitInterface;
 use Aura\SqlQuery\Common\LimitOffsetInterface;
 
 /**
- * 
+ *
  * Abstract query object for Select, Insert, Update, and Delete.
- * 
+ *
  * @package Aura.SqlQuery
- * 
+ *
  */
 abstract class AbstractQuery
 {
     /**
-     * 
+     *
      * Data to be bound to the query.
-     * 
+     *
      * @var array
-     * 
+     *
      */
     protected $bind_values = array();
 
@@ -86,32 +86,32 @@ abstract class AbstractQuery
     protected $flags = array();
 
     /**
-     * 
+     *
      * The prefix to use when quoting identifier names.
-     * 
+     *
      * @var string
-     * 
+     *
      */
     protected $quoter;
 
     /**
-     * 
+     *
      * Constructor.
-     * 
+     *
      * @param Quoter $quoter A helper for quoting identifier names.
-     * 
+     *
      */
     public function __construct(Quoter $quoter)
     {
         $this->quoter = $quoter;
     }
-    
+
     /**
-     * 
+     *
      * Returns this query object as a string.
-     * 
+     *
      * @return string
-     * 
+     *
      */
     public function __toString()
     {
@@ -119,46 +119,46 @@ abstract class AbstractQuery
     }
 
     /**
-     * 
+     *
      * Builds this query object into a string.
-     * 
+     *
      * @return string
-     * 
+     *
      */
     abstract protected function build();
-    
+
     /**
-     * 
+     *
      * Returns the prefix to use when quoting identifier names.
-     * 
+     *
      * @return string
-     * 
+     *
      */
     public function getQuoteNamePrefix()
     {
         return $this->quoter->getQuoteNamePrefix();
     }
-    
+
     /**
-     * 
+     *
      * Returns the suffix to use when quoting identifier names.
-     * 
+     *
      * @return string
-     * 
+     *
      */
     public function getQuoteNameSuffix()
     {
         return $this->quoter->getQuoteNameSuffix();
     }
-    
+
     /**
-     * 
+     *
      * Returns an array as an indented comma-separated values string.
-     * 
+     *
      * @param array $list The values to convert.
-     * 
+     *
      * @return string
-     * 
+     *
      */
     protected function indentCsv(array $list)
     {
@@ -167,13 +167,13 @@ abstract class AbstractQuery
     }
 
     /**
-     * 
+     *
      * Returns an array as an indented string.
-     * 
+     *
      * @param array $list The values to convert.
-     * 
+     *
      * @return string
-     * 
+     *
      */
     protected function indent(array $list)
     {
@@ -182,13 +182,13 @@ abstract class AbstractQuery
     }
 
     /**
-     * 
+     *
      * Binds multiple values to placeholders; merges with existing values.
-     * 
+     *
      * @param array $bind_values Values to bind to placeholders.
-     * 
+     *
      * @return $this
-     * 
+     *
      */
     public function bindValues(array $bind_values)
     {
@@ -201,15 +201,15 @@ abstract class AbstractQuery
     }
 
     /**
-     * 
+     *
      * Binds a single value to the query.
-     * 
+     *
      * @param string $name The placeholder name or number.
-     * 
+     *
      * @param mixed $value The value to bind to the placeholder.
-     * 
+     *
      * @return $this
-     * 
+     *
      */
     public function bindValue($name, $value)
     {
@@ -230,11 +230,11 @@ abstract class AbstractQuery
     }
 
     /**
-     * 
+     *
      * Builds the flags as a space-separated string.
      *
      * @return string
-     * 
+     *
      */
     protected function buildFlags()
     {
@@ -246,15 +246,15 @@ abstract class AbstractQuery
     }
 
     /**
-     * 
+     *
      * Sets or unsets specified flag.
      *
      * @param string $flag Flag to set or unset
-     * 
+     *
      * @param bool $enable Flag status - enabled or not (default true)
-     * 
+     *
      * @return null
-     * 
+     *
      */
     protected function setFlag($flag, $enable = true)
     {
@@ -266,17 +266,17 @@ abstract class AbstractQuery
     }
 
     /**
-     * 
+     *
      * Reset all query flags.
-     * 
+     *
      * @return null
-     * 
+     *
      */
     protected function resetFlags()
     {
         $this->flags = array();
     }
-    
+
     /**
      *
      * Adds a WHERE condition to the query by AND or OR. If the condition has

@@ -7,12 +7,12 @@ class FakeQuery extends AbstractQuery
     {
         return 'Hello Query!';
     }
-    
+
     public function quoteName($text)
     {
         return parent::quoteName($text);
     }
-    
+
     public function quoteNamesIn($text)
     {
         return parent::quoteNamesIn($text);

@@ -47,11 +47,11 @@ class Insert extends AbstractDmlQuery implements InsertInterface
     }
 
     /**
-     * 
+     *
      * Builds this query object into a string.
-     * 
+     *
      * @return string
-     * 
+     *
      */
     protected function build()
     {
@@ -61,27 +61,27 @@ class Insert extends AbstractDmlQuery implements InsertInterface
             . $this->buildValuesForInsert()
             . $this->buildReturning();
     }
-    
+
     /**
-     * 
+     *
      * Builds the INTO clause.
-     * 
+     *
      * @return string
-     * 
+     *
      */
     protected function buildInto()
     {
         return " INTO " . $this->quoter->quoteName($this->into);
     }
-    
+
     /**
-     * 
+     *
      * Returns the proper name for passing to `PDO::lastInsertId()`.
-     * 
+     *
      * @param string $col The last insert ID column.
-     * 
+     *
      * @return null Normally null, since most drivers do not need a name.
-     * 
+     *
      */
     public function getLastInsertIdName($col)
     {

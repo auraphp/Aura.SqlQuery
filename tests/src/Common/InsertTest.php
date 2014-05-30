@@ -6,7 +6,7 @@ use Aura\SqlQuery\AbstractQueryTest;
 class InsertTest extends AbstractQueryTest
 {
     protected $query_type = 'insert';
-    
+
     public function testCommon()
     {
         $this->query->into('t1')
@@ -15,7 +15,7 @@ class InsertTest extends AbstractQueryTest
                     ->set('c4', 'NOW()')
                     ->set('c5', null)
                     ->cols(array('cx' => 'cx_value'));
-        
+
         $actual = $this->query->__toString();
         $expect = '
             INSERT INTO <<t1>> (
@@ -34,24 +34,24 @@ class InsertTest extends AbstractQueryTest
                 :cx
             )
         ';
-        
+
         $this->assertSameSql($expect, $actual);
-        
+
         $actual = $this->query->getBindValues();
         $expect = array('cx' => 'cx_value');
         $this->assertSame($expect, $actual);
     }
-    
+
     public function testGetLastInsertIdName()
     {
         $this->assertNull($this->query->getLastInsertIdName('no matter'));
     }
-    
+
     public function testBindValues()
     {
         $this->assertInstanceOf('\Aura\SqlQuery\AbstractQuery', $this->query->bindValues(array('bar', 'bar value')));
     }
-    
+
     public function testBindValue()
     {
         $this->assertInstanceOf('\Aura\SqlQuery\AbstractQuery', $this->query->bindValue('bar', 'bar value'));

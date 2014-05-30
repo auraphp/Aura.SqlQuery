@@ -17,7 +17,7 @@ class SelectTest extends Common\SelectTest
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
-        
+
         $this->query->offset(40);
         $expect = '
             SELECT
@@ -27,7 +27,7 @@ class SelectTest extends Common\SelectTest
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
     }
-    
+
     public function testPage()
     {
         $this->query->cols(array('*'));

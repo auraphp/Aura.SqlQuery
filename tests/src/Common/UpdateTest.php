@@ -6,7 +6,7 @@ use Aura\SqlQuery\AbstractQueryTest;
 class UpdateTest extends AbstractQueryTest
 {
     protected $query_type = 'update';
-    
+
     public function testCommon()
     {
         $this->query->table('t1')
@@ -17,7 +17,7 @@ class UpdateTest extends AbstractQueryTest
                     ->where('foo = ?', 'bar')
                     ->where('baz = ?', 'dib')
                     ->orWhere('zim = gir');
-                    
+
         $actual = $this->query->__toString();
         $expect = "
             UPDATE <<t1>>
@@ -32,9 +32,9 @@ class UpdateTest extends AbstractQueryTest
                 AND baz = ?
                 OR zim = gir
         ";
-        
+
         $this->assertSameSql($expect, $actual);
-        
+
         $actual = $this->query->getBindValues();
         $expect = array(
             1 => 'bar',

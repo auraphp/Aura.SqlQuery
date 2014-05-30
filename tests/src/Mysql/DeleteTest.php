@@ -6,7 +6,7 @@ use Aura\SqlQuery\Common;
 class DeleteTest extends Common\DeleteTest
 {
     protected $db_type = 'mysql';
-    
+
     protected $expected_sql_with_flag = "
         DELETE %s FROM <<t1>>
             WHERE
@@ -20,7 +20,7 @@ class DeleteTest extends Common\DeleteTest
         $this->query->from('t1')
                     ->orderBy(array('c1', 'c2'))
                     ->limit(10);
-        
+
         $actual = $this->query->__toString();
         $expect = '
             DELETE FROM <<t1>>
@@ -31,7 +31,7 @@ class DeleteTest extends Common\DeleteTest
         ';
         $this->assertSameSql($expect, $actual);
     }
-    
+
     public function testLowPriority()
     {
         $this->query->lowPriority()
@@ -43,7 +43,7 @@ class DeleteTest extends Common\DeleteTest
         $actual = $this->query->__toString();
         $expect = sprintf($this->expected_sql_with_flag, 'LOW_PRIORITY');
         $this->assertSameSql($expect, $actual);
-        
+
         $actual = $this->query->getBindValues();
         $expect = array(
             1 => 'bar',
@@ -63,7 +63,7 @@ class DeleteTest extends Common\DeleteTest
         $actual = $this->query->__toString();
         $expect = sprintf($this->expected_sql_with_flag, 'QUICK');
         $this->assertSameSql($expect, $actual);
-        
+
         $actual = $this->query->getBindValues();
         $expect = array(
             1 => 'bar',
@@ -83,7 +83,7 @@ class DeleteTest extends Common\DeleteTest
         $actual = $this->query->__toString();
         $expect = sprintf($this->expected_sql_with_flag, 'IGNORE');
         $this->assertSameSql($expect, $actual);
-        
+
         $actual = $this->query->getBindValues();
         $expect = array(
             1 => 'bar',

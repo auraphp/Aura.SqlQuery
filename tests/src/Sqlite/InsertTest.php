@@ -78,7 +78,7 @@ class InsertTest extends Common\InsertTest
 
         $this->assertSameSql($expect, $actual);
     }
-    
+
     public function testOrRollback()
     {
         $this->query->orRollback()
