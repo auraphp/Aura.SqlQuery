@@ -44,7 +44,22 @@ class InsertTest extends AbstractQueryTest
 
     public function testGetLastInsertIdName()
     {
-        $this->assertNull($this->query->getLastInsertIdName('no matter'));
+        $this->query->into('table');
+        $expect = null;
+        $actual = $this->query->getLastInsertIdName('col');
+        $this->assertSame($expect, $actual);
+    }
+
+    public function testSetLastInsertIdNames()
+    {
+        $this->query->setLastInsertIdNames(array(
+            'table.col' => 'table_col_alternative_name',
+        ));
+
+        $this->query->into('table');
+        $expect = 'table_col_alternative_name';
+        $actual = $this->query->getLastInsertIdName('col');
+        $this->assertSame($expect, $actual);
     }
 
     public function testBindValues()
