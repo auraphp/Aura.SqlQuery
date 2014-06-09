@@ -96,13 +96,26 @@ class QueryFactory
      */
     public function __construct(
         $db,
-        $common = null,
-        array $last_insert_id_names = array()
+        $common = null
     ) {
         $this->db = ucfirst(strtolower($db));
         $this->common = ($common === self::COMMON);
         $this->quote_name_prefix = $this->quotes[$this->db][0];
         $this->quote_name_suffix = $this->quotes[$this->db][1];
+    }
+
+    /**
+     *
+     * Sets the last-insert-id names to be used for Insert queries..
+     *
+     * @param array $last_insert_id_names A map of `table.col` names to
+     * last-insert-id names.
+     *
+     * @return null
+     *
+     */
+    public function setLastInsertIdNames(array $last_insert_id_names)
+    {
         $this->last_insert_id_names = $last_insert_id_names;
     }
 

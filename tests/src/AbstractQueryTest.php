@@ -3,6 +3,8 @@ namespace Aura\SqlQuery;
 
 abstract class AbstractQueryTest extends \PHPUnit_Framework_TestCase
 {
+    protected $query_factory;
+
     protected $query_type;
 
     protected $db_type = 'Common';

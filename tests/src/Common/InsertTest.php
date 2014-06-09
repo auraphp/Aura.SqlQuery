@@ -7,6 +7,14 @@ class InsertTest extends AbstractQueryTest
 {
     protected $query_type = 'insert';
 
+    protected function newQuery()
+    {
+        $this->query_factory->setLastInsertIdNames(array(
+            'tablex.colx' => 'tablex_colx_alternative_name',
+        ));
+        return parent::newQuery();
+    }
+
     public function testCommon()
     {
         $this->query->into('t1')
@@ -42,7 +50,7 @@ class InsertTest extends AbstractQueryTest
         $this->assertSame($expect, $actual);
     }
 
-    public function testGetLastInsertIdName()
+    public function testGetLastInsertIdName_default()
     {
         $this->query->into('table');
         $expect = null;
@@ -50,15 +58,11 @@ class InsertTest extends AbstractQueryTest
         $this->assertSame($expect, $actual);
     }
 
-    public function testSetLastInsertIdNames()
+    public function testGetLastInsertIdName_alternative()
     {
-        $this->query->setLastInsertIdNames(array(
-            'table.col' => 'table_col_alternative_name',
-        ));
-
-        $this->query->into('table');
-        $expect = 'table_col_alternative_name';
-        $actual = $this->query->getLastInsertIdName('col');
+        $this->query->into('tablex');
+        $expect = 'tablex_colx_alternative_name';
+        $actual = $this->query->getLastInsertIdName('colx');
         $this->assertSame($expect, $actual);
     }
 
