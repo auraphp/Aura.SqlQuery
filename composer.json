@@ -21,7 +21,7 @@
         "sql",
         "dml"
     ],
-    "homepage": "https://github.com/auraphp/Aura.SqlQuery/releases",
+    "homepage": "https://github.com/auraphp/Aura.SqlQuery",
     "license": "BSD-2-Clause",
     "authors": [
         {
