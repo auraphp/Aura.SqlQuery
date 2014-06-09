@@ -10,7 +10,7 @@ although [PDO](http://php.net/PDO) in general is recommended.
 
 This library requires PHP 5.3 or later, and has no userland dependencies.
 
-It is installable and autoloadable via Composer as [aura/sql-query](https://packagist.org/packages/aura/sql-query).
+It is installable and autoloadable via Composer as [aura/sqlquery](https://packagist.org/packages/aura/sqlquery).
 
 Alternatively, [download a release](https://github.com/auraphp/Aura.SqlQuery/releases) or clone this repository, then require or include its _autoload.php_ file.
 
