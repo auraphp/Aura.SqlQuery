@@ -286,7 +286,7 @@ abstract class AbstractQuery
      * @param string $andor Add the condition using this operator, typically
      * 'AND' or 'OR'.
      *
-     * @param string $args Arguments for adding the condition.
+     * @param array $args Arguments for adding the condition.
      *
      * @return self
      *
@@ -307,7 +307,7 @@ abstract class AbstractQuery
      * @param string $andor Add the condition using this operator, typically
      * 'AND' or 'OR'.
      *
-     * @param string $args Arguments for adding the condition.
+     * @param array $args Arguments for adding the condition.
      *
      * @return null
      *
