@@ -27,7 +27,7 @@ class Delete extends Common\Delete implements Common\OrderByInterface, Common\Li
      *
      * @param int $limit The number of rows to select.
      *
-     * @return $this
+     * @return self
      *
      */
     public function limit($limit)
@@ -42,7 +42,7 @@ class Delete extends Common\Delete implements Common\OrderByInterface, Common\Li
      *
      * @param int $offset Start returning after this many rows.
      *
-     * @return $this
+     * @return self
      *
      */
     public function offset($offset)
@@ -57,7 +57,7 @@ class Delete extends Common\Delete implements Common\OrderByInterface, Common\Li
      *
      * @param array $spec The columns and direction to order by.
      *
-     * @return $this
+     * @return self
      *
      */
     public function orderBy(array $spec)

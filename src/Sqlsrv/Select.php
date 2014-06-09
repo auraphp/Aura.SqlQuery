@@ -34,12 +34,17 @@ class Select extends Common\Select
     }
 
     /**
+     *
+     * Override so that LIMIT equivalent will be applied by applyLimit().
+     *
      * @see build()
+     *
      * @see applyLimit()
+     *
      */
     protected function buildLimit()
     {
-        return ''; // limit equivalent will be applied by applyLimit()
+        return '';
     }
 
     /**

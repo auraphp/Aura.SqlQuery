@@ -27,7 +27,7 @@ interface InsertInterface extends QueryInterface, ValuesInterface
      *
      * @param string $into The table to insert into.
      *
-     * @return $this
+     * @return self
      *
      */
     public function into($into);

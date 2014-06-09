@@ -1,6 +1,22 @@
 <?php
+/**
+ *
+ * This file is part of Aura for PHP.
+ *
+ * @package Aura.SqlQuery
+ *
+ * @license http://opensource.org/licenses/bsd-license.php BSD
+ *
+ */
 namespace Aura\SqlQuery;
 
+/**
+ *
+ * A quoting mechanism for identifier names (not values).
+ *
+ * @package Aura.SqlQuery
+ *
+ */
 class Quoter
 {
     /**
@@ -82,6 +98,8 @@ class Quoter
      *
      * @see replaceName()
      *
+     * @see quoteNameWithSeparator()
+     *
      */
     public function quoteName($spec)
     {
@@ -96,6 +114,19 @@ class Quoter
         return $this->replaceName($spec);
     }
 
+    /**
+     *
+     * Quotes an identifier that has a separator.
+     *
+     * @param string $spec The identifier name to quote.
+     *
+     * @param string $sep The separator, typically a dot or space.
+     *
+     * @param string $pos The position of the separator.
+     *
+     * @return string The quoted identifier name.
+     *
+     */
     protected function quoteNameWithSeparator($spec, $sep, $pos)
     {
         $len = strlen($sep);
@@ -139,6 +170,15 @@ class Quoter
         return $text;
     }
 
+    /**
+     *
+     * Returns a list of candidate elements for quoting.
+     *
+     * @param string $text The text to split into quoting candidates.
+     *
+     * @return array
+     *
+     */
     protected function getListForQuoteNamesIn($text)
     {
         // look for ', ", \', or \" in the string.
@@ -153,6 +193,17 @@ class Quoter
         );
     }
 
+    /**
+     *
+     * The in-loop functionality for quoting identifier names.
+     *
+     * @param string $val The name to be quoted.
+     *
+     * @param bool $is_last Is this the last loop?
+     *
+     * @return string The quoted name.
+     *
+     */
     protected function quoteNamesInLoop($val, $is_last)
     {
         if ($is_last) {
@@ -161,6 +212,15 @@ class Quoter
         return $this->replaceNamesIn($val);
     }
 
+    /**
+     *
+     * Replaces the names and alias in a string.
+     *
+     * @param string $val The name to be quoted.
+     *
+     * @return string The quoted name.
+     *
+     */
     protected function replaceNamesAndAliasIn($val)
     {
         $quoted = $this->replaceNamesIn($val);

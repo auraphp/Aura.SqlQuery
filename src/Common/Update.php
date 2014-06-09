@@ -36,7 +36,7 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      *
      * @param string $table The table to update.
      *
-     * @return $this
+     * @return self
      *
      */
     public function table($table)
@@ -85,7 +85,7 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      * @param string $cond The WHERE condition.
      * @param mixed ...$bind arguments to bind to placeholders
      *
-     * @return $this
+     * @return self
      *
      */
     public function where($cond)
@@ -103,7 +103,7 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      * @param string $cond The WHERE condition.
      * @param mixed ...$bind arguments to bind to placeholders
      *
-     * @return $this
+     * @return self
      *
      * @see where()
      *
@@ -123,7 +123,7 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      *
      * @param mixed  $val Optional: a value to bind to the placeholder.
      *
-     * @return $this
+     * @return self
      *
      */
     public function col($col)
@@ -141,7 +141,7 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      *                    pairs where the key is a column name and the value is a bind value for
      *                    that column.
      *
-     * @return $this
+     * @return self
      *
      */
     public function cols(array $cols)
@@ -158,7 +158,7 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      *
      * @param string $value The column value expression.
      *
-     * @return $this
+     * @return self
      *
      */
     public function set($col, $value)

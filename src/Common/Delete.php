@@ -36,7 +36,7 @@ class Delete extends AbstractDmlQuery implements DeleteInterface
      *
      * @param string $table The table to delete from.
      *
-     * @return $this
+     * @return self
      *
      */
     public function from($table)
@@ -84,7 +84,7 @@ class Delete extends AbstractDmlQuery implements DeleteInterface
      * @param string $cond The WHERE condition.
      * @param mixed ...$bind arguments to bind to placeholders
      *
-     * @return $this
+     * @return self
      *
      */
     public function where($cond)
@@ -102,7 +102,7 @@ class Delete extends AbstractDmlQuery implements DeleteInterface
      * @param string $cond The WHERE condition.
      * @param mixed ...$bind arguments to bind to placeholders
      *
-     * @return $this
+     * @return self
      *
      * @see where()
      *

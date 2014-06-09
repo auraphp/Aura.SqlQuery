@@ -27,7 +27,7 @@ class Insert extends Common\Insert
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return $this
+     * @return self
      *
      */
     public function highPriority($enable = true)
@@ -42,7 +42,7 @@ class Insert extends Common\Insert
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return $this
+     * @return self
      *
      */
     public function lowPriority($enable = true)
@@ -57,7 +57,7 @@ class Insert extends Common\Insert
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return $this
+     * @return self
      *
      */
     public function ignore($enable = true)
@@ -72,7 +72,7 @@ class Insert extends Common\Insert
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return $this
+     * @return self
      *
      */
     public function delayed($enable = true)

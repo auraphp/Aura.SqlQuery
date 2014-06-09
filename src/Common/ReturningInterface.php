@@ -1,7 +1,22 @@
 <?php
-
+/**
+ *
+ * This file is part of Aura for PHP.
+ *
+ * @package Aura.SqlQuery
+ *
+ * @license http://opensource.org/licenses/bsd-license.php BSD
+ *
+ */
 namespace Aura\SqlQuery\Common;
 
+/**
+ *
+ * An interface for RETURNING clauses.
+ *
+ * @package Aura.SqlQuery
+ *
+ */
 interface ReturningInterface
 {
     /**
@@ -13,7 +28,7 @@ interface ReturningInterface
      *
      * @param array $cols The column(s) to add to the query.
      *
-     * @return $this
+     * @return self
      *
      */
     public function returning(array $cols);

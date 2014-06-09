@@ -1,7 +1,22 @@
 <?php
-
+/**
+ *
+ * This file is part of Aura for PHP.
+ *
+ * @package Aura.SqlQuery
+ *
+ * @license http://opensource.org/licenses/bsd-license.php BSD
+ *
+ */
 namespace Aura\SqlQuery\Common;
 
+/**
+ *
+ * An interface for WHERE clauses.
+ *
+ * @package Aura.SqlQuery
+ *
+ */
 interface WhereInterface
 {
     /**
@@ -13,7 +28,7 @@ interface WhereInterface
      * @param string $cond The WHERE condition.
      * @param mixed ...$params arguments to be bound to placeholders
      *
-     * @return $this
+     * @return self
      *
      */
     public function where($cond);
@@ -27,7 +42,7 @@ interface WhereInterface
      * @param string $cond The WHERE condition.
      * @param mixed ...$params arguments to be bound to placeholders
      *
-     * @return $this
+     * @return self
      *
      * @see where()
      *

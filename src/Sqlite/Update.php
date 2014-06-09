@@ -27,7 +27,7 @@ class Update extends Common\Update implements Common\OrderByInterface, Common\Li
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return $this
+     * @return self
      *
      */
     public function orAbort($enable = true)
@@ -42,7 +42,7 @@ class Update extends Common\Update implements Common\OrderByInterface, Common\Li
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return $this
+     * @return self
      *
      */
     public function orFail($enable = true)
@@ -57,7 +57,7 @@ class Update extends Common\Update implements Common\OrderByInterface, Common\Li
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return $this
+     * @return self
      *
      */
     public function orIgnore($enable = true)
@@ -72,7 +72,7 @@ class Update extends Common\Update implements Common\OrderByInterface, Common\Li
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return $this
+     * @return self
      *
      */
     public function orReplace($enable = true)
@@ -87,7 +87,7 @@ class Update extends Common\Update implements Common\OrderByInterface, Common\Li
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return $this
+     * @return self
      *
      */
     public function orRollback($enable = true)
@@ -102,7 +102,7 @@ class Update extends Common\Update implements Common\OrderByInterface, Common\Li
      *
      * @param int $limit The number of rows to select.
      *
-     * @return $this
+     * @return self
      *
      */
     public function limit($limit)
@@ -117,7 +117,7 @@ class Update extends Common\Update implements Common\OrderByInterface, Common\Li
      *
      * @param int $offset Start returning after this many rows.
      *
-     * @return $this
+     * @return self
      *
      */
     public function offset($offset)
@@ -132,7 +132,7 @@ class Update extends Common\Update implements Common\OrderByInterface, Common\Li
      *
      * @param array $spec The columns and direction to order by.
      *
-     * @return $this
+     * @return self
      *
      */
     public function orderBy(array $spec)

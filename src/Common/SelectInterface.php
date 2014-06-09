@@ -27,7 +27,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param int $paging The number of rows to page at.
      *
-     * @return $this
+     * @return self
      *
      */
     public function setPaging($paging);
@@ -48,7 +48,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @param bool $enable Whether or not the SELECT is FOR UPDATE (default
      * true).
      *
-     * @return $this
+     * @return self
      *
      */
     public function forUpdate($enable = true);
@@ -60,7 +60,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @param bool $enable Whether or not the SELECT is DISTINCT (default
      * true).
      *
-     * @return $this
+     * @return self
      *
      */
     public function distinct($enable = true);
@@ -74,7 +74,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param array $cols The column(s) to add to the query.
      *
-     * @return $this
+     * @return self
      *
      */
     public function cols(array $cols);
@@ -85,7 +85,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string $spec The table specification; "foo" or "foo AS bar".
      *
-     * @return $this
+     * @return self
      *
      */
     public function from($spec);
@@ -99,7 +99,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string $name The alias name for the sub-select.
      *
-     * @return $this
+     * @return self
      *
      */
     public function fromSubSelect($spec, $name);
@@ -114,7 +114,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string $cond Join on this condition.
      *
-     * @return $this
+     * @return self
      *
      */
     public function join($join, $spec, $cond = null);
@@ -133,7 +133,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string $cond Join on this condition.
      *
-     * @return $this
+     * @return self
      *
      */
     public function joinSubSelect($join, $spec, $name, $cond = null);
@@ -144,7 +144,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param array $spec The column(s) to group by.
      *
-     * @return $this
+     * @return self
      *
      */
     public function groupBy(array $spec);
@@ -171,7 +171,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string $cond The HAVING condition.
      *
-     * @return $this
+     * @return self
      *
      */
     public function having($cond);
@@ -183,7 +183,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string $cond The HAVING condition.
      *
-     * @return $this
+     * @return self
      *
      * @see having()
      *
@@ -196,7 +196,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param int $page Limit results to this page number.
      *
-     * @return $this
+     * @return self
      *
      */
     public function page($page);
@@ -206,7 +206,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * Takes the current select properties and retains them, then sets
      * UNION for the next set of properties.
      *
-     * @return $this
+     * @return self
      *
      */
     public function union();
@@ -216,7 +216,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * Takes the current select properties and retains them, then sets
      * UNION ALL for the next set of properties.
      *
-     * @return $this
+     * @return self
      *
      */
     public function unionAll();

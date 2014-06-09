@@ -1,6 +1,22 @@
 <?php
+/**
+ *
+ * This file is part of Aura for PHP.
+ *
+ * @package Aura.SqlQuery
+ *
+ * @license http://opensource.org/licenses/bsd-license.php BSD
+ *
+ */
 namespace Aura\SqlQuery;
 
+/**
+ *
+ * Abstract query object for data manipulation (Insert, Update, and Delete).
+ *
+ * @package Aura.SqlQuery
+ *
+ */
 abstract class AbstractDmlQuery extends AbstractQuery
 {
     /**
@@ -50,7 +66,7 @@ abstract class AbstractDmlQuery extends AbstractQuery
      *
      * @param mixed $val Optional: a value to bind to the placeholder.
      *
-     * @return $this
+     * @return self
      *
      */
     protected function addCol($col)
@@ -74,7 +90,7 @@ abstract class AbstractDmlQuery extends AbstractQuery
      * pairs where the key is a column name and the value is a bind value for
      * that column.
      *
-     * @return $this
+     * @return self
      *
      */
     protected function addCols(array $cols)
@@ -101,7 +117,7 @@ abstract class AbstractDmlQuery extends AbstractQuery
      *
      * @param string $value The column value expression.
      *
-     * @return $this
+     * @return self
      *
      */
     protected function setCol($col, $value)
@@ -125,7 +141,7 @@ abstract class AbstractDmlQuery extends AbstractQuery
      *
      * @param array $cols The column(s) to add to the query.
      *
-     * @return $this
+     * @return self
      *
      */
     protected function addReturning(array $cols)

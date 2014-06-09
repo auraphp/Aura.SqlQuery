@@ -27,7 +27,7 @@ class Insert extends Common\Insert
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return $this
+     * @return self
      *
      */
     public function orAbort($enable = true)
@@ -42,7 +42,7 @@ class Insert extends Common\Insert
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return $this
+     * @return self
      *
      */
     public function orFail($enable = true)
@@ -57,7 +57,7 @@ class Insert extends Common\Insert
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return $this
+     * @return self
      *
      */
     public function orIgnore($enable = true)
@@ -72,7 +72,7 @@ class Insert extends Common\Insert
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return $this
+     * @return self
      *
      */
     public function orReplace($enable = true)
@@ -87,7 +87,7 @@ class Insert extends Common\Insert
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return $this
+     * @return self
      *
      */
     public function orRollback($enable = true)

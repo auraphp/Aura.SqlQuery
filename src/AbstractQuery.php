@@ -15,7 +15,7 @@ use Aura\SqlQuery\Common\LimitOffsetInterface;
 
 /**
  *
- * Abstract query object for Select, Insert, Update, and Delete.
+ * Abstract query object.
  *
  * @package Aura.SqlQuery
  *
@@ -187,7 +187,7 @@ abstract class AbstractQuery
      *
      * @param array $bind_values Values to bind to placeholders.
      *
-     * @return $this
+     * @return self
      *
      */
     public function bindValues(array $bind_values)
@@ -208,7 +208,7 @@ abstract class AbstractQuery
      *
      * @param mixed $value The value to bind to the placeholder.
      *
-     * @return $this
+     * @return self
      *
      */
     public function bindValue($name, $value)
@@ -283,11 +283,13 @@ abstract class AbstractQuery
      * ?-placeholders, additional arguments to the method will be bound to
      * those placeholders sequentially.
      *
-     * @param string $op   operator: 'AND' or 'OR'
-     * @param string $cond The WHERE condition.
-     * @param array $bind arguments to bind to placeholders
+     * @param string $andor Add the condition using this operator, typically
+     * 'AND' or 'OR'.
      *
-     * @return $this
+     * @param string $args Arguments for adding the condition.
+     *
+     * @return self
+     *
      */
     protected function addWhere($andor, $args)
     {
@@ -295,6 +297,21 @@ abstract class AbstractQuery
         return $this;
     }
 
+    /**
+     *
+     * Adds conditions and binds values to a clause.
+     *
+     * @param string $clause The clause to work with, typically 'where' or
+     * 'having'.
+     *
+     * @param string $andor Add the condition using this operator, typically
+     * 'AND' or 'OR'.
+     *
+     * @param string $args Arguments for adding the condition.
+     *
+     * @return null
+     *
+     */
     protected function addClauseCondWithBind($clause, $andor, $args)
     {
         // remove the condition from the args and quote names in it
@@ -338,7 +355,7 @@ abstract class AbstractQuery
      *
      * @param array $spec The columns and direction to order by.
      *
-     * @return $this
+     * @return self
      *
      */
     protected function addOrderBy(array $spec)

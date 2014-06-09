@@ -1,7 +1,22 @@
 <?php
-
+/**
+ *
+ * This file is part of Aura for PHP.
+ *
+ * @package Aura.SqlQuery
+ *
+ * @license http://opensource.org/licenses/bsd-license.php BSD
+ *
+ */
 namespace Aura\SqlQuery\Common;
 
+/**
+ *
+ * An interface for setting column values.
+ *
+ * @package Aura.SqlQuery
+ *
+ */
 interface ValuesInterface
 {
     /**
@@ -13,7 +28,7 @@ interface ValuesInterface
      *
      * @param mixed $val Optional: a value to bind to the placeholder.
      *
-     * @return $this
+     * @return self
      *
      */
     public function col($col);
@@ -28,7 +43,7 @@ interface ValuesInterface
      * pairs where the key is a column name and the value is a bind value for
      * that column.
      *
-     * @return $this
+     * @return self
      *
      */
     public function cols(array $cols);
@@ -42,7 +57,7 @@ interface ValuesInterface
      *
      * @param string $value The column value expression.
      *
-     * @return $this
+     * @return self
      *
      */
     public function set($col, $value);
