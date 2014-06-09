@@ -383,7 +383,7 @@ These 'mysql' query objects have additional MySQL-specific methods:
     - `quick()` to add or remove `QUICK` flag
     - `orderBy()` to add an ORDER BY clause
     - `limit()` to set a LIMIT count
-    
+
 ## PostgreSQL Query Objects ('pgsql')
 
 These 'pgsql' query objects have additional PostgreSQL-specific methods:
@@ -396,6 +396,28 @@ These 'pgsql' query objects have additional PostgreSQL-specific methods:
 
 - DELETE
     - `returning()` to add a `RETURNING` clause
+
+
+### Last Insert ID Names in PostgreSQL
+
+PostgreSQL determines the default sequence name for the last inserted ID by concatenating the table name, the column name, and a `seq` suffix, using underscore separators (e.g. `table_col_seq`).
+
+However, when inserting into an extended or inherited table, the parent table is used for the sequence name, not the child (insertion) table. This package allows you to override the default last-insert-id name with the method `setLastInsertIdNames()` on both _QueryFactory_ and the _Insert_ object itself.  Pass an array of `inserttable.col` keys mapped to `parenttable_col_seq` values, and the _Insert_ object will use the mapped sequence names instead of the default names.
+
+```php
+<?php
+$query_factory->setLastInsertIdNames(array(
+    'child.id' => 'parent_id_seq'
+));
+
+$insert = $query_factory->newInsert();
+$insert->into('child');
+// ...
+$seq = $insert->getLastInsertIdName('id');
+?>
+```
+
+The `$seq` name is now `parent_id_seq`, not `child_id_seq` as it would have been by default.
 
 
 ## SQLite Query Objects ('sqlite')
