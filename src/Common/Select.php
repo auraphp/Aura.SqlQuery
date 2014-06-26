@@ -215,29 +215,52 @@ class Select extends AbstractQuery implements SelectInterface
     public function cols(array $cols)
     {
         foreach ($cols as $key => $val) {
+            if (is_int($key)) {
+                list($key, $val) = $this->createAlias($key, $val);
+            }
             $this->addCol($key, $val);
         }
         return $this;
+    }
+    
+    /**
+     *
+     * Break down an AS string in to a column and alias
+     *
+     * @param int $key the original index position
+     *
+     * @param string $val the column identifer to try and break down
+     * 
+     * @return array either col => alias or $col
+     */
+    protected function createAlias($key, $val)
+    {
+        $test = explode(' ', $val);
+        
+        // well need at least three parts: 1. col, 2. AS, 3. the alias
+        if (count($test) < 3) {
+            return array($key, $val);
+        }
+        
+        $alias  = array_pop($test);
+        $as     = array_pop($test);
+
+        return strtolower($as) == 'as'
+            ? array($alias, implode(' ', $test)) : array($key, $val);
     }
 
     /**
      *
      * Adds a column and alias to the columsn to be selected.
      *
-     * @param mixed $key If an integer, ignored. Otherwise, the column to be
-     * added.
+     * @param mixed string | int $key  If string, the column alias
      *
-     * @param mixed $val If $key was an integer, the column to be added;
-     * otherwise, the column alias.
+     * @param mixed $val column to add
      *
      */
     protected function addCol($key, $val)
     {
-        if (is_int($key)) {
-            $this->cols[] = $this->quoter->quoteNamesIn($val);
-        } else {
-            $this->cols[] = $this->quoter->quoteNamesIn("$key AS $val");
-        }
+        $this->cols[$key] = $val;
     }
 
     /**
@@ -576,8 +599,15 @@ class Select extends AbstractQuery implements SelectInterface
         if (! $this->cols) {
             throw new Exception('No columns in the SELECT.');
         }
-
-        return $this->indentCsv($this->cols);
+       
+        foreach ($this->cols as $key => $val) {
+            if (is_int($key)) {
+                $cols[] = $this->quoter->quoteNamesIn($val);
+            } else {
+                $cols[] = $this->quoter->quoteNamesIn("$key AS $val");
+            }
+        }
+        return $this->indentCsv($cols);
     }
 
     /**

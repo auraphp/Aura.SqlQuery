@@ -130,9 +130,10 @@ $select = $query_factory->newSelect();
 $select
     ->distinct()                    // SELECT DISTINCT
     ->cols([                        // select these columns
-        'id',
-        'name AS namecol',
-        'COUNT(foo) AS foo_count',
+        'id',                       // SELECT id ...
+        'name AS namecol',          // SELECT name as namecol ...
+        'COUNT(foo) AS foo_count',  // SELECT COUNT(foo) AS foo_count ...
+        'name' => 'namecol'         // SELECT name AS namecol ...
     ])
     ->from('foo AS f')              // FROM these tables
     ->fromSubselect(                // FROM sub-select AS my_sub
