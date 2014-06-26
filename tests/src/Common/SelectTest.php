@@ -537,12 +537,12 @@ class SelectTest extends AbstractQueryTest
 
     public function testCreateAlias()
     {
-        $this->query->cols([
-                        'table.noalias',
-                        'col as alias',
-                        'table.proper' => 'alias2',
-                        'legacy invalid as alias still works'
-                        ]);
+        $this->query->cols(array(
+            'table.noalias',
+            'col as alias',
+            'table.proper' => 'alias2',
+            'legacy invalid as alias still works'
+        ));
 
         $actual = $this->query->__toString();
 

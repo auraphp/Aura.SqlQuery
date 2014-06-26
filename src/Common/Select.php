@@ -239,14 +239,14 @@ class Select extends AbstractQuery implements SelectInterface
         
         // well need at least three parts: 1. col, 2. AS, 3. the alias
         if (count($test) < 3) {
-            return [$key, $val];
+            return array($key, $val);
         }
         
         $alias  = array_pop($test);
         $as     = array_pop($test);
 
         return strtolower($as) == 'as'
-            ? [$alias, implode(' ', $test)] : [$key, $val];
+            ? array($alias, implode(' ', $test)) : array($key, $val);
     }
 
     /**
