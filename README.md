@@ -74,7 +74,7 @@ under the common _Select_ object with double-quotes for identifiers:
 
 ```php
 <?php
-$select->cols(['foo', 'bar AS barbar'])
+$select->cols(array('foo', 'bar AS barbar'))
        ->from('table1')
        ->from('table2')
        ->where('table2.zim = 99');
@@ -129,11 +129,12 @@ $select = $query_factory->newSelect();
 
 $select
     ->distinct()                    // SELECT DISTINCT
-    ->cols([                        // select these columns
-        'id',
-        'name AS namecol',
-        'COUNT(foo) AS foo_count',
-    ])
+    ->cols(array(                   // select these columns
+        'id',                       // column name
+        'name AS namecol',          // one way of aliasing
+        'col_name' => 'col_alias',  // another way of aliasing
+        'COUNT(foo) AS foo_count'   // embed calculations directly
+    ))
     ->from('foo AS f')              // FROM these tables
     ->fromSubselect(                // FROM sub-select AS my_sub
         'SELECT ...',
@@ -153,21 +154,21 @@ $select
     ->where('bar > :bar')           // AND WHERE these conditions
     ->where('zim = ?', 'zim_val')   // bind 'zim_val' to the ? placeholder
     ->orWhere('baz < :baz')         // OR WHERE these conditions
-    ->groupBy(['dib'])              // GROUP BY these columns
+    ->groupBy(array('dib'))         // GROUP BY these columns
     ->having('foo = :foo')          // AND HAVING these conditions
     ->having('bar > ?', 'bar_val')  // bind 'bar_val' to the ? placeholder
     ->orHaving('baz < :baz')        // OR HAVING these conditions
-    ->orderBy(['baz']);             // ORDER BY these columns
+    ->orderBy(array('baz');             // ORDER BY these columns
     ->limit(10)                     // LIMIT 10
     ->offset(40)                    // OFFSET 40
     ->forUpdate()                   // FOR UPDATE
     ->union()                       // UNION with a followup SELECT
     ->unionAll()                    // UNION ALL with a followup SELECT
     ->bindValue('foo', 'foo_val')   // bind one value to a placeholder
-    ->bindValues([                  // bind these values to named placeholders
+    ->bindValues(array(             // bind these values to named placeholders
         'bar' => 'bar_val',
         'baz' => 'baz_val',
-    ]);
+    ));
 ?>
 ```
 
@@ -202,16 +203,16 @@ $insert = $query_factory->newInsert();
 
 $insert
     ->into('foo')                   // INTO this table
-    ->cols([                        // bind values as "(col) VALUES (:col)"
+    ->cols(array                    // bind values as "(col) VALUES (:col)"
         'bar',
         'baz',
-    ])
+    ))
     ->set('ts', 'NOW()')            // raw value as "(ts) VALUES (NOW())"
     ->bindValue('foo', 'foo_val')   // bind one value to a placeholder
-    ->bindValues([                  // bind these values
+    ->bindValues(array(             // bind these values
         'bar' => 'foo',
         'baz' => 'zim',
-    ]);
+    ));
 ?>
 ```
 
@@ -223,11 +224,11 @@ key is the column name and the value is a bind value (not a raw value):
 $insert = $query_factory->newInsert();
 
 $insert->into('foo')            // insert into this table
-    ->cols([                    // insert these columns and bind these values
+    ->cols(array(                // insert these columns and bind these values
         'foo' => 'foo_value',
         'bar' => 'bar_value',
         'baz' => 'baz_value',
-    ]);
+    ));
 ?>
 ```
 
@@ -262,20 +263,20 @@ $update = $query_factory->newUpdate();
 
 $update
     ->table('foo')                  // update this table
-    ->cols([                        // bind values as "SET bar = :bar"
+    ->cols(array(                   // bind values as "SET bar = :bar"
         'bar',
         'baz',
-    ])
+    ))
     ->set('ts', 'NOW()')            // raw value as "(ts) VALUES (NOW())"
     ->where('zim = :zim')           // AND WHERE these conditions
     ->where('gir = ?', 'doom')      // bind this value to the condition
     ->orWhere('gir = :gir')         // OR WHERE these conditions
     ->bindValue('bar', 'bar_val')   // bind one value to a placeholder
-    ->bindValues([                  // bind these values to the query
+    ->bindValues(array(             // bind these values to the query
         'baz' => 99,
         'zim' => 'dib',
         'gir' => 'doom',
-    ]);
+    ));
 ?>
 ```
 
@@ -287,11 +288,11 @@ key is the column name and the value is a bind value (not a raw value):
 $update = $query_factory->newUpdate();
 
 $update->table('foo')           // update this table
-    ->cols([                    // update these columns and bind these values
+    ->cols(array(               // update these columns and bind these values
         'foo' => 'foo_value',
         'bar' => 'bar_value',
         'baz' => 'baz_value',
-    ]);
+    ));
 ?>
 ```
 
@@ -326,11 +327,11 @@ $delete
     ->where('gir = ?', 'doom')      // bind this value to the condition
     ->orWhere('gir = :gir');        // OR WHERE these conditions
     ->bindValue('bar', 'bar_val',   // bind one value to a placeholder
-    ->bindValues([                  // bind these values to the query
+    ->bindValues(array(             // bind these values to the query
         'baz' => 99,
         'zim' => 'dib',
         'gir' => 'doom',
-    ]);
+    ));
 ?>
 ```
 
