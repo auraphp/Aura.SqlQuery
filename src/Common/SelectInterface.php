@@ -81,7 +81,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
 
     /**
      *
-     * Adds a FROM table and columns to the query.
+     * Adds a FROM element to the query; quotes the table name automatically.
      *
      * @param string $spec The table specification; "foo" or "foo AS bar".
      *
@@ -89,6 +89,18 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      */
     public function from($spec);
+
+    /**
+     *
+     * Adds a raw unquoted FROM element to the query; useful for adding FROM
+     * elements that are functions.
+     *
+     * @param string $spec The table specification, e.g. "function_name()".
+     *
+     * @return self
+     *
+     */
+    public function fromRaw($spec);
 
     /**
      *
