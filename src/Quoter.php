@@ -111,13 +111,6 @@ class Quoter
                 return $this->quoteNameWithSeparator($spec, $sep, $pos);
             }
         }
-
-        if (strpos($spec, '(') !== false) {
-            // might be a function call with params; quote them as well
-            return $this->quoteNamesIn($spec);
-        }
-
-        // does not look like a function call
         return $this->replaceName($spec);
     }
 
@@ -138,7 +131,7 @@ class Quoter
     {
         $len = strlen($sep);
         $part1 = $this->quoteName(substr($spec, 0, $pos));
-        $part2 = $this->quoteName(substr($spec, $pos + $len));
+        $part2 = $this->replaceName(substr($spec, $pos + $len));
         return "{$part1}{$sep}{$part2}";
     }
 
@@ -283,37 +276,24 @@ class Quoter
             return $text;
         }
 
-
         $word = "[a-z_][a-z0-9_]+";
 
-        // the tail of the match is important: it can be a trailing paren
-        // optionally preceded by whitespace, *or* an empty word boundary.
-        $find = "/(\\b)($word)\\.($word)(\s*\(|\\b)/i";
+        $find = "/(\\b)($word)\\.($word)(\\b)/i";
 
-        return preg_replace_callback(
-            $find,
-            array($this, 'replaceCallback'),
-            $text
-        );
+        $repl = '$1'
+              . $this->quote_name_prefix
+              . '$2'
+              . $this->quote_name_suffix
+              . '.'
+              . $this->quote_name_prefix
+              . '$3'
+              . $this->quote_name_suffix
+              . '$4'
+              ;
+
+        $text = preg_replace($find, $repl, $text);
+
+        return $text;
     }
 
-    public function replaceCallback($match)
-    {
-        // always quote the head of the match
-        $head = $this->replaceName($match[2]);
-
-        // do we need to quote the tail of the match?
-        if ($match[4] === '') {
-            // looks like a plain identifier, not a function
-            $tail = $this->replaceName($match[3]);
-        } else {
-            // the trailing portion is not empty, which means we have
-            // a paren preceded by optional whitespace. do not quote
-            // it; it looks like a function.
-            $tail = $match[3];
-        }
-
-        // put them back together
-        return $match[1] . $head . '.' . $tail . $match[4];
-    }
 }
