@@ -242,7 +242,7 @@ class Select extends AbstractQuery implements SelectInterface
 
     /**
      *
-     * Adds a FROM table and columns to the query.
+     * Adds a FROM element to the query; quotes the table name automatically.
      *
      * @param string $spec The table specification; "foo" or "foo AS bar".
      *
@@ -251,11 +251,25 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function from($spec)
     {
-        $this->from[] = array($this->quoter->quoteName($spec));
+        return $this->fromRaw($this->quoter->quoteName($spec));
+    }
+
+    /**
+     *
+     * Adds a raw unquoted FROM element to the query; useful for adding FROM
+     * elements that are functions.
+     *
+     * @param string $spec The table specification, e.g. "function_name()".
+     *
+     * @return self
+     *
+     */
+    public function fromRaw($spec)
+    {
+        $this->from[] = array($spec);
         $this->from_key ++;
         return $this;
     }
-
     /**
      *
      * Adds an aliased sub-select to the query.
