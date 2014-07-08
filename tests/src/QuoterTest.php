@@ -47,25 +47,4 @@ class QuoterTest extends \PHPUnit_Framework_TestCase
         $expect = "*, *.*, `foo`.`bar`, CONCAT('foo.bar', \"baz.dib\") AS `zim`";
         $this->assertSame($expect, $actual);
     }
-
-    // no not quote with trailing parentheses
-    public function testIssue24()
-    {
-        $actual = $this->quoter->quoteName('foo()');
-        $this->assertSame('foo()', $actual);
-
-        $actual = $this->quoter->quoteName('foo(bar)');
-        $this->assertSame('foo(bar)', $actual);
-
-        $actual = $this->quoter->quoteName('foo.bar()');
-        $this->assertSame('`foo`.bar()', $actual);
-
-        $actual = $this->quoter->quoteName('foo().bar');
-        $this->assertSame('foo().`bar`', $actual);
-
-        $sql = "schema.foo(), schema.foo('foo.bar', baz.dib, zim)";
-        $actual = $this->quoter->quoteNamesIn($sql);
-        $expect = "`schema`.foo(), `schema`.foo('foo.bar', `baz`.`dib`, zim)";
-        $this->assertSame($expect, $actual);
-    }
 }
