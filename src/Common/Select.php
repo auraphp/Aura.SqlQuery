@@ -233,7 +233,11 @@ class Select extends AbstractQuery implements SelectInterface
      */
     protected function addCol($key, $val)
     {
-        $this->cols[] = array($key, $val);
+        if (is_int($key)) {
+            $this->cols[] = $val;
+        } else {
+            $this->cols[$val] = $key;
+        }
     }
 
     /**
@@ -588,12 +592,11 @@ class Select extends AbstractQuery implements SelectInterface
         }
 
         $cols = array();
-        foreach ($this->cols as $colspec) {
-            list($key, $val) = $colspec;
+        foreach ($this->cols as $key => $val) {
             if (is_int($key)) {
                 $cols[] = $this->quoter->quoteNamesIn($val);
             } else {
-                $cols[] = $this->quoter->quoteNamesIn("$key AS $val");
+                $cols[] = $this->quoter->quoteNamesIn("$val AS $key");
             }
         }
 
