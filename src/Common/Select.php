@@ -233,10 +233,27 @@ class Select extends AbstractQuery implements SelectInterface
      */
     protected function addCol($key, $val)
     {
-        if (is_int($key)) {
-            $this->cols[] = $val;
-        } else {
+        if (is_string($key)) {
+            // [col => alias]
             $this->cols[$val] = $key;
+        } else {
+            $this->addColWithAlias($val);
+        }
+    }
+
+    protected function addColWithAlias($spec)
+    {
+        $parts = explode(' ', $spec);
+        $count = count($parts);
+        if ($count == 2) {
+            // "col alias"
+            $this->cols[$parts[1]] = $parts[0];
+        } elseif ($count == 3 && strtoupper($parts[1]) == 'AS') {
+            // "col AS alias"
+            $this->cols[$parts[2]] = $parts[0];
+        } else {
+            // no recognized alias
+            $this->cols[] = $spec;
         }
     }
 
