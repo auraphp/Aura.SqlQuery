@@ -233,10 +233,27 @@ class Select extends AbstractQuery implements SelectInterface
      */
     protected function addCol($key, $val)
     {
-        if (is_int($key)) {
-            $this->cols[] = $this->quoter->quoteNamesIn($val);
+        if (is_string($key)) {
+            // [col => alias]
+            $this->cols[$val] = $key;
         } else {
-            $this->cols[] = $this->quoter->quoteNamesIn("$key AS $val");
+            $this->addColWithAlias($val);
+        }
+    }
+
+    protected function addColWithAlias($spec)
+    {
+        $parts = explode(' ', $spec);
+        $count = count($parts);
+        if ($count == 2) {
+            // "col alias"
+            $this->cols[$parts[1]] = $parts[0];
+        } elseif ($count == 3 && strtoupper($parts[1]) == 'AS') {
+            // "col AS alias"
+            $this->cols[$parts[2]] = $parts[0];
+        } else {
+            // no recognized alias
+            $this->cols[] = $spec;
         }
     }
 
@@ -591,7 +608,16 @@ class Select extends AbstractQuery implements SelectInterface
             throw new Exception('No columns in the SELECT.');
         }
 
-        return $this->indentCsv($this->cols);
+        $cols = array();
+        foreach ($this->cols as $key => $val) {
+            if (is_int($key)) {
+                $cols[] = $this->quoter->quoteNamesIn($val);
+            } else {
+                $cols[] = $this->quoter->quoteNamesIn("$val AS $key");
+            }
+        }
+
+        return $this->indentCsv($cols);
     }
 
     /**

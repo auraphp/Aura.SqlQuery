@@ -534,4 +534,40 @@ class SelectTest extends AbstractQueryTest
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);
     }
+
+    public function testAddColWithAlias()
+    {
+        $this->query->cols(array(
+            'foo',
+            'bar',
+            'table.noalias',
+            'col1 as alias1',
+            'col2 alias2',
+            'table.proper' => 'alias_proper',
+            'legacy invalid as alias still works',
+            'overwrite as alias1',
+        ));
+
+        // add separately to make sure we don't overwrite sequential keys
+        $this->query->cols(array(
+            'baz',
+            'dib',
+        ));
+
+        $actual = $this->query->__toString();
+
+        $expect = '
+            SELECT
+                foo,
+                bar,
+                <<table>>.<<noalias>>,
+                overwrite AS <<alias1>>,
+                col2 AS <<alias2>>,
+                <<table>>.<<proper>> AS <<alias_proper>>,
+                legacy invalid AS <<alias still works>>,
+                baz,
+                dib
+        ';
+        $this->assertSameSql($expect, $actual);
+    }
 }
