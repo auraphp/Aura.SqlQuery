@@ -359,9 +359,9 @@ These 'mysql' query objects have additional MySQL-specific methods:
     - `calcFoundRows()` to add or remove `SQL_CALC_FOUND_ROWS` flag
     - `cache()` to add or remove `SQL_CACHE` flag
     - `noCache()` to add or remove `SQL_NO_CACHE` flag
-    - `bigResult()` to add or remove `BIG_RESULT` flag
-    - `smallResult()` to add or remove `SMALL_RESULT` flag
-    - `bufferResult()` to add or remove `BUFFER_RESULT` flag
+    - `bigResult()` to add or remove `SQL_BIG_RESULT` flag
+    - `smallResult()` to add or remove `SQL_SMALL_RESULT` flag
+    - `bufferResult()` to add or remove `SQL_BUFFER_RESULT` flag
     - `highPriority()` to add or remove `HIGH_PRIORITY` flag
     - `straightJoin()` to add or remove `STRAIGHT_JOIN` flag
 
