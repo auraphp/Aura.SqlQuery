@@ -222,13 +222,15 @@ class Select extends AbstractQuery implements SelectInterface
 
     /**
      *
-     * Adds a column and alias to the columsn to be selected.
+     * Adds a column and alias to the columns to be selected.
      *
      * @param mixed $key If an integer, ignored. Otherwise, the column to be
      * added.
      *
      * @param mixed $val If $key was an integer, the column to be added;
      * otherwise, the column alias.
+     *
+     * @return null
      *
      */
     protected function addCol($key, $val)
@@ -241,6 +243,16 @@ class Select extends AbstractQuery implements SelectInterface
         }
     }
 
+    /**
+     *
+     * Adds a column with an alias to the columns to be selected.
+     *
+     * @param string $spec The column specification: "col alias",
+     * "col AS alias", or something else entirely.
+     *
+     * @return null
+     *
+     */
     protected function addColWithAlias($spec)
     {
         $parts = explode(' ', $spec);
