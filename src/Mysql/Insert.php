@@ -199,6 +199,7 @@ class Insert extends Common\Insert
             return ''; // not applicable
         }
 
+        $values = array();
         foreach ($this->col_on_update_values as $key => $row) {
             $values[] = $this->indent([$key . ' = ' . $row]);
         }
