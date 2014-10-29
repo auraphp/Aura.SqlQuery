@@ -96,7 +96,7 @@ class InsertTest extends Common\InsertTest
         $this->assertSameSql($expect, $actual);
     }
 
-	public function testColOnUpdate ()
+    public function testColOnUpdate()
     {
         $this->query->colOnUpdate ('c4')
                     ->into('t1')
@@ -110,9 +110,9 @@ class InsertTest extends Common\InsertTest
         $this->assertSameSql($expect, $actual);
     }
 
-	public function testColsOnUpdate ()
+    public function testColsOnUpdate()
     {
-        $this->query->colsOnUpdate (['c4' => null])
+        $this->query->colsOnUpdate (array('c4' => null))
                     ->into('t1')
                     ->cols(array('c1', 'c2', 'c3'))
                     ->set('c4', 'NOW()')
