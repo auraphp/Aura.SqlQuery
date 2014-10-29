@@ -89,7 +89,7 @@ abstract class AbstractQuery
      *
      * The prefix to use when quoting identifier names.
      *
-     * @var string
+     * @var Quoter
      *
      */
     protected $quoter;
