@@ -29,4 +29,11 @@ interface LimitOffsetInterface extends LimitInterface
      *
      */
     public function offset($offset);
+    
+    /**
+     * Get the limit offset on the query
+     * 
+     * @return int 
+     */
+    public function getOffset();
 }

@@ -29,4 +29,11 @@ interface LimitInterface
      *
      */
     public function limit($limit);
+    
+    /**
+     * Get the limit count on the query
+     * 
+     * @return int 
+     */
+    public function getLimit();
 }

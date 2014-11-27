@@ -111,6 +111,11 @@ class Update extends Common\Update implements Common\OrderByInterface, Common\Li
         return $this;
     }
 
+	public function getLimit()
+	{
+		return $this->limit;
+	}
+
     /**
      *
      * Sets a limit offset on the query.
@@ -125,6 +130,11 @@ class Update extends Common\Update implements Common\OrderByInterface, Common\Li
         $this->offset = (int) $offset;
         return $this;
     }
+
+	public function getOffset()
+	{
+		return $this->offset;
+	}
 
     /**
      *
