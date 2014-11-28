@@ -183,11 +183,11 @@ class UpdateTest extends Common\UpdateTest
         $this->assertSame($expect, $actual);
     }
 
-	public function testGetterOnLimit()
-	{
-		$this->query->table('t1');
-		$this->query->limit(10);;
+    public function testGetterOnLimit()
+    {
+        $this->query->table('t1');
+        $this->query->limit(10);;
 
-		$this->assertSame(10, $this->query->getLimit());
-	}
+        $this->assertSame(10, $this->query->getLimit());
+    }
 }

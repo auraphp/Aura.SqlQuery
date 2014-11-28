@@ -561,15 +561,15 @@ class Select extends AbstractQuery implements SelectInterface
         return $this;
     }
 
-	public function getLimit()
-	{
-		return $this->limit;
-	}
+    public function getLimit()
+    {
+        return $this->limit;
+    }
 
-	public function getOffset()
-	{
-		return $this->offset;
-	}
+    public function getOffset()
+    {
+        return $this->offset;
+    }
 
     /**
      *

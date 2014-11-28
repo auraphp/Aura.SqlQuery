@@ -111,10 +111,10 @@ class Update extends Common\Update implements Common\OrderByInterface, Common\Li
         return $this;
     }
 
-	public function getLimit()
-	{
-		return $this->limit;
-	}
+    public function getLimit()
+    {
+        return $this->limit;
+    }
 
     /**
      *
@@ -131,10 +131,10 @@ class Update extends Common\Update implements Common\OrderByInterface, Common\Li
         return $this;
     }
 
-	public function getOffset()
-	{
-		return $this->offset;
-	}
+    public function getOffset()
+    {
+        return $this->offset;
+    }
 
     /**
      *

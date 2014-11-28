@@ -90,11 +90,11 @@ class UpdateTest extends Common\UpdateTest
         $this->assertSame($expect, $actual);
     }
 
-	public function testGetterOnLimitAndOffset()
-	{
-		$this->query->table('t1')
-		            ->limit(5);
+    public function testGetterOnLimitAndOffset()
+    {
+        $this->query->table('t1')
+                    ->limit(5);
 
-		$this->assertSame(5, $this->query->getLimit());
-	}
+        $this->assertSame(5, $this->query->getLimit());
+    }
 }
