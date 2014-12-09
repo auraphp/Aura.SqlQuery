@@ -16,8 +16,8 @@ class UpdateTest extends Common\UpdateTest
                 <<c4>> = NULL,
                 <<c5>> = NOW()
             WHERE
-                foo = ?
-                AND baz = ?
+                foo = :_1_
+                AND baz = :_2_
                 OR zim = gir
             LIMIT 5
     ";
@@ -60,8 +60,8 @@ class UpdateTest extends Common\UpdateTest
 
         $actual = $this->query->getBindValues();
         $expect = array(
-            1 => 'bar',
-            2 => 'dib',
+            '_1_' => 'bar',
+            '_2_' => 'dib',
         );
         $this->assertSame($expect, $actual);
     }
@@ -84,8 +84,8 @@ class UpdateTest extends Common\UpdateTest
 
         $actual = $this->query->getBindValues();
         $expect = array(
-            1 => 'bar',
-            2 => 'dib',
+            '_1_' => 'bar',
+            '_2_' => 'dib',
         );
         $this->assertSame($expect, $actual);
     }

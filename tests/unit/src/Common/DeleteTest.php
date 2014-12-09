@@ -18,8 +18,8 @@ class DeleteTest extends AbstractQueryTest
         $expect = "
             DELETE FROM <<t1>>
             WHERE
-                foo = ?
-                AND baz = ?
+                foo = :_1_
+                AND baz = :_2_
                 OR zim = gir
         ";
 
@@ -27,8 +27,8 @@ class DeleteTest extends AbstractQueryTest
 
         $actual = $this->query->getBindValues();
         $expect = array(
-            1 => 'bar',
-            2 => 'dib',
+            '_1_' => 'bar',
+            '_2_' => 'dib',
         );
         $this->assertSame($expect, $actual);
     }
