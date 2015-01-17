@@ -42,9 +42,9 @@ class QuoterTest extends \PHPUnit_Framework_TestCase
 
     public function testQuoteNamesIn()
     {
-        $sql = "*, *.*, foo.bar, CONCAT('foo.bar', \"baz.dib\") AS zim";
+        $sql = "*, *.*, f.bar, foo.bar, CONCAT('foo.bar', \"baz.dib\") AS zim";
         $actual = $this->quoter->quoteNamesIn($sql);
-        $expect = "*, *.*, `foo`.`bar`, CONCAT('foo.bar', \"baz.dib\") AS `zim`";
+        $expect = "*, *.*, `f`.`bar`, `foo`.`bar`, CONCAT('foo.bar', \"baz.dib\") AS `zim`";
         $this->assertSame($expect, $actual);
     }
 }
