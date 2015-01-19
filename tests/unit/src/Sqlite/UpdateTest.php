@@ -2,6 +2,7 @@
 namespace Aura\SqlQuery\Sqlite;
 
 use Aura\SqlQuery\Common;
+use PDO;
 
 class UpdateTest extends Common\UpdateTest
 {
@@ -16,8 +17,8 @@ class UpdateTest extends Common\UpdateTest
                 <<c4>> = NULL,
                 <<c5>> = NOW()
             WHERE
-                foo = ?
-                AND baz = ?
+                foo = :_1_
+                AND baz = :_2_
                 OR zim = gir
             LIMIT 5
     ";
@@ -45,8 +46,8 @@ class UpdateTest extends Common\UpdateTest
                 <<c4>> = NULL,
                 <<c5>> = NOW()
             WHERE
-                foo = ?
-                AND baz = ?
+                foo = :_1_
+                AND baz = :_2_
                 OR zim = gir
             ORDER BY
                 zim DESC,
@@ -57,8 +58,8 @@ class UpdateTest extends Common\UpdateTest
 
         $actual = $this->query->getBindValues();
         $expect = array(
-            1 => 'bar',
-            2 => 'dib',
+            '_1_' => 'bar',
+            '_2_' => 'dib',
         );
         $this->assertSame($expect, $actual);
     }
@@ -81,8 +82,8 @@ class UpdateTest extends Common\UpdateTest
 
         $actual = $this->query->getBindValues();
         $expect = array(
-            1 => 'bar',
-            2 => 'dib',
+            '_1_' => 'bar',
+            '_2_' => 'dib',
         );
         $this->assertSame($expect, $actual);
     }
@@ -105,8 +106,8 @@ class UpdateTest extends Common\UpdateTest
 
         $actual = $this->query->getBindValues();
         $expect = array(
-            1 => 'bar',
-            2 => 'dib',
+            '_1_' => 'bar',
+            '_2_' => 'dib',
         );
         $this->assertSame($expect, $actual);
     }
@@ -129,8 +130,8 @@ class UpdateTest extends Common\UpdateTest
 
         $actual = $this->query->getBindValues();
         $expect = array(
-            1 => 'bar',
-            2 => 'dib',
+            '_1_' => 'bar',
+            '_2_' => 'dib',
         );
         $this->assertSame($expect, $actual);
     }
@@ -153,8 +154,8 @@ class UpdateTest extends Common\UpdateTest
 
         $actual = $this->query->getBindValues();
         $expect = array(
-            1 => 'bar',
-            2 => 'dib',
+            '_1_' => 'bar',
+            '_2_' => 'dib',
         );
         $this->assertSame($expect, $actual);
     }
@@ -177,9 +178,47 @@ class UpdateTest extends Common\UpdateTest
 
         $actual = $this->query->getBindValues();
         $expect = array(
-            1 => 'bar',
-            2 => 'dib',
+            '_1_' => 'bar',
+            '_2_' => 'dib',
         );
         $this->assertSame($expect, $actual);
+    }
+
+    public function testActual()
+    {
+        $pdo = new PDO('sqlite::memory:');
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $pdo->query("CREATE TABLE test (
+            id   INTEGER PRIMARY KEY AUTOINCREMENT,
+            name VARCHAR(50) NOT NULL
+        )");
+
+        $names = [
+            'Anna', 'Betty', 'Clara', 'Donna', 'Flora',
+            'Gina', 'Hanna', 'Ione', 'Julia', 'Kara',
+        ];
+
+        $stm = "INSERT INTO test (name) VALUES (:name)";
+        foreach ($names as $name) {
+            $sth = $pdo->prepare($stm);
+            $sth->execute(array('name' => $name));
+        }
+
+        $this->query->table('test')
+                    ->cols(array('name'))
+                    ->where('id = ?', 1)
+                    ->bindValues(array('name' => 'Annabelle'));
+
+        $stm = $this->query->__toString();
+        $bind = $this->query->getBindValues();
+
+        $sth = $pdo->prepare($stm);
+        $count = $sth->execute($bind);
+        $this->assertEquals(1, $count);
+
+        $sth = $pdo->prepare('SELECT * FROM test WHERE id = 1');
+        $sth->execute();
+        $row = $sth->fetch(PDO::FETCH_ASSOC);
+        $this->assertEquals('Annabelle', $row['name']);
     }
 }

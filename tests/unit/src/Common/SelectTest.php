@@ -308,14 +308,14 @@ class SelectTest extends AbstractQueryTest
                 *
             WHERE
                 c1 = c2
-                AND c3 = ?
+                AND c3 = :_1_
         ';
 
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
 
         $actual = $this->query->getBindValues();
-        $expect = array(1 => 'foo');
+        $expect = array('_1_' => 'foo');
         $this->assertSame($expect, $actual);
     }
 
@@ -330,14 +330,14 @@ class SelectTest extends AbstractQueryTest
                 *
             WHERE
                 c1 = c2
-                OR c3 = ?
+                OR c3 = :_1_
         ';
 
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
 
         $actual = $this->query->getBindValues();
-        $expect = array(1 => 'foo');
+        $expect = array('_1_' => 'foo');
         $this->assertSame($expect, $actual);
     }
 
@@ -367,14 +367,14 @@ class SelectTest extends AbstractQueryTest
                 *
             HAVING
                 c1 = c2
-                AND c3 = ?
+                AND c3 = :_1_
         ';
 
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
 
         $actual = $this->query->getBindValues();
-        $expect = array(1 => 'foo');
+        $expect = array('_1_' => 'foo');
         $this->assertSame($expect, $actual);
     }
 
@@ -388,14 +388,14 @@ class SelectTest extends AbstractQueryTest
                 *
             HAVING
                 c1 = c2
-                OR c3 = ?
+                OR c3 = :_1_
         ';
 
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
 
         $actual = $this->query->getBindValues();
-        $expect = array(1 => 'foo');
+        $expect = array('_1_' => 'foo');
         $this->assertSame($expect, $actual);
     }
 
@@ -520,16 +520,16 @@ class SelectTest extends AbstractQueryTest
             SELECT
                 *
             WHERE
-                foo = ?
+                foo = :_2_
             HAVING
-                baz IN (?)
+                baz IN (:_1_)
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
 
         $expect = array(
-            1 => 'bar',
-            2 => array('dib', 'zim', 'gir'),
+            '_1_' => array('dib', 'zim', 'gir'),
+            '_2_' => 'bar',
         );
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);

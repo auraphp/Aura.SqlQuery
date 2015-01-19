@@ -40,25 +40,6 @@ abstract class AbstractDmlQuery extends AbstractQuery
 
     /**
      *
-     * Gets the values to bind to placeholders, including any 'where' values
-     * (needed for INSERT and UPDATE).
-     *
-     * @return array
-     *
-     */
-    public function getBindValues()
-    {
-        $bind_values = parent::getBindValues();
-        $i = 1;
-        foreach ($this->bind_where as $val) {
-            $bind_values[$i] = $val;
-            $i ++;
-        }
-        return $bind_values;
-    }
-
-    /**
-     *
      * Sets one column value placeholder; if an optional second parameter is
      * passed, that value is bound to the placeholder.
      *

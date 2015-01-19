@@ -42,15 +42,6 @@ abstract class AbstractQuery
 
     /**
      *
-     * Bind these values to the WHERE conditions.
-     *
-     * @var array
-     *
-     */
-    protected $bind_where = array();
-
-    /**
-     *
      * ORDER BY these columns.
      *
      * @var array
@@ -318,11 +309,21 @@ abstract class AbstractQuery
         $cond = array_shift($args);
         $cond = $this->quoter->quoteNamesIn($cond);
 
-        // remaining args are bind values; e.g., $this->bind_where
-        $bind =& $this->{"bind_{$clause}"};
-        foreach ($args as $value) {
-            $bind[] = $value;
+        // remaining args are bind values; bind against ?-mark placeholders,
+        // but becuase PDO is finicky about the numbering of sequential
+        // placeholders, convert the ?-mark to a named placeholder
+        $k = count($this->bind_values);
+        $parts = preg_split('/(\?)/', $cond, null, PREG_SPLIT_DELIM_CAPTURE);
+        foreach ($parts as $key => $val) {
+            if ($val != '?') {
+                continue;
+            }
+            $k ++;
+            $placeholder = "_{$k}_";
+            $parts[$key] = ':' . $placeholder;
+            $this->bind_values[$placeholder] = array_shift($args);
         }
+        $cond = implode('', $parts);
 
         // add condition to clause; $this->where
         $clause =& $this->$clause;

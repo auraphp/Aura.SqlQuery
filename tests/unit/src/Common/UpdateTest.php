@@ -28,8 +28,8 @@ class UpdateTest extends AbstractQueryTest
                 <<c4>> = NULL,
                 <<c5>> = NOW()
             WHERE
-                foo = ?
-                AND baz = ?
+                foo = :_1_
+                AND baz = :_2_
                 OR zim = gir
         ";
 
@@ -37,8 +37,8 @@ class UpdateTest extends AbstractQueryTest
 
         $actual = $this->query->getBindValues();
         $expect = array(
-            1 => 'bar',
-            2 => 'dib',
+            '_1_' => 'bar',
+            '_2_' => 'dib',
         );
         $this->assertSame($expect, $actual);
     }
