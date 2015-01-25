@@ -276,7 +276,7 @@ class Quoter
             return $text;
         }
 
-        $word = "[a-z_][a-z0-9_]+";
+        $word = "[a-z_][a-z0-9_]*";
 
         $find = "/(\\b)($word)\\.($word)(\\b)/i";
 
