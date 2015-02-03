@@ -96,6 +96,14 @@ class Select extends AbstractQuery implements SelectInterface
 
     /**
      *
+     * The column name for MAX
+     *
+     * @var string
+     */
+    protected $max;
+
+    /**
+     *
      * Returns this object as an SQL statement string.
      *
      * @return string An SQL statement string.
@@ -565,6 +573,7 @@ class Select extends AbstractQuery implements SelectInterface
         return 'SELECT'
             . $this->buildFlags()
             . $this->buildCols()
+            . $this->buildMax()
             . $this->buildFrom() // includes JOIN
             . $this->buildWhere()
             . $this->buildGroupBy()
@@ -585,8 +594,8 @@ class Select extends AbstractQuery implements SelectInterface
      */
     protected function buildCols()
     {
-        if (! $this->cols) {
-            throw new Exception('No columns in the SELECT.');
+        if (! $this->cols && ! $this->max) {
+            throw new Exception('No columns or max in the SELECT.');
         }
 
         $cols = array();
@@ -671,6 +680,21 @@ class Select extends AbstractQuery implements SelectInterface
 
     /**
      *
+     * Builds the MAX clause
+     *
+     * @return string
+     */
+    protected function buildMax()
+    {
+        if (! $this->max) {
+            return ''; // not applicable
+        }
+
+        return "MAX ($this->max)";
+    }
+
+    /**
+     *
      * Adds a WHERE condition to the query by AND. If the condition has
      * ?-placeholders, additional arguments to the method will be bound to
      * those placeholders sequentially.
@@ -749,5 +773,19 @@ class Select extends AbstractQuery implements SelectInterface
     public function orderBy(array $spec)
     {
         return $this->addOrderBy($spec);
+    }
+
+    /**
+     *
+     * Specifies column for Max
+     *
+     * @param $col
+     *
+     * @return self
+     */
+    public function max($col)
+    {
+        $this->max = $col;
+        return $this;
     }
 }

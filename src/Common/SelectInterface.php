@@ -232,4 +232,15 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      */
     public function unionAll();
+
+    /**
+     *
+     * Will select max value from a specified column
+     *
+     * @param string $col name of the Column
+     *
+     * @return self
+     *
+     */
+    public function max($col);
 }
