@@ -570,4 +570,20 @@ class SelectTest extends AbstractQueryTest
         ';
         $this->assertSameSql($expect, $actual);
     }
+
+    public function testMax()
+    {
+        $this->query->max('field');
+        $this->query->from('t1');
+
+        $actual = $this->query->__toString();
+
+        $expect = '
+            SELECT
+            MAX (field)
+            FROM
+                <<t1>>
+        ';
+        $this->assertSameSql($expect, $actual);
+    }
 }
