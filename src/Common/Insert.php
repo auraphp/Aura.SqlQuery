@@ -3,8 +3,6 @@
  *
  * This file is part of Aura for PHP.
  *
- * @package Aura.SqlQuery
- *
  * @license http://opensource.org/licenses/bsd-license.php BSD
  *
  */
@@ -46,7 +44,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * Sets the map of fully-qualified `table.column` names to last-insert-id
      * names. Generally useful only for extended tables in Posgres.
      *
-     * @param array $insert_id_names
+     * @param array $last_insert_id_names The list of ID names.
      *
      */
     public function setLastInsertIdNames(array $last_insert_id_names)
