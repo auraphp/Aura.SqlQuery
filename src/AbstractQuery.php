@@ -305,11 +305,24 @@ abstract class AbstractQuery
     {
         // remove the condition from the args and quote names in it
         $cond = array_shift($args);
+        $cond = $this->rebuildCondAndBindValues($cond, $args);
+
+        // add condition to clause; $this->where
+        $clause =& $this->$clause;
+        if ($clause) {
+            $clause[] = "$andor $cond";
+        } else {
+            $clause[] = $cond;
+        }
+    }
+
+    protected function rebuildCondAndBindValues($cond, array $bind_values)
+    {
         $cond = $this->quoter->quoteNamesIn($cond);
 
-        // remaining args are bind values; bind against ?-mark placeholders,
-        // but becuase PDO is finicky about the numbering of sequential
-        // placeholders, convert the ?-mark to a named placeholder
+        // bind values against ?-mark placeholders, but becuase PDO is finicky
+        // about the numbering of sequential placeholders, convert each ?-mark
+        // to a named placeholder
         $k = count($this->bind_values);
         $parts = preg_split('/(\?)/', $cond, null, PREG_SPLIT_DELIM_CAPTURE);
         foreach ($parts as $key => $val) {
@@ -319,17 +332,10 @@ abstract class AbstractQuery
             $k ++;
             $placeholder = "_{$k}_";
             $parts[$key] = ':' . $placeholder;
-            $this->bind_values[$placeholder] = array_shift($args);
+            $this->bind_values[$placeholder] = array_shift($bind_values);
         }
         $cond = implode('', $parts);
-
-        // add condition to clause; $this->where
-        $clause =& $this->$clause;
-        if ($clause) {
-            $clause[] = "$andor $cond";
-        } else {
-            $clause[] = $cond;
-        }
+        return $cond;
     }
 
     /**
