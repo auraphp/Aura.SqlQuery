@@ -135,9 +135,14 @@ class SelectTest extends AbstractQueryTest
     public function testFromSubSelectObject()
     {
         $sub = $this->newQuery();
-        $sub->cols(array('*'))->from('t2');
+        $sub->cols(array('*'))
+            ->from('t2')
+            ->where('foo = ?', 'bar');
 
-        $this->query->cols(array('*'))->fromSubSelect($sub, 'a2');
+        $this->query->cols(array('*'))
+            ->fromSubSelect($sub, 'a2')
+            ->where('a2.baz = ?', 'dib');
+
         $expect = '
             SELECT
                 *
@@ -147,8 +152,13 @@ class SelectTest extends AbstractQueryTest
                         *
                     FROM
                         <<t2>>
+                    WHERE
+                        foo = :_1_1_
                 ) AS <<a2>>
+            WHERE
+                <<a2>>.<<baz>> = :_2_
         ';
+
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
     }
@@ -235,11 +245,13 @@ class SelectTest extends AbstractQueryTest
     public function testJoinSubSelectObject()
     {
         $sub = $this->newQuery();
-        $sub->cols(array('*'))->from('t2');
+        $sub->cols(array('*'))->from('t2')->where('foo = ?', 'bar');
 
         $this->query->cols(array('*'));
         $this->query->from('t1');
         $this->query->joinSubSelect('left', $sub, 'a3', 't2.c1 = a3.c1');
+        $this->query->where('baz = ?', 'dib');
+
         $expect = '
             SELECT
                 *
@@ -250,7 +262,11 @@ class SelectTest extends AbstractQueryTest
                             *
                         FROM
                             <<t2>>
+                        WHERE
+                            foo = :_1_1_
                     ) AS <<a3>> ON <<t2>>.<<c1>> = <<a3>>.<<c1>>
+            WHERE
+                baz = :_2_
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
