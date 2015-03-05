@@ -590,19 +590,18 @@ class SelectTest extends AbstractQueryTest
         $select = $this->newQuery()
             ->cols(array('*'))
             ->from('table2 AS t2')
-            ->where("field IN (" . PHP_EOL . $sub . PHP_EOL . ")");
+            ->where("field IN (?)", $sub);
+
         $expect = '
             SELECT
                 *
             FROM
                 <<table2>> AS <<t2>>
             WHERE
-                field IN (
-            SELECT
+                field IN (SELECT
                 *
             FROM
-                <<table1>> AS <<t1>>
-            )
+                <<table1>> AS <<t1>>)
         ';
         $actual = $select->__toString();
         $this->assertSameSql($expect, $actual);
