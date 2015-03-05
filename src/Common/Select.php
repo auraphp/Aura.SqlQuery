@@ -262,7 +262,7 @@ class Select extends AbstractQuery implements SelectInterface
     {
         $name = $spec;
 
-        $pos = strripos(' AS ', $name);
+        $pos = strripos($name, ' AS ');
         if ($pos !== false) {
             $name = trim(substr($name, $pos + 4));
         }
@@ -327,7 +327,7 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function fromSubSelect($spec, $name)
     {
-        $this->addTableRef('FROM', $name);
+        $this->addTableRef('FROM (SELECT ...) AS', $name);
         $spec = ltrim(preg_replace('/^/m', '        ', (string) $spec));
         $this->from[] = array(
             "("
@@ -459,7 +459,7 @@ class Select extends AbstractQuery implements SelectInterface
         }
 
         $join = strtoupper(ltrim("$join JOIN"));
-        $this->addTableRef($join, $name);
+        $this->addTableRef("$join (SELECT ...) AS", $name);
 
         $spec = PHP_EOL . '    '
               . ltrim(preg_replace('/^/m', '    ', (string) $spec))
