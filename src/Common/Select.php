@@ -287,10 +287,7 @@ class Select extends AbstractQuery implements SelectInterface
     public function from($spec)
     {
         $this->addTableRef('FROM', $spec);
-        $spec = $this->quoter->quoteName($spec);
-        $this->from[] = array($spec);
-        $this->from_key ++;
-        return $this;
+        return $this->addFrom($this->quoter->quoteName($spec));
     }
 
     /**
@@ -306,6 +303,11 @@ class Select extends AbstractQuery implements SelectInterface
     public function fromRaw($spec)
     {
         $this->addTableRef('FROM', $spec);
+        return $this->addFrom($spec);
+    }
+
+    protected function addFrom($spec)
+    {
         $this->from[] = array($spec);
         $this->from_key ++;
         return $this;

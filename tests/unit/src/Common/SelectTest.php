@@ -116,6 +116,23 @@ class SelectTest extends AbstractQueryTest
         $this->assertSameSql($expect, $actual);
     }
 
+    public function testFromRaw()
+    {
+        $this->query->cols(array('*'));
+        $this->query->fromRaw('t1')
+                    ->fromRaw('t2');
+
+        $actual = $this->query->__toString();
+        $expect = '
+            SELECT
+                *
+            FROM
+                t1,
+                t2
+        ';
+        $this->assertSameSql($expect, $actual);
+    }
+
     public function testFromSubSelect()
     {
         $sub = 'SELECT * FROM t2';
