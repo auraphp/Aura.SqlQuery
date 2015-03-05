@@ -217,8 +217,12 @@ class QueryFactory
 
     protected function newSeqBindPrefix()
     {
+        $seq_bind_prefix = '';
         if ($this->instance_count) {
-            return '_' . $this->instance_count ++;
+            $seq_bind_prefix = '_' . $this->instance_count;
         }
+
+        $this->instance_count ++;
+        return $seq_bind_prefix;
     }
 }

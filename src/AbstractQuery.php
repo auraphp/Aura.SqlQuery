@@ -106,6 +106,11 @@ abstract class AbstractQuery
         $this->seq_bind_prefix = $seq_bind_prefix;
     }
 
+    public function getSeqBindPrefix()
+    {
+        return $this->seq_bind_prefix;
+    }
+
     /**
      *
      * Returns this query object as an SQL statement string.
