@@ -97,12 +97,24 @@ abstract class AbstractQuery
 
     /**
      *
-     * Returns this query object as a string.
+     * Returns this query object as an SQL statement string.
      *
      * @return string
      *
      */
     public function __toString()
+    {
+        return $this->getStatement();
+    }
+
+    /**
+     *
+     * Returns this query object as an SQL statement string.
+     *
+     * @return string
+     *
+     */
+    public function getStatement()
     {
         return $this->build();
     }

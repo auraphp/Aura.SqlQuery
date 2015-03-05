@@ -94,12 +94,12 @@ class Select extends AbstractQuery implements SelectInterface
 
     /**
      *
-     * Returns this object as an SQL statement string.
+     * Returns this query object as an SQL statement string.
      *
      * @return string An SQL statement string.
      *
      */
-    public function __toString()
+    public function getStatement()
     {
         $union = '';
         if ($this->union) {
