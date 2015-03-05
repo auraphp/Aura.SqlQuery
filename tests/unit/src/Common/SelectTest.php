@@ -133,6 +133,31 @@ class SelectTest extends AbstractQueryTest
         $this->assertSameSql($expect, $actual);
     }
 
+    public function testDuplicateTableName()
+    {
+        $this->query->cols(array('*'));
+        $this->query->from('t1');
+
+        $this->setExpectedException(
+            'Aura\SqlQuery\Exception',
+            "Cannot reference 'FROM t1' after 'FROM t1'"
+        );
+        $this->query->from('t1');
+    }
+
+
+    public function testDuplicateTableAlias()
+    {
+        $this->query->cols(array('*'));
+        $this->query->from('t1');
+
+        $this->setExpectedException(
+            'Aura\SqlQuery\Exception',
+            "Cannot reference 'FROM t2 AS t1' after 'FROM t1'"
+        );
+        $this->query->from('t2 AS t1');
+    }
+
     public function testFromSubSelect()
     {
         $sub = 'SELECT * FROM t2';
