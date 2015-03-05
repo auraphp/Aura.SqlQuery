@@ -125,7 +125,7 @@ class SelectTest extends AbstractQueryTest
                 *
             FROM
                 (
-                SELECT * FROM t2
+                    SELECT * FROM t2
                 ) AS <<a2>>
         ';
         $actual = $this->query->__toString();
@@ -143,10 +143,10 @@ class SelectTest extends AbstractQueryTest
                 *
             FROM
                 (
-                SELECT
-                    *
-                FROM
-                    <<t2>>
+                    SELECT
+                        *
+                    FROM
+                        <<t2>>
                 ) AS <<a2>>
         ';
         $actual = $this->query->__toString();
@@ -165,9 +165,9 @@ class SelectTest extends AbstractQueryTest
                 *
             FROM
                 <<t1>>
-            LEFT JOIN <<t2>> ON <<t1>>.<<id>> = <<t2>>.<<id>>
-            INNER JOIN <<t3>> AS <<a3>> ON <<t2>>.<<id>> = <<a3>>.<<id>>
-            NATURAL JOIN <<t4>>
+                    LEFT JOIN <<t2>> ON <<t1>>.<<id>> = <<t2>>.<<id>>
+                    INNER JOIN <<t3>> AS <<a3>> ON <<t2>>.<<id>> = <<a3>>.<<id>>
+                    NATURAL JOIN <<t4>>
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
@@ -190,9 +190,9 @@ class SelectTest extends AbstractQueryTest
                 *
             FROM
                 <<t1>>
-            LEFT JOIN <<t2>> ON <<t1>>.<<id>> = <<t2>>.<<id>>
-            INNER JOIN <<t3>> AS <<a3>> ON <<t2>>.<<id>> = <<a3>>.<<id>>
-            NATURAL JOIN <<t4>>
+                    LEFT JOIN <<t2>> ON <<t1>>.<<id>> = <<t2>>.<<id>>
+                    INNER JOIN <<t3>> AS <<a3>> ON <<t2>>.<<id>> = <<a3>>.<<id>>
+                    NATURAL JOIN <<t4>>
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
@@ -216,12 +216,12 @@ class SelectTest extends AbstractQueryTest
                 *
             FROM
                 <<t1>>
-            LEFT JOIN (
-                SELECT * FROM t2
-            ) AS <<a2>> ON <<t2>>.<<c1>> = <<a3>>.<<c1>>
-            NATURAL JOIN (
-                SELECT * FROM t3
-            ) AS <<a3>>
+                    LEFT JOIN (
+                        SELECT * FROM t2
+                    ) AS <<a2>> ON <<t2>>.<<c1>> = <<a3>>.<<c1>>
+                    NATURAL JOIN (
+                        SELECT * FROM t3
+                    ) AS <<a3>>
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
@@ -245,12 +245,12 @@ class SelectTest extends AbstractQueryTest
                 *
             FROM
                 <<t1>>
-            LEFT JOIN (
-                SELECT
-                    *
-                FROM
-                    <<t2>>
-            ) AS <<a3>> ON <<t2>>.<<c1>> = <<a3>>.<<c1>>
+                    LEFT JOIN (
+                        SELECT
+                            *
+                        FROM
+                            <<t2>>
+                    ) AS <<a3>> ON <<t2>>.<<c1>> = <<a3>>.<<c1>>
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
@@ -270,10 +270,10 @@ class SelectTest extends AbstractQueryTest
                 *
             FROM
                 <<t1>>
-            INNER JOIN <<t2>> ON <<t2>>.<<id>> = <<t1>>.<<id>>
-            LEFT JOIN <<t3>> ON <<t3>>.<<id>> = <<t2>>.<<id>>,
-                <<t4>>
-            INNER JOIN <<t5>> ON <<t5>>.<<id>> = <<t4>>.<<id>>
+                    INNER JOIN <<t2>> ON <<t2>>.<<id>> = <<t1>>.<<id>>
+                    LEFT JOIN <<t3>> ON <<t3>>.<<id>> = <<t2>>.<<id>>,
+                        <<t4>>
+                    INNER JOIN <<t5>> ON <<t5>>.<<id>> = <<t4>>.<<id>>
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
@@ -291,8 +291,8 @@ class SelectTest extends AbstractQueryTest
                 *
             FROM
                 <<t1>>
-            INNER JOIN <<t2>> ON <<t2>>.<<id>> = <<t1>>.<<id>>
-            LEFT JOIN <<t3>> USING (id)
+                    INNER JOIN <<t2>> ON <<t2>>.<<id>> = <<t1>>.<<id>>
+                    LEFT JOIN <<t3>> USING (id)
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
