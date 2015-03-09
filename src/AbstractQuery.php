@@ -85,14 +85,30 @@ abstract class AbstractQuery
 
     /**
      *
+     * Prefix to use on placeholders for "sequential" bound values; used for
+     * deconfliction when merging bound values from sub-selects, etc.
+     *
+     * @var mixed
+     *
+     */
+    protected $seq_bind_prefix = '';
+
+    /**
+     *
      * Constructor.
      *
      * @param Quoter $quoter A helper for quoting identifier names.
      *
      */
-    public function __construct(Quoter $quoter)
+    public function __construct(Quoter $quoter, $seq_bind_prefix = '')
     {
         $this->quoter = $quoter;
+        $this->seq_bind_prefix = $seq_bind_prefix;
+    }
+
+    public function getSeqBindPrefix()
+    {
+        return $this->seq_bind_prefix;
     }
 
     /**
@@ -335,7 +351,6 @@ abstract class AbstractQuery
         // bind values against ?-mark placeholders, but becuase PDO is finicky
         // about the numbering of sequential placeholders, convert each ?-mark
         // to a named placeholder
-        $k = count($this->bind_values);
         $parts = preg_split('/(\?)/', $cond, null, PREG_SPLIT_DELIM_CAPTURE);
         foreach ($parts as $key => $val) {
             if ($val != '?') {
@@ -348,13 +363,19 @@ abstract class AbstractQuery
                 continue;
             }
 
-            $k ++;
-            $placeholder = "_{$k}_";
+            $placeholder = $this->getSeqPlaceholder();
             $parts[$key] = ':' . $placeholder;
             $this->bind_values[$placeholder] = $bind_value;
         }
+
         $cond = implode('', $parts);
         return $cond;
+    }
+
+    protected function getSeqPlaceholder()
+    {
+        $i = count($this->bind_values) + 1;
+        return $this->seq_bind_prefix . "_{$i}_";
     }
 
     /**

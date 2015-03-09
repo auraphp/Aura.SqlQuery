@@ -328,14 +328,34 @@ class Select extends AbstractQuery implements SelectInterface
     public function fromSubSelect($spec, $name)
     {
         $this->addTableRef('FROM (SELECT ...) AS', $name);
-        $spec = ltrim(preg_replace('/^/m', '        ', (string) $spec));
-        $this->from[] = array(
-            "("
-            . PHP_EOL . '        ' . $spec . PHP_EOL
-            . "    ) AS " . $this->quoter->quoteName($name)
-        );
+        $spec = $this->subSelect($spec, '        ');
+        $name = $this->quoter->quoteName($name);
+        $this->from[] = array("({$spec}    ) AS $name");
         $this->from_key ++;
         return $this;
+    }
+
+    /**
+     *
+     * Formats a sub-SELECT statement, binding values from a Select object as
+     * needed.
+     *
+     * @param string|SelectInterface $spec A sub-SELECT specification.
+     *
+     * @param string $indent Indent each line with this string.
+     *
+     * @return string The sub-SELECT string.
+     *
+     */
+    protected function subSelect($spec, $indent)
+    {
+        if ($spec instanceof SelectInterface) {
+            $this->bindValues($spec->getBindValues());
+        }
+
+        return PHP_EOL . $indent
+            . ltrim(preg_replace('/^/m', $indent, (string) $spec))
+            . PHP_EOL;
     }
 
     /**
@@ -462,13 +482,12 @@ class Select extends AbstractQuery implements SelectInterface
         $join = strtoupper(ltrim("$join JOIN"));
         $this->addTableRef("$join (SELECT ...) AS", $name);
 
-        $spec = PHP_EOL . '    '
-              . ltrim(preg_replace('/^/m', '    ', (string) $spec))
-              . PHP_EOL;
+        $spec = $this->subSelect($spec, '            ');
         $name = $this->quoter->quoteName($name);
-
         $cond = $this->fixJoinCondition($cond, $bind);
-        $this->from[$this->from_key][] = rtrim("$join ($spec) AS $name $cond");
+
+        $text = rtrim("$join ($spec        ) AS $name $cond");
+        $this->from[$this->from_key][] = '        ' . $text ;
         return $this;
     }
 

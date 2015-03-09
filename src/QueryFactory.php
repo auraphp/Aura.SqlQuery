@@ -79,6 +79,17 @@ class QueryFactory
      */
     protected $last_insert_id_names = array();
 
+    protected $quoter;
+
+    /**
+     *
+     * A count of Query instances, used for determining $seq_bind_prefix.
+     *
+     * @var int
+     *
+     */
+    protected $instance_count = 0;
+
     /**
      *
      * Constructor.
@@ -186,9 +197,32 @@ class QueryFactory
 
         $class .= "\\{$query}";
 
-        return new $class(new Quoter(
-            $this->quote_name_prefix,
-            $this->quote_name_suffix
-        ));
+        return new $class(
+            $this->getQuoter(),
+            $this->newSeqBindPrefix()
+        );
+    }
+
+    protected function getQuoter()
+    {
+        if (! $this->quoter) {
+            $this->quoter = new Quoter(
+                $this->quote_name_prefix,
+                $this->quote_name_suffix
+            );
+        }
+
+        return $this->quoter;
+    }
+
+    protected function newSeqBindPrefix()
+    {
+        $seq_bind_prefix = '';
+        if ($this->instance_count) {
+            $seq_bind_prefix = '_' . $this->instance_count;
+        }
+
+        $this->instance_count ++;
+        return $seq_bind_prefix;
     }
 }
