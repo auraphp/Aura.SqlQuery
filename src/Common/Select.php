@@ -103,12 +103,12 @@ class Select extends AbstractQuery implements SelectInterface
 
     /**
      *
-     * Returns this object as an SQL statement string.
+     * Returns this query object as an SQL statement string.
      *
      * @return string An SQL statement string.
      *
      */
-    public function __toString()
+    public function getStatement()
     {
         $union = '';
         if ($this->union) {
@@ -353,7 +353,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @throws Exception
      *
      */
-    public function join($join, $spec, $cond = null)
+    public function join($join, $spec, $cond = null, array $bind = array())
     {
         if (! $this->from) {
             throw new Exception('Cannot join() without from() first.');
@@ -363,7 +363,7 @@ class Select extends AbstractQuery implements SelectInterface
         $this->addTableRef($join, $spec);
 
         $spec = $this->quoter->quoteName($spec);
-        $cond = $this->fixJoinCondition($cond);
+        $cond = $this->fixJoinCondition($cond, $bind);
         $this->from[$this->from_key][] = rtrim("$join $spec $cond");
         return $this;
     }
@@ -378,13 +378,14 @@ class Select extends AbstractQuery implements SelectInterface
      * @return string
      *
      */
-    protected function fixJoinCondition($cond)
+    protected function fixJoinCondition($cond, array $bind)
     {
         if (! $cond) {
             return;
         }
 
         $cond = $this->quoter->quoteNamesIn($cond);
+        $cond = $this->rebuildCondAndBindValues($cond, $bind);
 
         if (strtoupper(substr(ltrim($cond), 0, 3)) == 'ON ') {
             return $cond;
@@ -410,9 +411,9 @@ class Select extends AbstractQuery implements SelectInterface
      * @throws Exception
      *
      */
-    public function innerJoin($spec, $cond = null)
+    public function innerJoin($spec, $cond = null, array $bind = array())
     {
-        return $this->join('INNER', $spec, $cond);
+        return $this->join('INNER', $spec, $cond, $bind);
     }
 
     /**
@@ -428,9 +429,9 @@ class Select extends AbstractQuery implements SelectInterface
      * @throws Exception
      *
      */
-    public function leftJoin($spec, $cond = null)
+    public function leftJoin($spec, $cond = null, array $bind = array())
     {
-        return $this->join('LEFT', $spec, $cond);
+        return $this->join('LEFT', $spec, $cond, $bind);
     }
 
     /**
@@ -452,7 +453,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @throws Exception
      *
      */
-    public function joinSubSelect($join, $spec, $name, $cond = null)
+    public function joinSubSelect($join, $spec, $name, $cond = null, array $bind = array())
     {
         if (! $this->from) {
             throw new Exception('Cannot join() without from() first.');
@@ -466,7 +467,7 @@ class Select extends AbstractQuery implements SelectInterface
               . PHP_EOL;
         $name = $this->quoter->quoteName($name);
 
-        $cond = $this->fixJoinCondition($cond);
+        $cond = $this->fixJoinCondition($cond, $bind);
         $this->from[$this->from_key][] = rtrim("$join ($spec) AS $name $cond");
         return $this;
     }
