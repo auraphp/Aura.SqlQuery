@@ -40,6 +40,10 @@ abstract class AbstractQueryTest extends \PHPUnit_Framework_TestCase
         $actual = preg_replace('/^[ \t]*/m', '', $actual);
         $actual = preg_replace('/[ \t]*$/m', '', $actual);
 
+        // normalize line endings to be sure tests will pass on windows and mac
+        $expect = preg_replace('/\r\n|\n|\r/', PHP_EOL, $expect);
+        $actual = preg_replace('/\r\n|\n|\r/', PHP_EOL, $actual);
+
         // are they the same now?
         $this->assertSame($expect, $actual);
     }

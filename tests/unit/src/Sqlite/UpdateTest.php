@@ -193,10 +193,10 @@ class UpdateTest extends Common\UpdateTest
             name VARCHAR(50) NOT NULL
         )");
 
-        $names = [
+        $names = array(
             'Anna', 'Betty', 'Clara', 'Donna', 'Flora',
             'Gina', 'Hanna', 'Ione', 'Julia', 'Kara',
-        ];
+        );
 
         $stm = "INSERT INTO test (name) VALUES (:name)";
         foreach ($names as $name) {

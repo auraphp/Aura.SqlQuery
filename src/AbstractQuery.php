@@ -76,9 +76,9 @@ abstract class AbstractQuery
 
     /**
      *
-     * The prefix to use when quoting identifier names.
+     * A helper for quoting identifier names.
      *
-     * @var string
+     * @var Quoter
      *
      */
     protected $quoter;
@@ -97,12 +97,24 @@ abstract class AbstractQuery
 
     /**
      *
-     * Returns this query object as a string.
+     * Returns this query object as an SQL statement string.
      *
      * @return string
      *
      */
     public function __toString()
+    {
+        return $this->getStatement();
+    }
+
+    /**
+     *
+     * Returns this query object as an SQL statement string.
+     *
+     * @return string
+     *
+     */
+    public function getStatement()
     {
         return $this->build();
     }
@@ -329,10 +341,17 @@ abstract class AbstractQuery
             if ($val != '?') {
                 continue;
             }
+
+            $bind_value = array_shift($args);
+            if ($bind_value instanceof self) {
+                $parts[$key] = $bind_value->__toString();
+                continue;
+            }
+
             $k ++;
             $placeholder = "_{$k}_";
             $parts[$key] = ':' . $placeholder;
-            $this->bind_values[$placeholder] = array_shift($bind_values);
+            $this->bind_values[$placeholder] = $bind_value;
         }
         $cond = implode('', $parts);
         return $cond;
