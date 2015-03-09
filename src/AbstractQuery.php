@@ -342,7 +342,7 @@ abstract class AbstractQuery
                 continue;
             }
 
-            $bind_value = array_shift($args);
+            $bind_value = array_shift($bind_values);
             if ($bind_value instanceof self) {
                 $parts[$key] = $bind_value->__toString();
                 continue;
