@@ -178,6 +178,32 @@ class SelectTest extends AbstractQueryTest
         $select->join('left', 't2', 't1.id = t2.id');
     }
 
+    public function testJoinAndBind()
+    {
+        $this->query->cols(array('*'));
+        $this->query->from('t1');
+        $this->query->join(
+            'left',
+            't2',
+            't1.id = t2.id AND t1.foo = ?',
+            array('bar')
+        );
+
+        $expect = '
+            SELECT
+                *
+            FROM
+                <<t1>>
+            LEFT JOIN <<t2>> ON <<t1>>.<<id>> = <<t2>>.<<id>> AND <<t1>>.<<foo>> = :_1_
+        ';
+        $actual = $this->query->__toString();
+        $this->assertSameSql($expect, $actual);
+
+        $expect = array('_1_' => 'bar');
+        $actual = $this->query->getBindValues();
+        $this->assertSame($expect, $actual);
+    }
+
     public function testLeftAndInnerJoin()
     {
         $this->query->cols(array('*'));
@@ -200,7 +226,29 @@ class SelectTest extends AbstractQueryTest
         // try to join without from
         $select = $this->newQuery();
         $this->setExpectedException('Aura\SqlQuery\Exception');
-        $select->leftJoin('left', 't2', 't1.id = t2.id');
+        $select->leftJoin('t2', 't1.id = t2.id');
+    }
+
+    public function testLeftAndInnerJoinWithBind()
+    {
+        $this->query->cols(array('*'));
+        $this->query->from('t1');
+        $this->query->leftJoin('t2', 't2.id = ?', array('foo'));
+        $this->query->innerJoin('t3 AS a3', 'a3.id = ?', array('bar'));
+        $expect = '
+            SELECT
+                *
+            FROM
+                <<t1>>
+            LEFT JOIN <<t2>> ON <<t2>>.<<id>> = :_1_
+            INNER JOIN <<t3>> AS <<a3>> ON <<a3>>.<<id>> = :_2_
+        ';
+        $actual = $this->query->__toString();
+        $this->assertSameSql($expect, $actual);
+
+        $expect = array('_1_' => 'foo', '_2_' => 'bar');
+        $actual = $this->query->getBindValues();
+        $this->assertSame($expect, $actual);
     }
 
     public function testJoinSubSelect()
