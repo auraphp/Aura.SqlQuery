@@ -94,6 +94,15 @@ class Select extends AbstractQuery implements SelectInterface
 
     /**
      *
+     * Tracks table references to avoid duplicate identifiers.
+     *
+     * @var array
+     *
+     */
+    protected $table_refs = array();
+
+    /**
+     *
      * Returns this query object as an SQL statement string.
      *
      * @return string An SQL statement string.
@@ -238,6 +247,36 @@ class Select extends AbstractQuery implements SelectInterface
 
     /**
      *
+     * Tracks table references.
+     *
+     * @var string $type FROM, JOIN, etc.
+     *
+     * @var string $spec The table and alias name.
+     *
+     * @return null
+     *
+     * @throws Exception when the reference has already been used.
+     *
+     */
+    protected function addTableRef($type, $spec)
+    {
+        $name = $spec;
+
+        $pos = strripos($name, ' AS ');
+        if ($pos !== false) {
+            $name = trim(substr($name, $pos + 4));
+        }
+
+        if (isset($this->table_refs[$name])) {
+            $used = $this->table_refs[$name];
+            throw new Exception("Cannot reference '$type $spec' after '$used'");
+        }
+
+        $this->table_refs[$name] = "$type $spec";
+    }
+
+    /**
+     *
      * Adds a FROM element to the query; quotes the table name automatically.
      *
      * @param string $spec The table specification; "foo" or "foo AS bar".
@@ -247,7 +286,8 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function from($spec)
     {
-        return $this->fromRaw($this->quoter->quoteName($spec));
+        $this->addTableRef('FROM', $spec);
+        return $this->addFrom($this->quoter->quoteName($spec));
     }
 
     /**
@@ -262,10 +302,17 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function fromRaw($spec)
     {
+        $this->addTableRef('FROM', $spec);
+        return $this->addFrom($spec);
+    }
+
+    protected function addFrom($spec)
+    {
         $this->from[] = array($spec);
         $this->from_key ++;
         return $this;
     }
+
     /**
      *
      * Adds an aliased sub-select to the query.
@@ -280,6 +327,7 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function fromSubSelect($spec, $name)
     {
+        $this->addTableRef('FROM (SELECT ...) AS', $name);
         $spec = ltrim(preg_replace('/^/m', '        ', (string) $spec));
         $this->from[] = array(
             "("
@@ -312,6 +360,8 @@ class Select extends AbstractQuery implements SelectInterface
         }
 
         $join = strtoupper(ltrim("$join JOIN"));
+        $this->addTableRef($join, $spec);
+
         $spec = $this->quoter->quoteName($spec);
         $cond = $this->fixJoinCondition($cond, $bind);
         $this->from[$this->from_key][] = rtrim("$join $spec $cond");
@@ -410,6 +460,8 @@ class Select extends AbstractQuery implements SelectInterface
         }
 
         $join = strtoupper(ltrim("$join JOIN"));
+        $this->addTableRef("$join (SELECT ...) AS", $name);
+
         $spec = PHP_EOL . '    '
               . ltrim(preg_replace('/^/m', '    ', (string) $spec))
               . PHP_EOL;
