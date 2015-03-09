@@ -116,6 +116,48 @@ class SelectTest extends AbstractQueryTest
         $this->assertSameSql($expect, $actual);
     }
 
+    public function testFromRaw()
+    {
+        $this->query->cols(array('*'));
+        $this->query->fromRaw('t1')
+                    ->fromRaw('t2');
+
+        $actual = $this->query->__toString();
+        $expect = '
+            SELECT
+                *
+            FROM
+                t1,
+                t2
+        ';
+        $this->assertSameSql($expect, $actual);
+    }
+
+    public function testDuplicateFromTable()
+    {
+        $this->query->cols(array('*'));
+        $this->query->from('t1');
+
+        $this->setExpectedException(
+            'Aura\SqlQuery\Exception',
+            "Cannot reference 'FROM t1' after 'FROM t1'"
+        );
+        $this->query->from('t1');
+    }
+
+
+    public function testDuplicateFromAlias()
+    {
+        $this->query->cols(array('*'));
+        $this->query->from('t1');
+
+        $this->setExpectedException(
+            'Aura\SqlQuery\Exception',
+            "Cannot reference 'FROM t2 AS t1' after 'FROM t1'"
+        );
+        $this->query->from('t2 AS t1');
+    }
+
     public function testFromSubSelect()
     {
         $sub = 'SELECT * FROM t2';
@@ -130,6 +172,20 @@ class SelectTest extends AbstractQueryTest
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
+    }
+
+    public function testDuplicateSubSelectTableRef()
+    {
+        $this->query->cols(array('*'));
+        $this->query->from('t1');
+
+        $this->setExpectedException(
+            'Aura\SqlQuery\Exception',
+            "Cannot reference 'FROM (SELECT ...) AS t1' after 'FROM t1'"
+        );
+
+        $sub = 'SELECT * FROM t2';
+        $this->query->fromSubSelect($sub, 't1');
     }
 
     public function testFromSubSelectObject()
@@ -188,6 +244,44 @@ class SelectTest extends AbstractQueryTest
         $select->join('left', 't2', 't1.id = t2.id');
     }
 
+    public function testDuplicateJoinRef()
+    {
+        $this->query->cols(array('*'));
+        $this->query->from('t1');
+
+        $this->setExpectedException(
+            'Aura\SqlQuery\Exception',
+            "Cannot reference 'NATURAL JOIN t1' after 'FROM t1'"
+        );
+        $this->query->join('natural', 't1');
+    }
+
+    public function testJoinAndBind()
+    {
+        $this->query->cols(array('*'));
+        $this->query->from('t1');
+        $this->query->join(
+            'left',
+            't2',
+            't1.id = t2.id AND t1.foo = ?',
+            array('bar')
+        );
+
+        $expect = '
+            SELECT
+                *
+            FROM
+                <<t1>>
+            LEFT JOIN <<t2>> ON <<t1>>.<<id>> = <<t2>>.<<id>> AND <<t1>>.<<foo>> = :_1_
+        ';
+        $actual = $this->query->__toString();
+        $this->assertSameSql($expect, $actual);
+
+        $expect = array('_1_' => 'bar');
+        $actual = $this->query->getBindValues();
+        $this->assertSame($expect, $actual);
+    }
+
     public function testLeftAndInnerJoin()
     {
         $this->query->cols(array('*'));
@@ -210,7 +304,29 @@ class SelectTest extends AbstractQueryTest
         // try to join without from
         $select = $this->newQuery();
         $this->setExpectedException('Aura\SqlQuery\Exception');
-        $select->leftJoin('left', 't2', 't1.id = t2.id');
+        $select->leftJoin('t2', 't1.id = t2.id');
+    }
+
+    public function testLeftAndInnerJoinWithBind()
+    {
+        $this->query->cols(array('*'));
+        $this->query->from('t1');
+        $this->query->leftJoin('t2', 't2.id = ?', array('foo'));
+        $this->query->innerJoin('t3 AS a3', 'a3.id = ?', array('bar'));
+        $expect = '
+            SELECT
+                *
+            FROM
+                <<t1>>
+            LEFT JOIN <<t2>> ON <<t2>>.<<id>> = :_1_
+            INNER JOIN <<t3>> AS <<a3>> ON <<a3>>.<<id>> = :_2_
+        ';
+        $actual = $this->query->__toString();
+        $this->assertSameSql($expect, $actual);
+
+        $expect = array('_1_' => 'foo', '_2_' => 'bar');
+        $actual = $this->query->getBindValues();
+        $this->assertSame($expect, $actual);
     }
 
     public function testJoinSubSelect()
@@ -240,6 +356,20 @@ class SelectTest extends AbstractQueryTest
         $select = $this->newQuery();
         $this->setExpectedException('Aura\SqlQuery\Exception');
         $select->joinSubSelect('left', $sub1, 'a2', 't2.c1 = a3.c1');
+    }
+
+    public function testDuplicateJoinSubSelectRef()
+    {
+        $this->query->cols(array('*'));
+        $this->query->from('t1');
+
+        $this->setExpectedException(
+            'Aura\SqlQuery\Exception',
+            "Cannot reference 'NATURAL JOIN (SELECT ...) AS t1' after 'FROM t1'"
+        );
+
+        $sub2 = 'SELECT * FROM t3';
+        $this->query->joinSubSelect('natural', $sub2, 't1');
     }
 
     public function testJoinSubSelectObject()
@@ -584,6 +714,42 @@ class SelectTest extends AbstractQueryTest
                 baz,
                 dib
         ';
+        $this->assertSameSql($expect, $actual);
+    }
+
+    public function testIssue47()
+    {
+        // sub select
+        $sub = $this->newQuery()
+            ->cols(array('*'))
+            ->from('table1 AS t1');
+        $expect = '
+            SELECT
+                *
+            FROM
+                <<table1>> AS <<t1>>
+        ';
+        $actual = $sub->__toString();
+        $this->assertSameSql($expect, $actual);
+
+        // main select
+        $select = $this->newQuery()
+            ->cols(array('*'))
+            ->from('table2 AS t2')
+            ->where("field IN (?)", $sub);
+
+        $expect = '
+            SELECT
+                *
+            FROM
+                <<table2>> AS <<t2>>
+            WHERE
+                field IN (SELECT
+                *
+            FROM
+                <<table1>> AS <<t1>>)
+        ';
+        $actual = $select->__toString();
         $this->assertSameSql($expect, $actual);
     }
 }

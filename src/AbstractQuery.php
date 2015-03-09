@@ -333,21 +333,7 @@ abstract class AbstractQuery
     {
         // remove the condition from the args and quote names in it
         $cond = array_shift($args);
-        $cond = $this->quoter->quoteNamesIn($cond);
-
-        // remaining args are bind values; bind against ?-mark placeholders,
-        // but becuase PDO is finicky about the numbering of sequential
-        // placeholders, convert the ?-mark to a named placeholder
-        $parts = preg_split('/(\?)/', $cond, null, PREG_SPLIT_DELIM_CAPTURE);
-        foreach ($parts as $key => $val) {
-            if ($val != '?') {
-                continue;
-            }
-            $placeholder = $this->getSeqPlaceholder();
-            $parts[$key] = ':' . $placeholder;
-            $this->bind_values[$placeholder] = array_shift($args);
-        }
-        $cond = implode('', $parts);
+        $cond = $this->rebuildCondAndBindValues($cond, $args);
 
         // add condition to clause; $this->where
         $clause =& $this->$clause;
@@ -356,6 +342,34 @@ abstract class AbstractQuery
         } else {
             $clause[] = $cond;
         }
+    }
+
+    protected function rebuildCondAndBindValues($cond, array $bind_values)
+    {
+        $cond = $this->quoter->quoteNamesIn($cond);
+
+        // bind values against ?-mark placeholders, but becuase PDO is finicky
+        // about the numbering of sequential placeholders, convert each ?-mark
+        // to a named placeholder
+        $parts = preg_split('/(\?)/', $cond, null, PREG_SPLIT_DELIM_CAPTURE);
+        foreach ($parts as $key => $val) {
+            if ($val != '?') {
+                continue;
+            }
+
+            $bind_value = array_shift($bind_values);
+            if ($bind_value instanceof self) {
+                $parts[$key] = $bind_value->__toString();
+                continue;
+            }
+
+            $placeholder = $this->getSeqPlaceholder();
+            $parts[$key] = ':' . $placeholder;
+            $this->bind_values[$placeholder] = $bind_value;
+        }
+
+        $cond = implode('', $parts);
+        return $cond;
     }
 
     protected function getSeqPlaceholder()
