@@ -570,4 +570,40 @@ class SelectTest extends AbstractQueryTest
         ';
         $this->assertSameSql($expect, $actual);
     }
+
+    public function testIssue47()
+    {
+        // sub select
+        $sub = $this->newQuery()
+            ->cols(array('*'))
+            ->from('table1 AS t1');
+        $expect = '
+            SELECT
+                *
+            FROM
+                <<table1>> AS <<t1>>
+        ';
+        $actual = $sub->__toString();
+        $this->assertSameSql($expect, $actual);
+
+        // main select
+        $select = $this->newQuery()
+            ->cols(array('*'))
+            ->from('table2 AS t2')
+            ->where("field IN (?)", $sub);
+
+        $expect = '
+            SELECT
+                *
+            FROM
+                <<table2>> AS <<t2>>
+            WHERE
+                field IN (SELECT
+                *
+            FROM
+                <<table1>> AS <<t1>>)
+        ';
+        $actual = $select->__toString();
+        $this->assertSameSql($expect, $actual);
+    }
 }
