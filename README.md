@@ -68,6 +68,7 @@ class).
 
 [Aura.Sql]: https://github.com/auraphp/Aura.Sql/tree/develop-2
 
+
 ## Identifier Quoting
 
 In most cases, the query objects will quote identifiers for you. For example,
