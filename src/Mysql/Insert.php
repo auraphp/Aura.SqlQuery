@@ -201,7 +201,7 @@ class Insert extends Common\Insert
 
         $values = array();
         foreach ($this->col_on_update_values as $key => $row) {
-            $values[] = $this->indent([$key . ' = ' . $row]);
+            $values[] = $this->indent(array($key . ' = ' . $row));
         }
 
         return ' ON DUPLICATE KEY UPDATE'
