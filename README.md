@@ -35,7 +35,6 @@ you notice compliance oversights, please send a patch via pull request.
 
 To ask questions, provide feedback, or otherwise communicate with the Aura community, please join our [Google Group](http://groups.google.com/group/auraphp), follow [@auraphp on Twitter](http://twitter.com/auraphp), or chat with us on #auraphp on Freenode.
 
-
 ## Getting Started
 
 First, instantiate a _QueryFactory_ with a database type:
