@@ -1,2 +1,20 @@
-To avoid mixing numbered and names placeholders, we now convert numbered ? placeholders in where() and having() to :_#_ named placeholders. This is because PDO is really touchy about sequence numbers on ? placeholders. If we have bound values [:foo, :bar, ?, :baz], the ? placeholder is not number 1, it is number 3. As it is nigh impossible to keep track of the numbering when done out-of-order, we now do a braindead check on the where/having condition string to see if it has ? placholders, and replace them with named :_#_ placeholders, where # is the current count of the $bind_values array.
+@@@WRITE MAILING LIST MESSAGE HERE
 
+- REF: Extract rebuilding of condition and binding sequential values
+- FIX: Allow binding of values as part of join() methods. fixes #27
+- NEW: Method Select::addTableRef(), still need to test it
+- FIX: Fixes #38
+- Merge branch 'aliastracking' of github.com:auraphp/Aura.SqlQuery into aliastracking
+- REF: Extract statement-building to AbstractQuery::getStatement() method. fixes #30
+- FIX: #47, if value for sequential placeholder is a Query, place it as a string inline
+- ADD: Sequential-placeholder prefixing
+- ADD: bind values from sub-selects, and modify indenting
+- ADD: QueryFactory now sets the sequntial bind prefix
+- FIX: Remove all line endings from queries to be sure tests will pass on windows and mac. Merge pull request #53 from ksimka/fix-tests-remove-line-endings. Fixed tests for windows
+- Merge pull request #50 from auraphp/bindonjoin. Allow binding of values as part of join() methods
+- Merge pull request #51 from auraphp/aliastracking. Add table-reference tracking to disallow duplicate references
+- Merge pull request #52 from auraphp/bindsubselect. Bind Values From Sub-Selects
+
+- DOC: Readme updates
+- DOC: Add CONTRIBUTING.md file.
+- DOC: Update license years
