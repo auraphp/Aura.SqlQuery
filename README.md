@@ -98,6 +98,7 @@ If you discover that a partially-qualified identifier has not been auto-quoted
 for you, change it to a fully-qualified identifer (e.g., from `col_name` to
 `table_name.col_name`).
 
+
 ## Common Query Objects
 
 Although you must specify a database type when instantiating a _QueryFactory_,
