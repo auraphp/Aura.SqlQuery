@@ -79,6 +79,13 @@ class QueryFactory
      */
     protected $last_insert_id_names = array();
 
+    /**
+     *
+     * A Quoter for identifiers.
+     *
+     * @param Quoter
+     *
+     */
     protected $quoter;
 
     /**
@@ -203,6 +210,13 @@ class QueryFactory
         );
     }
 
+    /**
+     *
+     * Returns the Quoter object for queries; creates one if needed.
+     *
+     * @return Quoter
+     *
+     */
     protected function getQuoter()
     {
         if (! $this->quoter) {
@@ -215,6 +229,15 @@ class QueryFactory
         return $this->quoter;
     }
 
+    /**
+     *
+     * Returns a new sequential-placeholder prefix for a query object.
+     *
+     * We need these to deconflict between bound values in subselect queries.
+     *
+     * @return string
+     *
+     */
     protected function newSeqBindPrefix()
     {
         $seq_bind_prefix = '';

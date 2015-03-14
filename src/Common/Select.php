@@ -249,9 +249,9 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * Tracks table references.
      *
-     * @var string $type FROM, JOIN, etc.
+     * @param string $type FROM, JOIN, etc.
      *
-     * @var string $spec The table and alias name.
+     * @param string $spec The table and alias name.
      *
      * @return null
      *
@@ -306,6 +306,15 @@ class Select extends AbstractQuery implements SelectInterface
         return $this->addFrom($spec);
     }
 
+    /**
+     *
+     * Adds to the $from property and increments the key count.
+     *
+     * @param string $spec The table specification.
+     *
+     * @return self
+     *
+     */
     protected function addFrom($spec)
     {
         $this->from[] = array($spec);
@@ -368,6 +377,8 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @param string $cond Join on this condition.
      *
+     * @param array $bind Values to bind to ?-placeholders in the condition.
+     *
      * @return self
      *
      * @throws Exception
@@ -394,6 +405,8 @@ class Select extends AbstractQuery implements SelectInterface
      * with a condition type ('ON' is the default and 'USING' is recognized).
      *
      * @param string $cond Join on this condition.
+     *
+     * @param array $bind Values to bind to ?-placeholders in the condition.
      *
      * @return string
      *
@@ -426,6 +439,8 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @param string $cond Join on this condition.
      *
+     * @param array $bind Values to bind to ?-placeholders in the condition.
+     *
      * @return self
      *
      * @throws Exception
@@ -443,6 +458,8 @@ class Select extends AbstractQuery implements SelectInterface
      * @param string $spec The table specification; "foo" or "foo AS bar".
      *
      * @param string $cond Join on this condition.
+     *
+     * @param array $bind Values to bind to ?-placeholders in the condition.
      *
      * @return self
      *
@@ -467,6 +484,8 @@ class Select extends AbstractQuery implements SelectInterface
      * @param string $name The alias name for the sub-select.
      *
      * @param string $cond Join on this condition.
+     *
+     * @param array $bind Values to bind to ?-placeholders in the condition.
      *
      * @return self
      *

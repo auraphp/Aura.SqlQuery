@@ -99,6 +99,9 @@ abstract class AbstractQuery
      *
      * @param Quoter $quoter A helper for quoting identifier names.
      *
+     * @param string $seq_bind_prefix A prefix for rewritten sequential-binding
+     * placeholders (@see getSeqPlaceholder()).
+     *
      */
     public function __construct(Quoter $quoter, $seq_bind_prefix = '')
     {
@@ -106,6 +109,14 @@ abstract class AbstractQuery
         $this->seq_bind_prefix = $seq_bind_prefix;
     }
 
+    /**
+     *
+     * Returns the prefix for rewritten sequential-binding placeholders
+     * (@see getSeqPlaceholder()).
+     *
+     * @return string
+     *
+     */
     public function getSeqBindPrefix()
     {
         return $this->seq_bind_prefix;
@@ -344,6 +355,20 @@ abstract class AbstractQuery
         }
     }
 
+    /**
+     *
+     * Rebuilds a condition string, replacing sequential placeholders with
+     * named placeholders, and binding the sequenential values to the named
+     * placeholers.
+     *
+     * @param string $cond The condition with sequential placeholders.
+     *
+     * @param array $bind_values The values to bind to the sequential
+     * placeholders under their named versions.
+     *
+     * @return string The rebuilt condition string.
+     *
+     */
     protected function rebuildCondAndBindValues($cond, array $bind_values)
     {
         $cond = $this->quoter->quoteNamesIn($cond);
@@ -372,6 +397,13 @@ abstract class AbstractQuery
         return $cond;
     }
 
+    /**
+     *
+     * Gets the current sequential placeholder name.
+     *
+     * @return string
+     *
+     */
     protected function getSeqPlaceholder()
     {
         $i = count($this->bind_values) + 1;
