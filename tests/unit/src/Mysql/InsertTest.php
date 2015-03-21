@@ -37,7 +37,11 @@ class InsertTest extends Common\InsertTest
             NOW(),
             NULL
         ) ON DUPLICATE KEY UPDATE
-            <<c4>> = %s
+            <<c1>> = :c1__on_duplicate_key,
+            <<c2>> = :c2__on_duplicate_key,
+            <<c3>> = :c3__on_duplicate_key,
+            <<c4>> = NULL,
+            <<c5>> = :c5__on_duplicate_key
     ";
 
     public function testHighPriority()
@@ -96,45 +100,26 @@ class InsertTest extends Common\InsertTest
         $this->assertSameSql($expect, $actual);
     }
 
-    public function testonDuplicateKeyUpdateCol()
+    public function testOnDuplicateKeyUpdate()
     {
-        $this->query->onDuplicateKeyUpdateCol('c4')
-                    ->into('t1')
-                    ->cols(array('c1', 'c2', 'c3'))
+        $this->query->into('t1')
+                    ->cols(array('c1', 'c2' => 'c2-inserted', 'c3'))
                     ->set('c4', 'NOW()')
-                    ->set('c5', null);
+                    ->set('c5', null)
+                    ->onDuplicateKeyUpdateCols(array('c1', 'c2' => 'c2-updated', 'c3'))
+                    ->onDuplicateKeyUpdate('c4', null)
+                    ->onDuplicateKeyUpdateCol('c5', 'c5-updated');
 
         $actual = $this->query->__toString();
-        $expect = sprintf ($this->expected_sql_on_duplicate_key_update, ':c4__on_duplicate_key');
-
+        $expect = $this->expected_sql_on_duplicate_key_update;
         $this->assertSameSql($expect, $actual);
-    }
 
-    public function testonDuplicateKeyUpdateCols()
-    {
-        $this->query->onDuplicateKeyUpdateCols(array('c4' => null))
-                    ->into('t1')
-                    ->cols(array('c1', 'c2', 'c3'))
-                    ->set('c4', 'NOW()')
-                    ->set('c5', null);
-
-        $actual = $this->query->__toString();
-        $expect = sprintf ($this->expected_sql_on_duplicate_key_update, ':c4__on_duplicate_key');
-
-        $this->assertSameSql($expect, $actual);
-    }
-
-    public function testonDuplicateKeyUpdate()
-    {
-        $this->query->onDuplicateKeyUpdate('c4', 'NOW()')
-                    ->into('t1')
-                    ->cols(array('c1', 'c2', 'c3'))
-                    ->set('c4', 'NOW()')
-                    ->set('c5', null);
-
-        $actual = $this->query->__toString();
-        $expect = sprintf ($this->expected_sql_on_duplicate_key_update, 'NOW()');
-
-        $this->assertSameSql($expect, $actual);
+        $expect = array (
+            'c2' => 'c2-inserted',
+            'c2__on_duplicate_key' => 'c2-updated',
+            'c5__on_duplicate_key' => 'c5-updated',
+        );
+        $actual = $this->query->getBindValues();
+        $this->assertSame($expect, $actual);
     }
 }
