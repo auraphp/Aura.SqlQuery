@@ -105,7 +105,7 @@ class InsertTest extends Common\InsertTest
                     ->set('c5', null);
 
         $actual = $this->query->__toString();
-        $expect = sprintf ($this->expected_sql_on_duplicate_key_update, ':on_update_c4');
+        $expect = sprintf ($this->expected_sql_on_duplicate_key_update, ':c4__on_duplicate_key');
 
         $this->assertSameSql($expect, $actual);
     }
@@ -119,7 +119,7 @@ class InsertTest extends Common\InsertTest
                     ->set('c5', null);
 
         $actual = $this->query->__toString();
-        $expect = sprintf ($this->expected_sql_on_duplicate_key_update, ':on_update_c4');
+        $expect = sprintf ($this->expected_sql_on_duplicate_key_update, ':c4__on_duplicate_key');
 
         $this->assertSameSql($expect, $actual);
     }

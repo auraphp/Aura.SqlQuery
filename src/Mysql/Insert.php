@@ -105,7 +105,7 @@ class Insert extends Common\Insert
     public function onDuplicateKeyUpdateCol($col)
     {
         $key = $this->quoter->quoteName($col);
-        $bind = 'on_update_' . $col;
+        $bind = $col . '__on_duplicate_key';
         $this->col_on_update_values[$key] = ":$bind";
         $args = func_get_args();
         if (count($args) > 1) {
