@@ -388,6 +388,17 @@ These 'mysql' query objects have additional MySQL-specific methods:
     - `orderBy()` to add an ORDER BY clause
     - `limit()` to set a LIMIT count
 
+In addition, the _Insert_ object has support for `ON DUPLICATE KEY UPDATE`:
+
+- `onDuplicateKeyUpdate($col, $raw_value)` sets a raw value
+- `onDuplicateKeyUpateCol($col, $value)` is a `col()` equivalent for the update
+- `onDuplicateKeyUpdateCols($cols)` is a `cols()`equivalent for the update
+
+Placeholders for bound values in the `ON DUPLICATE KEY UPDATE` portions will be
+automatically suffixed with `__on_duplicate key` to deconflict them from the
+insert placeholders.
+
+
 ## PostgreSQL Query Objects ('pgsql')
 
 These 'pgsql' query objects have additional PostgreSQL-specific methods:
