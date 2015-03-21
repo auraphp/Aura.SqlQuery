@@ -34,6 +34,13 @@ class Delete extends Common\Delete implements Common\OrderByInterface, Common\Li
         return $this;
     }
 
+    /**
+     *
+     * Returns the LIMIT value.
+     *
+     * @return int
+     *
+     */
     public function getLimit()
     {
         return $this->limit;
@@ -54,6 +61,13 @@ class Delete extends Common\Delete implements Common\OrderByInterface, Common\Li
         return $this;
     }
 
+    /**
+     *
+     * Returns the OFFSET value.
+     *
+     * @return int
+     *
+     */
     public function getOffset()
     {
         return $this->offset;
