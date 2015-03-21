@@ -561,6 +561,16 @@ class SelectTest extends AbstractQueryTest
         $this->assertSameSql($expect, $actual);
     }
 
+    public function testGetterOnLimitAndOffset()
+    {
+        $this->query->cols(array('*'));
+        $this->query->limit(10);
+        $this->query->offset(50);
+
+        $this->assertSame(10, $this->query->getLimit());
+        $this->assertSame(50, $this->query->getOffset());
+    }
+
     public function testLimitOffset()
     {
         $this->query->cols(array('*'));

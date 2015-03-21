@@ -91,4 +91,13 @@ class DeleteTest extends Common\DeleteTest
         );
         $this->assertSame($expect, $actual);
     }
+
+    public function testGetterOnLimitAndOffset()
+    {
+        $this->query->from('t1')
+                    ->limit(5);
+
+        $this->assertSame(5, $this->query->getLimit());
+
+    }
 }
