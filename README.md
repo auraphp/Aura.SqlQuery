@@ -227,7 +227,7 @@ key is the column name and the value is a bind value (not a raw value):
 <?php
 $insert = $query_factory->newInsert();
 
-$insert->into('foo')            // insert into this table
+$insert->into('foo')             // insert into this table
     ->cols(array(                // insert these columns and bind these values
         'foo' => 'foo_value',
         'bar' => 'bar_value',
@@ -245,7 +245,7 @@ choice as a string, and send the bound values along with it.
 $pdo = new PDO(...);
 
 // prepare the statement
-$sth = $pdo->prepare($insert->__toString())
+$sth = $pdo->prepare($insert->__toString());
 
 // execute with bound values
 $sth->execute($insert->getBindValues());
@@ -255,6 +255,49 @@ $name = $insert->getLastInsertIdName('id');
 $id = $pdo->lastInsertId($name);
 ?>
 ```
+
+If you want to do a bulk or multiple-row insert, call the `addRow()` method
+after finishing the first row, then build the next row you want to insert. The
+columns in the rows after the first will be inserted in the same order as the
+first row.
+
+```php
+<?php
+$insert = $query_factory->newInsert();
+
+// insert into this table
+$insert->into('foo');
+
+// set up the first row
+$insert->cols(array(
+    'bar' => 'bar-0',
+    'baz' => 'baz-0'
+));
+$insert->set('ts', 'NOW()');
+
+// set up the second row. the columns here are in a different order
+// than in the first row, but it doesn't matter; the INSERT object
+// keeps track and builds them the same order as the first row.
+$insert->addRow();
+$insert->set('ts', 'NOW()');
+$insert->cols(array(
+    'bar' => 'bar-1',
+    'baz' => 'baz-1'
+));
+
+// set up further rows ...
+$insert->addRow();
+// ...
+
+// execute a bulk insert of all rows
+$pdo = new PDO(...);
+$sth = $pdo->prepare($insert->__toString());
+$sth->execute($insert->getBindValues());
+?>
+```
+
+> N.b.: If you add a row and do not specify a value for a column that was
+> present in the first row, the _Insert_ will throw an exception.
 
 ### UPDATE
 
