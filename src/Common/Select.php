@@ -591,6 +591,13 @@ class Select extends AbstractQuery implements SelectInterface
         return $this;
     }
 
+    /**
+     *
+     * Updates the limit and offset values when changing pagination.
+     *
+     * @return null
+     *
+     */
     protected function setPagingLimitOffset()
     {
         $this->limit  = 0;
@@ -601,6 +608,13 @@ class Select extends AbstractQuery implements SelectInterface
         }
     }
 
+    /**
+     *
+     * Returns the page number being selected.
+     *
+     * @return int
+     *
+     */
     public function getPage()
     {
         return $this->page;
@@ -636,11 +650,25 @@ class Select extends AbstractQuery implements SelectInterface
         return $this;
     }
 
+    /**
+     *
+     * Returns the LIMIT value.
+     *
+     * @return int
+     *
+     */
     public function getLimit()
     {
         return $this->limit;
     }
 
+    /**
+     *
+     * Returns the OFFSET value.
+     *
+     * @return int
+     *
+     */
     public function getOffset()
     {
         return $this->offset;
