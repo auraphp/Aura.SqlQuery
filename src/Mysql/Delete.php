@@ -79,6 +79,11 @@ class Delete extends Common\Delete implements Common\OrderByInterface, Common\Li
         return $this;
     }
 
+    public function getLimit()
+    {
+        return $this->limit;
+    }
+
     /**
      *
      * Adds a column order to the query.
