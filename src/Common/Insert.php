@@ -9,6 +9,7 @@
 namespace Aura\SqlQuery\Common;
 
 use Aura\SqlQuery\AbstractDmlQuery;
+use Aura\SqlQuery\Exception;
 
 /**
  *
@@ -38,6 +39,44 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      *
      */
     protected $last_insert_id_names;
+
+    /**
+     *
+     * The current row-number we are adding column values for. This comes into
+     * play only with bulk inserts.
+     *
+     * @var int
+     *
+     */
+    protected $row = 0;
+
+    /**
+     *
+     * A collection of `$col_values` for previous rows in bulk inserts.
+     *
+     * @var array
+     *
+     */
+    protected $col_values_bulk = array();
+
+    /**
+     *
+     * A collection of `$bind_values` for previous rows in bulk inserts.
+     *
+     * @var array
+     *
+     */
+    protected $bind_values_bulk = array();
+
+    /**
+     *
+     * The order in which columns will be bulk-inserted; this is taken from the
+     * very first inserted row.
+     *
+     * @var array
+     *
+     */
+    protected $col_order = array();
 
     /**
      *
@@ -138,8 +177,8 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * that column.
      *
      * @param array $cols A list of column names, optionally as key-value
-     *                    pairs where the key is a column name and the value is a bind value for
-     *                    that column.
+     * pairs where the key is a column name and the value is a bind value for
+     * that column.
      *
      * @return self
      *
@@ -168,6 +207,95 @@ class Insert extends AbstractDmlQuery implements InsertInterface
 
     /**
      *
+     * Gets the values to bind to placeholders.
+     *
+     * @return array
+     *
+     */
+    public function getBindValues()
+    {
+        return array_merge(parent::getBindValues(), $this->bind_values_bulk);
+    }
+
+    /**
+     *
+     * Finishes the current row in a bulk insert and increments the row counter.
+     *
+     * @return null
+     *
+     */
+    public function addRow()
+    {
+        if (! $this->col_order) {
+            $this->col_order = array_keys($this->col_values);
+        }
+        $this->finishRow();
+        $this->row ++;
+        return $this;
+    }
+
+    /**
+     *
+     * Finishes off the current row in a bulk insert, collecting the bulk
+     * values and resetting for the next row.
+     *
+     * @return null
+     *
+     */
+    protected function finishRow()
+    {
+        if (! $this->col_values) {
+            return;
+        }
+
+        foreach ($this->col_order as $col) {
+            $this->finishCol($col);
+        }
+
+        $this->col_values = array();
+        $this->bind_values = array();
+    }
+
+    /**
+     *
+     * Finishes off a single column of the current row in a bulk insert.
+     *
+     * @param string $col The column to finish off.
+     *
+     * @return null
+     *
+     */
+    protected function finishCol($col)
+    {
+        if (! array_key_exists($col, $this->col_values)) {
+            throw new Exception("Column $col missing from row {$this->row}.");
+        }
+
+        // get the current col_value
+        $value = $this->col_values[$col];
+
+        // is it *not* a placeholder?
+        if (substr($value, 0, 1) != ':') {
+            // copy the value as-is
+            $this->col_values_bulk[$this->row][$col] = $value;
+            return;
+        }
+
+        // retain col_values in bulk with the row number appended
+        $this->col_values_bulk[$this->row][$col] = "{$value}_{$this->row}";
+
+        // the existing placeholder name without : or row number
+        $name = substr($value, 1);
+
+        // retain bind_value in bulk with new placeholder
+        if (array_key_exists($name, $this->bind_values)) {
+            $this->bind_values_bulk["{$name}_{$this->row}"] = $this->bind_values[$name];
+        }
+
+    }
+
+    /**
+     *
      * Builds the inserted columns and values of the statement.
      *
      * @return string
@@ -175,10 +303,34 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      */
     protected function buildValuesForInsert()
     {
+        if ($this->row) {
+            return $this->buildValuesForBulkInsert();
+        }
+
         return ' ('
             . $this->indentCsv(array_keys($this->col_values))
             . PHP_EOL . ') VALUES ('
             . $this->indentCsv(array_values($this->col_values))
             . PHP_EOL . ')';
+    }
+
+    /**
+     *
+     * Builds the bulk-inserted columns and values of the statement.
+     *
+     * @return string
+     *
+     */
+    protected function buildValuesForBulkInsert()
+    {
+        $this->finishRow();
+        $cols = "    (" . implode(', ', $this->col_order) . ")";
+        $vals = array();
+        foreach ($this->col_values_bulk as $row_values) {
+            $vals[] = "    (" . implode(', ', $row_values) . ")";
+        }
+        return PHP_EOL . $cols . PHP_EOL
+            . "VALUES" . PHP_EOL
+            . implode("," . PHP_EOL, $vals);
     }
 }

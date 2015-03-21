@@ -32,8 +32,7 @@ abstract class AbstractQueryTest extends \PHPUnit_Framework_TestCase
         $expect = preg_replace('/[ \t]*$/m', '', $expect);
 
         // convert "<<" and ">>" to the correct identifier quotes
-        $expect = str_replace('<<', $this->query->getQuoteNamePrefix(), $expect);
-        $expect = str_replace('>>', $this->query->getQuoteNameSuffix(), $expect);
+        $expect = $this->requoteIdentifiers($expect);
 
         // remove leading and trailing whitespace per block and line
         $actual = trim($actual);
@@ -46,6 +45,13 @@ abstract class AbstractQueryTest extends \PHPUnit_Framework_TestCase
 
         // are they the same now?
         $this->assertSame($expect, $actual);
+    }
+
+    protected function requoteIdentifiers($string)
+    {
+        $string = str_replace('<<', $this->query->getQuoteNamePrefix(), $string);
+        $string = str_replace('>>', $this->query->getQuoteNameSuffix(), $string);
+        return $string;
     }
 
     protected function tearDown()
