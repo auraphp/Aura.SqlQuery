@@ -85,6 +85,15 @@ class Select extends AbstractQuery implements SelectInterface
 
     /**
      *
+     * The page number to select.
+     *
+     * @var int
+     *
+     */
+    protected $page = 0;
+
+    /**
+     *
      * The number of rows per page.
      *
      * @var int
@@ -129,6 +138,9 @@ class Select extends AbstractQuery implements SelectInterface
     public function setPaging($paging)
     {
         $this->paging = (int) $paging;
+        if ($this->page) {
+            $this->setPagingLimitOffset();
+        }
         return $this;
     }
 
@@ -574,19 +586,24 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function page($page)
     {
-        // reset the count and offset
+        $this->page = (int) $page;
+        $this->setPagingLimitOffset();
+        return $this;
+    }
+
+    protected function setPagingLimitOffset()
+    {
         $this->limit  = 0;
         $this->offset = 0;
-
-        // determine the count and offset from the page number
-        $page = (int) $page;
-        if ($page > 0) {
+        if ($this->page) {
             $this->limit  = $this->paging;
-            $this->offset = $this->paging * ($page - 1);
+            $this->offset = $this->paging * ($this->page - 1);
         }
+    }
 
-        // done
-        return $this;
+    public function getPage()
+    {
+        return $this->page;
     }
 
     /**
@@ -649,6 +666,7 @@ class Select extends AbstractQuery implements SelectInterface
         $this->order_by   = array();
         $this->limit      = 0;
         $this->offset     = 0;
+        $this->page       = 0;
         $this->for_update = false;
     }
 
@@ -818,6 +836,10 @@ class Select extends AbstractQuery implements SelectInterface
     public function limit($limit)
     {
         $this->limit = (int) $limit;
+        if ($this->page) {
+            $this->page = 0;
+            $this->offset = 0;
+        }
         return $this;
     }
 
@@ -833,6 +855,10 @@ class Select extends AbstractQuery implements SelectInterface
     public function offset($offset)
     {
         $this->offset = (int) $offset;
+        if ($this->page) {
+            $this->page = 0;
+            $this->limit = 0;
+        }
         return $this;
     }
 

@@ -762,4 +762,37 @@ class SelectTest extends AbstractQueryTest
         $actual = $select->__toString();
         $this->assertSameSql($expect, $actual);
     }
+
+    public function testIssue49()
+    {
+        $this->assertSame(0, $this->query->getPage());
+        $this->assertSame(10, $this->query->getPaging());
+        $this->assertSame(0, $this->query->getLimit());
+        $this->assertSame(0, $this->query->getOffset());
+
+        $this->query->page(3);
+        $this->assertSame(3, $this->query->getPage());
+        $this->assertSame(10, $this->query->getPaging());
+        $this->assertSame(10, $this->query->getLimit());
+        $this->assertSame(20, $this->query->getOffset());
+
+        $this->query->limit(10);
+        $this->assertSame(0, $this->query->getPage());
+        $this->assertSame(10, $this->query->getPaging());
+        $this->assertSame(10, $this->query->getLimit());
+        $this->assertSame(0, $this->query->getOffset());
+
+        $this->query->page(3);
+        $this->query->setPaging(50);
+        $this->assertSame(3, $this->query->getPage());
+        $this->assertSame(50, $this->query->getPaging());
+        $this->assertSame(50, $this->query->getLimit());
+        $this->assertSame(100, $this->query->getOffset());
+
+        $this->query->offset(10);
+        $this->assertSame(0, $this->query->getPage());
+        $this->assertSame(50, $this->query->getPaging());
+        $this->assertSame(0, $this->query->getLimit());
+        $this->assertSame(10, $this->query->getOffset());
+    }
 }
