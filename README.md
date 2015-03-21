@@ -97,7 +97,6 @@ If you discover that a partially-qualified identifier has not been auto-quoted
 for you, change it to a fully-qualified identifer (e.g., from `col_name` to
 `table_name.col_name`).
 
-
 ## Common Query Objects
 
 Although you must specify a database type when instantiating a _QueryFactory_,
@@ -432,6 +431,17 @@ These 'mysql' query objects have additional MySQL-specific methods:
     - `orderBy()` to add an ORDER BY clause
     - `limit()` to set a LIMIT count
 
+In addition, the _Insert_ object has support for `ON DUPLICATE KEY UPDATE`:
+
+- `onDuplicateKeyUpdate($col, $raw_value)` sets a raw value
+- `onDuplicateKeyUpateCol($col, $value)` is a `col()` equivalent for the update
+- `onDuplicateKeyUpdateCols($cols)` is a `cols()`equivalent for the update
+
+Placeholders for bound values in the `ON DUPLICATE KEY UPDATE` portions will be
+automatically suffixed with `__on_duplicate key` to deconflict them from the
+insert placeholders.
+
+
 ## PostgreSQL Query Objects ('pgsql')
 
 These 'pgsql' query objects have additional PostgreSQL-specific methods:
@@ -514,3 +524,13 @@ Microsoft SQL Server query objects will generate sqlsrv-specific variations of
   `OFFSET ... ROWS FETCH NEXT ... ROWS ONLY` clause. In this case there *must*
   be an `ORDER BY` clause, as the limiting clause is a sub-clause of `ORDER
   BY`.
+
+## Table Prefixes
+
+One frequently-requested feature for this package is support for "automatic
+table prefixes" on all queries.  This feature sounds great in theory, but in
+practice is it (1) difficult to implement well, and (2) even when implemented it
+turns out to be not as great as it seems in theory. This assessment is the
+result of the hard trials of experience. For those of you who want modifiable
+table prefixes, we suggest using constants with your table names prefixed as
+desired; as the prefixes change, you can then change your constants.

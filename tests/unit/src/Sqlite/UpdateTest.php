@@ -221,4 +221,14 @@ class UpdateTest extends Common\UpdateTest
         $row = $sth->fetch(PDO::FETCH_ASSOC);
         $this->assertEquals('Annabelle', $row['name']);
     }
+
+    public function testGetterOnLimitAndOffset()
+    {
+        $this->query->table('t1');
+        $this->query->limit(10);
+        $this->query->offset(5);
+
+        $this->assertSame(10, $this->query->getLimit());
+        $this->assertSame(5, $this->query->getOffset());
+    }
 }

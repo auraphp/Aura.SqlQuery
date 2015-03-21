@@ -160,7 +160,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      *
      * @param string $col The column name.
      *
-     * @param mixed  $val Optional: a value to bind to the placeholder.
+     * @param mixed,...  $val Optional: a value to bind to the placeholder.
      *
      * @return self
      *
