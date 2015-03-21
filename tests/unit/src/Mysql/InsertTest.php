@@ -96,9 +96,9 @@ class InsertTest extends Common\InsertTest
         $this->assertSameSql($expect, $actual);
     }
 
-    public function testColOnUpdate()
+    public function testonDuplicateKeyUpdateCol()
     {
-        $this->query->colOnUpdate ('c4')
+        $this->query->onDuplicateKeyUpdateCol('c4')
                     ->into('t1')
                     ->cols(array('c1', 'c2', 'c3'))
                     ->set('c4', 'NOW()')
@@ -110,9 +110,9 @@ class InsertTest extends Common\InsertTest
         $this->assertSameSql($expect, $actual);
     }
 
-    public function testColsOnUpdate()
+    public function testonDuplicateKeyUpdateCols()
     {
-        $this->query->colsOnUpdate (array('c4' => null))
+        $this->query->onDuplicateKeyUpdateCols(array('c4' => null))
                     ->into('t1')
                     ->cols(array('c1', 'c2', 'c3'))
                     ->set('c4', 'NOW()')
@@ -124,9 +124,9 @@ class InsertTest extends Common\InsertTest
         $this->assertSameSql($expect, $actual);
     }
 
-    public function testSetOnUpdate()
+    public function testonDuplicateKeyUpdate()
     {
-        $this->query->setOnUpdate ('c4', 'NOW()')
+        $this->query->onDuplicateKeyUpdate('c4', 'NOW()')
                     ->into('t1')
                     ->cols(array('c1', 'c2', 'c3'))
                     ->set('c4', 'NOW()')

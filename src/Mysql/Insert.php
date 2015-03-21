@@ -102,7 +102,7 @@ class Insert extends Common\Insert
      * @return self
      *
      */
-    public function colOnUpdate($col)
+    public function onDuplicateKeyUpdateCol($col)
     {
         $key = $this->quoter->quoteName($col);
         $bind = 'on_update_' . $col;
@@ -127,16 +127,16 @@ class Insert extends Common\Insert
      * @return self
      *
      */
-    public function colsOnUpdate(array $cols)
+    public function onDuplicateKeyUpdateCols(array $cols)
     {
         foreach ($cols as $key => $val) {
             if (is_int($key)) {
                 // integer key means the value is the column name
-                $this->colOnUpdate($val);
+                $this->onDuplicateKeyUpdateCol($val);
             } else {
                 // the key is the column name and the value is a value to
                 // be bound to that column
-                $this->colOnUpdate($key, $val);
+                $this->onDuplicateKeyUpdateCol($key, $val);
             }
         }
         return $this;
@@ -155,7 +155,7 @@ class Insert extends Common\Insert
      * @return self
      *
      */
-    public function setOnUpdate($col, $value)
+    public function onDuplicateKeyUpdate($col, $value)
     {
         if ($value === null) {
             $value = 'NULL';
