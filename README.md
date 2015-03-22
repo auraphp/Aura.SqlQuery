@@ -255,6 +255,75 @@ $id = $pdo->lastInsertId($name);
 ?>
 ```
 
+### BULK INSERT
+
+Bulk insert functionality works similar to that of normal insert queries. However, the behaviour of some methods are slightly different since we are handling multiple rows and not just one.
+
+```php
+<?php
+$insert = $query_factory->newBulkInsert();
+
+$insert
+    ->into('foo')                                           // INTO this table
+    ->cols(array('bar', 'baz'))                             // bind values as "(bar,baz) VALUES (?,?)"
+    ->set('baz', 'NOW()')                                   // Override the 'baz' column with raw value as "(baz) VALUES (NOW())"
+    ->bindValue('bar', array('row1value', 'row2value'))     // bind single column values
+    ->bindValues(array(                                     // bind these row values
+        array('bar' => 'row1bar', 'baz' => 'row1baz'),
+        array('bar' => 'row2bar'),                          // since 'baz' was not passed, it will use the value specified in set()
+    ));
+?>
+```
+
+The `cols()` method does not support key-value pairs and is only responsible for defining the columns you want to insert. You can use this property to only include the columns you are interested in.
+
+```php
+<?php
+$insert = $query_factory->newBulkInsert();
+
+$insert
+    ->into('foo')                       // insert into this table
+    ->cols(array('foo', 'bar', 'baz')); // (foo, bar, baz) VALUES (?, ?, ?)
+?>
+```
+
+You can selectively modify certain column values using `bindValue()`
+
+```php
+<?php
+$insert = $query_factory->newBulkInsert();
+
+$insert
+    ->into('foo')
+    ->cols(array('bar', 'baz'))
+    ->bindValues(array(
+        array('bar' => 'bar1', 'baz' => 'baz1'),
+        array('bar' => 'bar2', 'baz' => 'baz2'),
+        array('bar' => 'bar3', 'baz' => 'baz3')
+    ))
+    ->bindValue('baz', array('baz1', null, 'baz3')); // Selectively replace the certain column keys
+?>
+```
+
+The `getBindValues()` result will be limited based on the columns you specified.
+
+```php
+<?php
+$insert = $query_factory->newBulkInsert();
+
+$insert
+    ->into('foo')
+    ->cols(array('bar'))
+    ->bindValues(array(
+        array('bar' => 'bar1', 'baz' => 'baz1'),
+        array('bar' => 'bar2', 'baz' => 'baz2')
+    ));
+
+$bind = $insert->getBindValues();
+// $bind = array('bar1', 'bar2');
+?>
+```
+
 ### UPDATE
 
 Build an _UPDATE_ query using the following methods. They do not need to
