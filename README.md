@@ -345,6 +345,11 @@ $insert->addRows($rows);
 ?>
 ```
 
+> N.b.: SQLite 3.7.10 and earlier do not support the "standard" multiple-row
+> insert syntax. Thus, bulk inserts with _Insert_ object will not work on those
+> earlier versions of SQLite. We suggest wrapping multuple INSERT operations
+> with a transaction as an alternative.
+
 ### UPDATE
 
 Build an _Update_ query using the following methods. They do not need to
