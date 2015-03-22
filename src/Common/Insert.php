@@ -219,18 +219,53 @@ class Insert extends AbstractDmlQuery implements InsertInterface
 
     /**
      *
-     * Finishes the current row in a bulk insert and increments the row counter.
+     * Adds multiple rows for bulk insert.
      *
-     * @return null
+     * @param array $rows An array of rows, where each element is an array of
+     * column key-value pairs. The values are bound to placeholders.
+     *
+     * @return self
      *
      */
-    public function addRow()
+    public function addRows(array $rows)
     {
+        foreach ($rows as $cols) {
+            $this->addRow($cols);
+        }
+        $this->finishRow();
+        return $this;
+    }
+
+    /**
+     *
+     * Add one row for bulk insert; increments the row counter and optionally
+     * adds columns to the new row.
+     *
+     * When adding the first row, the counter is not incremented.
+     *
+     * After calling `addRow()`, you can further call `col()`, `cols()`, and
+     * `set()` to work with the newly-added row. Calling `addRow()` again will
+     * finish off the current row and start a new one.
+     *
+     * @param array $cols An array of column key-value pairs; the values are
+     * bound to placeholders.
+     *
+     * @return self
+     *
+     */
+    public function addRow(array $cols = array())
+    {
+        if (! $this->col_values) {
+            return $this->cols($cols);
+        }
+
         if (! $this->col_order) {
             $this->col_order = array_keys($this->col_values);
         }
+
         $this->finishRow();
         $this->row ++;
+        $this->cols($cols);
         return $this;
     }
 
@@ -291,7 +326,6 @@ class Insert extends AbstractDmlQuery implements InsertInterface
         if (array_key_exists($name, $this->bind_values)) {
             $this->bind_values_bulk["{$name}_{$this->row}"] = $this->bind_values[$name];
         }
-
     }
 
     /**
