@@ -196,9 +196,10 @@ $result = $sth->fetch(PDO::FETCH_ASSOC);
 
 ### INSERT
 
+#### Single-Row Insert
+
 Build an _Insert_ query using the following methods. They do not need to
-be called in any particular order, and may be called multiple times. This
-builds a single insert; you cannot do a multiple insert with this object.
+be called in any particular order, and may be called multiple times.
 
 ```php
 <?php
@@ -226,7 +227,7 @@ key is the column name and the value is a bind value (not a raw value):
 <?php
 $insert = $query_factory->newInsert();
 
-$insert->into('foo')            // insert into this table
+$insert->into('foo')             // insert into this table
     ->cols(array(                // insert these columns and bind these values
         'foo' => 'foo_value',
         'bar' => 'bar_value',
@@ -244,7 +245,7 @@ choice as a string, and send the bound values along with it.
 $pdo = new PDO(...);
 
 // prepare the statement
-$sth = $pdo->prepare($insert->__toString())
+$sth = $pdo->prepare($insert->__toString());
 
 // execute with bound values
 $sth->execute($insert->getBindValues());
@@ -255,78 +256,103 @@ $id = $pdo->lastInsertId($name);
 ?>
 ```
 
-### BULK INSERT
+#### Multiple-Row (Bulk) Insert
 
-Bulk insert functionality works similar to that of normal insert queries. However, the behaviour of some methods are slightly different since we are handling multiple rows and not just one.
-
-```php
-<?php
-$insert = $query_factory->newBulkInsert();
-
-$insert
-    ->into('foo')                                           // INTO this table
-    ->cols(array('bar', 'baz'))                             // bind values as "(bar,baz) VALUES (?,?)"
-    ->set('baz', 'NOW()')                                   // Override the 'baz' column with raw value as "(baz) VALUES (NOW())"
-    ->bindValue('bar', array('row1value', 'row2value'))     // bind single column values
-    ->bindValues(array(                                     // bind these row values
-        array('bar' => 'row1bar', 'baz' => 'row1baz'),
-        array('bar' => 'row2bar'),                          // since 'baz' was not passed, it will use the value specified in set()
-    ));
-?>
-```
-
-The `cols()` method does not support key-value pairs and is only responsible for defining the columns you want to insert. You can use this property to only include the columns you are interested in.
+If you want to do a multiple-row or bulk insert, call the `addRow()` method
+after finishing the first row, then build the next row you want to insert. The
+columns in the rows after the first will be inserted in the same order as the
+first row.
 
 ```php
 <?php
-$insert = $query_factory->newBulkInsert();
+$insert = $query_factory->newInsert();
 
-$insert
-    ->into('foo')                       // insert into this table
-    ->cols(array('foo', 'bar', 'baz')); // (foo, bar, baz) VALUES (?, ?, ?)
+// insert into this table
+$insert->into('foo');
+
+// set up the first row
+$insert->cols(array(
+    'bar' => 'bar-0',
+    'baz' => 'baz-0'
+));
+$insert->set('ts', 'NOW()');
+
+// set up the second row. the columns here are in a different order
+// than in the first row, but it doesn't matter; the INSERT object
+// keeps track and builds them the same order as the first row.
+$insert->addRow();
+$insert->set('ts', 'NOW()');
+$insert->cols(array(
+    'bar' => 'bar-1',
+    'baz' => 'baz-1'
+));
+
+// set up further rows ...
+$insert->addRow();
+// ...
+
+// execute a bulk insert of all rows
+$pdo = new PDO(...);
+$sth = $pdo->prepare($insert->__toString());
+$sth->execute($insert->getBindValues());
 ?>
 ```
 
-You can selectively modify certain column values using `bindValue()`
+> N.b.: If you add a row and do not specify a value for a column that was
+> present in the first row, the _Insert_ will throw an exception.
+
+If you pass an array of column key-value pairs to `addRow()`, they will be
+bound to the next row, thus allowing you to skip setting up the first row
+manually with `col()` and `cols()`:
 
 ```php
 <?php
-$insert = $query_factory->newBulkInsert();
+// set up the first row
+$insert->addRow(array(
+    'bar' => 'bar-0',
+    'baz' => 'baz-0'
+));
+$insert->set('ts', 'NOW()');
 
-$insert
-    ->into('foo')
-    ->cols(array('bar', 'baz'))
-    ->bindValues(array(
-        array('bar' => 'bar1', 'baz' => 'baz1'),
-        array('bar' => 'bar2', 'baz' => 'baz2'),
-        array('bar' => 'bar3', 'baz' => 'baz3')
-    ))
-    ->bindValue('baz', array('baz1', null, 'baz3')); // Selectively replace the certain column keys
+// set up the second row
+$insert->addRow(array(
+    'bar' => 'bar-1',
+    'baz' => 'baz-1'
+));
+$insert->set('ts', 'NOW()');
+
+// etc.
 ?>
 ```
 
-The `getBindValues()` result will be limited based on the columns you specified.
+If you only need to use bound values, and do not need to set raw values, and
+have the entire data set as an array already, you can use `addRows()` to add
+them all at once:
 
 ```php
 <?php
-$insert = $query_factory->newBulkInsert();
-
-$insert
-    ->into('foo')
-    ->cols(array('bar'))
-    ->bindValues(array(
-        array('bar' => 'bar1', 'baz' => 'baz1'),
-        array('bar' => 'bar2', 'baz' => 'baz2')
-    ));
-
-$bind = $insert->getBindValues();
-// $bind = array('bar1', 'bar2');
+$rows = array(
+    array(
+        'bar' => 'bar-0',
+        'baz' => 'baz-0'
+    ),
+    array(
+        'bar' => 'bar-1',
+        'baz' => 'baz-1'
+    ),
+);
+$insert->addRows($rows);
 ?>
 ```
+
+> N.b.: SQLite 3.7.10 and earlier do not support the "standard" multiple-row
+> insert syntax. Thus, bulk inserts with _Insert_ object will not work on those
+> earlier versions of SQLite. We suggest wrapping multuple INSERT operations
+> with a transaction as an alternative.
 
 ### UPDATE
 
-Build an _UPDATE_ query using the following methods. They do not need to
+Build an _Update_ query using the following methods. They do not need to
 be called in any particular order, and may be called multiple times.
 
 ```php
@@ -386,7 +412,7 @@ $sth->execute($update->getBindValues());
 
 ### DELETE
 
-Build a _DELETE_ query using the following methods. They do not need to
+Build a _Delete_ query using the following methods. They do not need to
 be called in any particular order, and may be called multiple times.
 
 ```php
