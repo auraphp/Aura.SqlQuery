@@ -163,20 +163,6 @@ class QueryFactory
 
     /**
      *
-     * Returns a new bulk INSERT object.
-     *
-     * @return Common\InsertInterface
-     *
-     */
-    public function newBulkInsert()
-    {
-        $insert = $this->newInstance('BulkInsert');
-        $insert->setLastInsertIdNames($this->last_insert_id_names);
-        return $insert;
-    }
-
-    /**
-     *
      * Returns a new UPDATE object.
      *
      * @return Common\UpdateInterface
