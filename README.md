@@ -196,9 +196,10 @@ $result = $sth->fetch(PDO::FETCH_ASSOC);
 
 ### INSERT
 
+#### Single-Row Insert
+
 Build an _Insert_ query using the following methods. They do not need to
-be called in any particular order, and may be called multiple times. This
-builds a single insert; you cannot do a multiple insert with this object.
+be called in any particular order, and may be called multiple times.
 
 ```php
 <?php
@@ -255,7 +256,9 @@ $id = $pdo->lastInsertId($name);
 ?>
 ```
 
-If you want to do a bulk or multiple-row insert, call the `addRow()` method
+#### Multiple-Row (Bulk) Insert
+
+If you want to do a multiple-row or bulk insert, call the `addRow()` method
 after finishing the first row, then build the next row you want to insert. The
 columns in the rows after the first will be inserted in the same order as the
 first row.
@@ -298,9 +301,53 @@ $sth->execute($insert->getBindValues());
 > N.b.: If you add a row and do not specify a value for a column that was
 > present in the first row, the _Insert_ will throw an exception.
 
+If you pass an array of column key-value pairs to `addRow()`, they will be
+bound to the next row, thus allowing you to skip setting up the first row
+manually with `col()` and `cols()`:
+
+```php
+<?php
+// set up the first row
+$insert->addRow(array(
+    'bar' => 'bar-0',
+    'baz' => 'baz-0'
+));
+$insert->set('ts', 'NOW()');
+
+// set up the second row
+$insert->addRow(array(
+    'bar' => 'bar-1',
+    'baz' => 'baz-1'
+));
+$insert->set('ts', 'NOW()');
+
+// etc.
+?>
+```
+
+If you only need to use bound values, and do not need to set raw values, and
+have the entire data set as an array already, you can use `addRows()` to add
+them all at once:
+
+```php
+<?php
+$rows = array(
+    array(
+        'bar' => 'bar-0',
+        'baz' => 'baz-0'
+    ),
+    array(
+        'bar' => 'bar-1',
+        'baz' => 'baz-1'
+    ),
+);
+$insert->addRows($rows);
+?>
+```
+
 ### UPDATE
 
-Build an _UPDATE_ query using the following methods. They do not need to
+Build an _Update_ query using the following methods. They do not need to
 be called in any particular order, and may be called multiple times.
 
 ```php
@@ -360,7 +407,7 @@ $sth->execute($update->getBindValues());
 
 ### DELETE
 
-Build a _DELETE_ query using the following methods. They do not need to
+Build a _Delete_ query using the following methods. They do not need to
 be called in any particular order, and may be called multiple times.
 
 ```php
