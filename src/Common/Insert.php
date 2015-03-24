@@ -232,7 +232,9 @@ class Insert extends AbstractDmlQuery implements InsertInterface
         foreach ($rows as $cols) {
             $this->addRow($cols);
         }
-        $this->finishRow();
+        if ($this->row > 1) {
+            $this->finishRow();
+        }
         return $this;
     }
 

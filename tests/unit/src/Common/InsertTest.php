@@ -244,4 +244,93 @@ class InsertTest extends AbstractQueryTest
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);
     }
+
+    public function testIssue60_addRowsWithOnlyOneRow()
+    {
+        $this->query->into('t1');
+        $this->query->addRows(array(
+            array(
+                'c1' => 'v1-0',
+                'c2' => 'v2-0',
+                'c3' => 'v3-0',
+            ),
+        ));
+
+        $actual = $this->query->__toString();
+        $expect = '
+            INSERT INTO <<t1>> (
+                <<c1>>,
+                <<c2>>,
+                <<c3>>
+            ) VALUES (
+                :c1,
+                :c2,
+                :c3
+            )
+        ';
+
+        $this->assertSameSql($expect, $actual);
+
+        $expect = array (
+            'c1' => 'v1-0',
+            'c2' => 'v2-0',
+            'c3' => 'v3-0',
+        );
+        $actual = $this->query->getBindValues();
+        $this->assertSame($expect, $actual);
+    }
+
+    public function testIssue60_repeatedAddRowsWithOnlyOneRow()
+    {
+        $this->query->into('t1');
+        $this->query->addRows(array(
+            array(
+                'c1' => 'v1-0',
+                'c2' => 'v2-0',
+                'c3' => 'v3-0',
+            ),
+        ));
+
+        $this->query->addRows(array(
+            array(
+                'c1' => 'v1-1',
+                'c2' => 'v2-1',
+                'c3' => 'v3-1',
+            ),
+        ));
+
+        $this->query->addRows(array(
+            array(
+                'c1' => 'v1-2',
+                'c2' => 'v2-2',
+                'c3' => 'v3-2',
+            ),
+        ));
+
+        $actual = $this->query->__toString();
+        $expect = '
+            INSERT INTO <<t1>>
+                (<<c1>>, <<c2>>, <<c3>>)
+            VALUES
+                (:c1_0, :c2_0, :c3_0),
+                (:c1_1, :c2_1, :c3_1),
+                (:c1_2, :c2_2, :c3_2)
+        ';
+
+        $this->assertSameSql($expect, $actual);
+
+        $expect = array (
+            'c1_0' => 'v1-0',
+            'c2_0' => 'v2-0',
+            'c3_0' => 'v3-0',
+            'c1_1' => 'v1-1',
+            'c2_1' => 'v2-1',
+            'c3_1' => 'v3-1',
+            'c1_2' => 'v1-2',
+            'c2_2' => 'v2-2',
+            'c3_2' => 'v3-2',
+        );
+        $actual = $this->query->getBindValues();
+        $this->assertSame($expect, $actual);
+    }
 }
