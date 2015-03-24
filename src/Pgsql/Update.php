@@ -35,4 +35,21 @@ class Update extends Common\Update implements Common\ReturningInterface
     {
         return $this->addReturning($cols);
     }
+
+    /**
+     * Bind a value, supporting simple array values. No escaping done, whatsoever.
+     *
+     * @param string $name
+     * @param mixed $value
+     * @return self
+     */
+    public function bindValue($name, $value)
+    {
+        if (is_array($value)) {
+            $value = '{' . implode(",", $value) . '}';
+        }
+
+        return parent::bindValue($name, $value);
+    }
+
 }

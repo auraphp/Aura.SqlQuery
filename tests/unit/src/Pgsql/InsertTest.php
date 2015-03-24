@@ -47,4 +47,23 @@ class InsertTest extends Common\InsertTest
         $expect = 'table_col_seq';
         $this->assertSame($expect, $actual);
     }
+
+    /**
+     * @dataProvider getArrayBindValues
+     */
+    public function testBindValueWithArrayValue(array $param, $expected)
+    {
+        $this->query->bindValue('array_col', $param);
+        $values = $this->query->getBindValues();
+        $this->assertSame($expected, $values['array_col']);
+    }
+
+    public function getArrayBindValues()
+    {
+        return array(
+          array(array(), "{}"),
+          array(array(1,2,3), "{1,2,3}"),
+          array(array('foo', 'bar'), "{foo,bar}"),
+        );
+    }
 }
