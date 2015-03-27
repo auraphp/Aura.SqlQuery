@@ -1,1 +1,1 @@
-This release fixes Insert::addRows() so that adding only one row generates the correct SQL statement.
+This release modifies the testing structure and updates other support files.
