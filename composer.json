@@ -40,9 +40,6 @@
     "extra": {
         "aura": {
             "type": "library"
-        },
-        "branch-alias": {
-            "dev-develop-2": "2.0.x-dev"
         }
     },
     "suggest": {
