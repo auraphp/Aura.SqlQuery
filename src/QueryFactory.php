@@ -106,9 +106,6 @@ class QueryFactory
      * @param string $common Pass the constant self::COMMON to force common
      * query objects instead of db-specific ones.
      *
-     * @param array $last_insert_id_names A map of `table.col` names to
-     * last-insert-id names.
-     *
      */
     public function __construct(
         $db,
