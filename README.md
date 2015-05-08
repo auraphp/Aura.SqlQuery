@@ -159,7 +159,7 @@ $select
     ->having('foo = :foo')          // AND HAVING these conditions
     ->having('bar > ?', 'bar_val')  // bind 'bar_val' to the ? placeholder
     ->orHaving('baz < :baz')        // OR HAVING these conditions
-    ->orderBy(array('baz');             // ORDER BY these columns
+    ->orderBy(array('baz'))         // ORDER BY these columns
     ->limit(10)                     // LIMIT 10
     ->offset(40)                    // OFFSET 40
     ->forUpdate()                   // FOR UPDATE
