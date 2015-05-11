@@ -173,7 +173,13 @@ $select
 ?>
 ```
 
-> N.b.: The `*where()`, `*having()`, and `*join*()` methods all take an optional final parameter, a sequential array of values to bind to sequential question-mark placeholders in the condition clause.
+> N.b.: The `*where()` and `*having()` methods take an arbitrary number of
+trailing arguments, each of which is a value to bind to a sequential question-
+mark placeholder in the condition clause.
+>
+> Similarly, the `*join*()` methods take an optional final argument, a
+sequential array of values to bind to sequential question-mark placeholders in
+the condition clause.
 
 Once you have built the query, pass it to the database connection of your
 choice as a string, and send the bound values along with it.
