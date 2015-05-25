@@ -76,4 +76,13 @@ interface QueryInterface
      *
      */
     public function getBindValues();
+    
+    /**
+     *
+     * Returns this query object as an SQL statement string.
+     *
+     * @return string
+     *
+     */
+    public function getStatement();
 }
