@@ -80,7 +80,7 @@ $select->cols(array('foo', 'bar AS barbar'))
        ->from('table2')
        ->where('table2.zim = 99');
 
-echo $select->__toString();
+echo $select->getStatement();
 // SELECT
 //     "foo",
 //     "bar" AS "barbar"
@@ -190,7 +190,7 @@ choice as a string, and send the bound values along with it.
 $pdo = new PDO(...);
 
 // prepare the statment
-$sth = $pdo->prepare($select->__toString());
+$sth = $pdo->prepare($select->getStatement());
 
 // bind the values and execute
 $sth->execute($select->getBindValues());
@@ -251,7 +251,7 @@ choice as a string, and send the bound values along with it.
 $pdo = new PDO(...);
 
 // prepare the statement
-$sth = $pdo->prepare($insert->__toString());
+$sth = $pdo->prepare($insert->getStatement());
 
 // execute with bound values
 $sth->execute($insert->getBindValues());
@@ -299,7 +299,7 @@ $insert->addRow();
 
 // execute a bulk insert of all rows
 $pdo = new PDO(...);
-$sth = $pdo->prepare($insert->__toString());
+$sth = $pdo->prepare($insert->getStatement());
 $sth->execute($insert->getBindValues());
 ?>
 ```
@@ -409,7 +409,7 @@ choice as a string, and send the bound values along with it.
 $pdo = new PDO(...);
 
 // prepare the statement
-$sth = $pdo->prepare($update->__toString())
+$sth = $pdo->prepare($update->getStatement())
 
 // execute with bound values
 $sth->execute($update->getBindValues());
@@ -448,7 +448,7 @@ choice as a string, and send the bound values along with it.
 $pdo = new PDO(...);
 
 // prepare the statement
-$sth = $pdo->prepare($delete->__toString())
+$sth = $pdo->prepare($delete->getStatement())
 
 // execute with bound values
 $sth->execute($delete->getBindValues());
