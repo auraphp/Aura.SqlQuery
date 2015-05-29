@@ -14,7 +14,7 @@ namespace Aura\SqlQuery\Common;
  *
  * @package Aura.SqlQuery
  *
- * @see AbstractQuery::rebuildCondAndBindValues
+ * @see AbstractQuery::rebuildCondAndBindValues()
  *
  */
 interface SubselectInterface
@@ -26,8 +26,8 @@ interface SubselectInterface
      * @return string
      *
      */
-
     public function getStatement();
+
     /**
      *
      * Gets the values to bind to placeholders.
