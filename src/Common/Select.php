@@ -10,6 +10,7 @@ namespace Aura\SqlQuery\Common;
 
 use Aura\SqlQuery\AbstractQuery;
 use Aura\SqlQuery\Exception;
+use Aura\SqlQuery\GetStatementInterface;
 
 /**
  *
@@ -18,7 +19,7 @@ use Aura\SqlQuery\Exception;
  * @package Aura.SqlQuery
  *
  */
-class Select extends AbstractQuery implements SelectInterface
+class Select extends AbstractQuery implements SelectInterface, GetStatementInterface
 {
     /**
      *

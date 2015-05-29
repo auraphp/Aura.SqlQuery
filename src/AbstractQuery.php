@@ -383,8 +383,8 @@ abstract class AbstractQuery
             }
 
             $bind_value = array_shift($bind_values);
-            if ($bind_value instanceof self) {
-                $parts[$key] = $bind_value->__toString();
+            if ($bind_value instanceof GetStatementInterface) {
+                $parts[$key] = $bind_value->getStatement();
                 continue;
             }
 
