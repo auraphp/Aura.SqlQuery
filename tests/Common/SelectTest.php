@@ -795,4 +795,48 @@ class SelectTest extends AbstractQueryTest
         $this->assertSame(0, $this->query->getLimit());
         $this->assertSame(10, $this->query->getOffset());
     }
+
+    public function testWhereSubSelect()
+    {
+        // sub select
+        $sub = $this->newQuery()
+            ->cols(array('*'))
+            ->from('table1 AS t1')
+            ->where('t1.foo = ?', 'bar');
+
+        $expect = '
+            SELECT
+                *
+            FROM
+                <<table1>> AS <<t1>>
+            WHERE
+                <<t1>>.<<foo>> = :_1_1_
+        ';
+        $actual = $sub->__toString();
+        $this->assertSameSql($expect, $actual);
+
+        // main select
+        $select = $this->newQuery()
+            ->cols(array('*'))
+            ->from('table2 AS t2')
+            ->where("field IN (?)", $sub)
+            ->where("t2.baz = ?", 'dib');
+
+        $expect = '
+            SELECT
+                *
+            FROM
+                <<table2>> AS <<t2>>
+            WHERE
+                field IN (SELECT
+                        *
+                    FROM
+                        <<table1>> AS <<t1>>
+                    WHERE
+                        <<t1>>.<<foo>> = :_1_1_)
+            AND <<t2>>.<<baz>> = :_2_1_
+        ';
+        $actual = $select->__toString();
+        $this->assertSameSql($expect, $actual);
+    }
 }
