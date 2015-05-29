@@ -796,7 +796,7 @@ class SelectTest extends AbstractQueryTest
         $this->assertSame(10, $this->query->getOffset());
     }
 
-    public function testWhereSubSelect()
+    public function testWhereSubSelectImportsBoundValues()
     {
         // sub select
         $sub = $this->newQuery()
@@ -812,7 +812,7 @@ class SelectTest extends AbstractQueryTest
             WHERE
                 <<t1>>.<<foo>> = :_1_1_
         ';
-        $actual = $sub->__toString();
+        $actual = $sub->getStatement();
         $this->assertSameSql($expect, $actual);
 
         // main select
@@ -834,9 +834,21 @@ class SelectTest extends AbstractQueryTest
                         <<table1>> AS <<t1>>
                     WHERE
                         <<t1>>.<<foo>> = :_1_1_)
-            AND <<t2>>.<<baz>> = :_2_1_
+            AND <<t2>>.<<baz>> = :_2_2_
         ';
-        $actual = $select->__toString();
+
+        // B.b.: The _2_2_ means "2nd query, 2nd sequential bound value". It's
+        // the 2nd bound value because the 1st one is imported fromt the 1st
+        // query (the subselect).
+
+        $actual = $select->getStatement();
         $this->assertSameSql($expect, $actual);
+
+        $expect = array(
+            '_1_1_' => 'bar',
+            '_2_2_' => 'dib',
+        );
+        $actual = $select->getBindValues();
+        $this->assertSame($expect, $actual);
     }
 }

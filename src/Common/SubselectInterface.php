@@ -6,7 +6,7 @@
  * @license http://opensource.org/licenses/bsd-license.php BSD
  *
  */
-namespace Aura\SqlQuery;
+namespace Aura\SqlQuery\Common;
 
 /**
  *
@@ -17,7 +17,7 @@ namespace Aura\SqlQuery;
  * @see AbstractQuery::rebuildCondAndBindValues
  *
  */
-interface GetStatementInterface
+interface SubselectInterface
 {
     /**
      *
@@ -26,5 +26,14 @@ interface GetStatementInterface
      * @return string
      *
      */
+
     public function getStatement();
+    /**
+     *
+     * Gets the values to bind to placeholders.
+     *
+     * @return array
+     *
+     */
+    public function getBindValues();
 }

@@ -10,6 +10,7 @@ namespace Aura\SqlQuery;
 
 use Aura\SqlQuery\Common\LimitInterface;
 use Aura\SqlQuery\Common\LimitOffsetInterface;
+use Aura\SqlQuery\Common\SubselectInterface;
 
 /**
  *
@@ -383,8 +384,12 @@ abstract class AbstractQuery
             }
 
             $bind_value = array_shift($bind_values);
-            if ($bind_value instanceof GetStatementInterface) {
+            if ($bind_value instanceof SubselectInterface) {
                 $parts[$key] = $bind_value->getStatement();
+                $this->bind_values = array_merge(
+                    $this->bind_values,
+                    $bind_value->getBindValues()
+                );
                 continue;
             }
 
