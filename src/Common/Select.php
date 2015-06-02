@@ -18,7 +18,7 @@ use Aura\SqlQuery\Exception;
  * @package Aura.SqlQuery
  *
  */
-class Select extends AbstractQuery implements SelectInterface
+class Select extends AbstractQuery implements SelectInterface, SubselectInterface
 {
     /**
      *

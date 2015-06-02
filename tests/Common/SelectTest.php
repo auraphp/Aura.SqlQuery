@@ -795,4 +795,60 @@ class SelectTest extends AbstractQueryTest
         $this->assertSame(0, $this->query->getLimit());
         $this->assertSame(10, $this->query->getOffset());
     }
+
+    public function testWhereSubSelectImportsBoundValues()
+    {
+        // sub select
+        $sub = $this->newQuery()
+            ->cols(array('*'))
+            ->from('table1 AS t1')
+            ->where('t1.foo = ?', 'bar');
+
+        $expect = '
+            SELECT
+                *
+            FROM
+                <<table1>> AS <<t1>>
+            WHERE
+                <<t1>>.<<foo>> = :_1_1_
+        ';
+        $actual = $sub->getStatement();
+        $this->assertSameSql($expect, $actual);
+
+        // main select
+        $select = $this->newQuery()
+            ->cols(array('*'))
+            ->from('table2 AS t2')
+            ->where("field IN (?)", $sub)
+            ->where("t2.baz = ?", 'dib');
+
+        $expect = '
+            SELECT
+                *
+            FROM
+                <<table2>> AS <<t2>>
+            WHERE
+                field IN (SELECT
+                        *
+                    FROM
+                        <<table1>> AS <<t1>>
+                    WHERE
+                        <<t1>>.<<foo>> = :_1_1_)
+            AND <<t2>>.<<baz>> = :_2_2_
+        ';
+
+        // B.b.: The _2_2_ means "2nd query, 2nd sequential bound value". It's
+        // the 2nd bound value because the 1st one is imported fromt the 1st
+        // query (the subselect).
+
+        $actual = $select->getStatement();
+        $this->assertSameSql($expect, $actual);
+
+        $expect = array(
+            '_1_1_' => 'bar',
+            '_2_2_' => 'dib',
+        );
+        $actual = $select->getBindValues();
+        $this->assertSame($expect, $actual);
+    }
 }
