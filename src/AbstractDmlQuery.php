@@ -43,8 +43,6 @@ abstract class AbstractDmlQuery extends AbstractQuery
      *
      * @param string $col The column name.
      *
-     * @param mixed $val Optional: a value to bind to the placeholder.
-     *
      * @return self
      *
      */
