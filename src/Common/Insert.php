@@ -301,6 +301,8 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      *
      * @return null
      *
+     * @throws Exception on named column missing from row.
+     *
      */
     protected function finishCol($col)
     {
