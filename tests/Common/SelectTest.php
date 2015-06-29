@@ -727,6 +727,46 @@ class SelectTest extends AbstractQueryTest
         $this->assertSameSql($expect, $actual);
     }
 
+    public function testGetCols()
+    {
+        $this->query->cols(array('valueBar' => 'aliasFoo'));
+
+        $cols = $this->query->getCols();
+
+        $this->assertTrue(is_array($cols));
+        $this->assertTrue(count($cols) === 1);
+        $this->assertArrayHasKey('aliasFoo', $cols);
+    }
+
+    public function testRemoveColsAlias()
+    {
+        $this->query->cols(array('valueBar' => 'aliasFoo', 'valueBaz' => 'aliasBaz'));
+
+        $this->assertTrue($this->query->removeCol('aliasFoo'));
+        $cols = $this->query->getCols();
+
+        $this->assertTrue(is_array($cols));
+        $this->assertTrue(count($cols) === 1);
+        $this->assertArrayNotHasKey('aliasFoo', $cols);
+    }
+
+    public function testRemoveColsName()
+    {
+        $this->query->cols(array('valueBar', 'valueBaz' => 'aliasBaz'));
+
+        $this->assertTrue($this->query->removeCol('valueBar'));
+        $cols = $this->query->getCols();
+
+        $this->assertTrue(is_array($cols));
+        $this->assertTrue(count($cols) === 1);
+        $this->assertNotContains('valueBar', $cols);
+    }
+
+    public function testRemoveColsNotFound()
+    {
+        $this->assertFalse($this->query->removeCol('valueBar'));
+    }
+
     public function testIssue47()
     {
         // sub select
