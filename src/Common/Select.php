@@ -259,6 +259,45 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
 
     /**
      *
+     * Remove a colum via it's alias
+     *
+     * @param string $alias The column to remove
+     *
+     * @return null
+     *
+     */
+    public function removeCol($value)
+    {
+        if (isset($this->cols[$value])) {
+            unset($this->cols[$value]);
+
+            return true;
+        }
+
+        $index = array_search($value, $this->cols);
+        if ($index !== false) {
+            unset($this->cols[$index]);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     *
+     * Remturns a list of columns
+     *
+     * @return array
+     *
+     */
+    public function getCols()
+    {
+        return $this->cols;
+    }
+
+    /**
+     *
      * Tracks table references.
      *
      * @param string $type FROM, JOIN, etc.
