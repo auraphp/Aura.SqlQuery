@@ -891,4 +891,35 @@ class SelectTest extends AbstractQueryTest
         $actual = $select->getBindValues();
         $this->assertSame($expect, $actual);
     }
+
+    public function testUnionSelectCanHaveSameAliasesInDifferentSelects()
+    {
+        $select = $this->query
+            ->cols(array(
+                '...'
+            ))
+            ->from('a')
+            ->join('INNER', 'c', 'a_cid = c_id')
+            ->union()
+            ->cols(array(
+                '...'
+            ))
+            ->from('b')
+            ->join('INNER', 'c', 'b_cid = c_id');
+
+        $expected = 'SELECT
+                    ...
+                    FROM
+                    <<a>>
+                    INNER JOIN <<c>> ON a_cid = c_id
+                    UNION
+                    SELECT
+                    ...
+                    FROM
+                    <<b>>
+                    INNER JOIN <<c>> ON b_cid = c_id';
+
+        $actual = (string) $select->getStatement();
+        $this->assertSameSql($expected, $actual);
+    }
 }

@@ -735,6 +735,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
         $this->offset     = 0;
         $this->page       = 0;
         $this->for_update = false;
+        $this->table_refs = array();
     }
 
     /**
