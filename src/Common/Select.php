@@ -261,7 +261,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      *
      * Remove a column via it's alias
      *
-     * @param string $alias The column to remove
+     * @param string $value The column to remove
      *
      * @return null
      *
