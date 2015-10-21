@@ -213,7 +213,7 @@ $insert = $query_factory->newInsert();
 
 $insert
     ->into('foo')                   // INTO this table
-    ->cols(array                    // bind values as "(col) VALUES (:col)"
+    ->cols(array(                   // bind values as "(col) VALUES (:col)"
         'bar',
         'baz',
     ))

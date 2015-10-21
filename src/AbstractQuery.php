@@ -359,8 +359,8 @@ abstract class AbstractQuery
     /**
      *
      * Rebuilds a condition string, replacing sequential placeholders with
-     * named placeholders, and binding the sequenential values to the named
-     * placeholers.
+     * named placeholders, and binding the sequential values to the named
+     * placeholders.
      *
      * @param string $cond The condition with sequential placeholders.
      *
@@ -374,7 +374,7 @@ abstract class AbstractQuery
     {
         $cond = $this->quoter->quoteNamesIn($cond);
 
-        // bind values against ?-mark placeholders, but becuase PDO is finicky
+        // bind values against ?-mark placeholders, but because PDO is finicky
         // about the numbering of sequential placeholders, convert each ?-mark
         // to a named placeholder
         $parts = preg_split('/(\?)/', $cond, null, PREG_SPLIT_DELIM_CAPTURE);
