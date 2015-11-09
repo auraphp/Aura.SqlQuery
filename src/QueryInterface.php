@@ -13,9 +13,12 @@ namespace Aura\SqlQuery;
  * Interface for query objects.
  *
  * @package Aura.SqlQuery
- * 
- * @method  string getStatement()
- * @todo add getStatement to the interface for version 3
+ *
+ * @method string getStatement() Returns the query statement as a string;
+ * missing from the interface but present in the implementations.
+ *
+ * @todo Add getStatement() to the interface in 3.x, since adding it in 2.x
+ * would be a BC break.
  *
  */
 interface QueryInterface
