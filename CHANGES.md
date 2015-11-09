@@ -1,8 +1,11 @@
-- Docblock and README updates
+- (DOC) Docblock and README updates; in particular, add an `@method getStatement()` to the QueryInterface for IDE auto-completion.
 
-- The Common\Select class, when binding values from a subselect, now checks for
-  `instanceof SubselectInterface` instead of `self`; the Select class now
-  implements SubselectInterface, so this should not be a BC break.
+- (ADD) Select::hasCols() reports if there are any columsn in the Select.
 
-- Subselects bound as where/having/etc conditions should now retain ?-bound
-  params.
+- (ADD) Select::getCols() gets the existing columns in the Select.
+
+- (ADD) Select::removeCol() removes a previously-added column.
+
+- (FIX) Select::reset() now properly resets the table refs for a UNION.
+
+- (FIX) Select::forUpdate() is now fluent.
