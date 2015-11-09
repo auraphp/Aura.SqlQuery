@@ -38,6 +38,18 @@ abstract class AbstractDmlQuery extends AbstractQuery
 
     /**
      *
+     * Does the query have any columns in it?
+     *
+     * @return bool
+     *
+     */
+    public function hasCols()
+    {
+        return (bool) $this->col_values;
+    }
+
+    /**
+     *
      * Sets one column value placeholder; if an optional second parameter is
      * passed, that value is bound to the placeholder.
      *

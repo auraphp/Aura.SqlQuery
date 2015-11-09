@@ -169,6 +169,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
     public function forUpdate($enable = true)
     {
         $this->for_update = (bool) $enable;
+        return $this;
     }
 
     /**
@@ -286,7 +287,19 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
 
     /**
      *
-     * Returns a list of columns
+     * Does the query have any columns in it?
+     *
+     * @return bool
+     *
+     */
+    public function hasCols()
+    {
+        return (bool) $this->cols;
+    }
+
+    /**
+     *
+     * Returns a list of columns.
      *
      * @return array
      *

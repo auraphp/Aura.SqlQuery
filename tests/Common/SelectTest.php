@@ -84,11 +84,16 @@ class SelectTest extends AbstractQueryTest
 
     public function testCols()
     {
+        $this->assertFalse($this->query->hasCols());
+
         $this->query->cols(array(
             't1.c1',
             'c2' => 'a2',
             'COUNT(t1.c3)'
         ));
+
+        $this->assertTrue($this->query->hasCols());
+
         $actual = $this->query->__toString();
         $expect = '
             SELECT
