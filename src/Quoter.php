@@ -120,7 +120,7 @@ class Quoter
      *
      * @param string $sep The separator, typically a dot or space.
      *
-     * @param string $pos The position of the separator.
+     * @param int $pos The position of the separator.
      *
      * @return string The quoted identifier name.
      *
