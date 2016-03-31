@@ -56,7 +56,7 @@ interface QueryInterface
      *
      * @param array $bind_values Values to bind to the query.
      *
-     * @return self
+     * @return $this
      *
      */
     public function bindValues(array $bind_values);
@@ -69,7 +69,7 @@ interface QueryInterface
      *
      * @param mixed $value The value to bind to the placeholder.
      *
-     * @return self
+     * @return $this
      *
      */
     public function bindValue($name, $value);

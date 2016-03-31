@@ -132,7 +132,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      *
      * @param int $paging The number of rows to page at.
      *
-     * @return self
+     * @return $this
      *
      */
     public function setPaging($paging)
@@ -163,7 +163,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      * @param bool $enable Whether or not the SELECT is FOR UPDATE (default
      * true).
      *
-     * @return self
+     * @return $this
      *
      */
     public function forUpdate($enable = true)
@@ -179,7 +179,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      * @param bool $enable Whether or not the SELECT is DISTINCT (default
      * true).
      *
-     * @return self
+     * @return $this
      *
      */
     public function distinct($enable = true)
@@ -198,7 +198,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      * @param array $cols The column(s) to add to the query. The elements can be
      * any mix of these: `array("col", "col AS alias", "col" => "alias")`
      *
-     * @return self
+     * @return $this
      *
      */
     public function cols(array $cols)
@@ -344,7 +344,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      *
      * @param string $spec The table specification; "foo" or "foo AS bar".
      *
-     * @return self
+     * @return $this
      *
      */
     public function from($spec)
@@ -360,7 +360,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      *
      * @param string $spec The table specification, e.g. "function_name()".
      *
-     * @return self
+     * @return $this
      *
      */
     public function fromRaw($spec)
@@ -375,7 +375,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      *
      * @param string $spec The table specification.
      *
-     * @return self
+     * @return $this
      *
      */
     protected function addFrom($spec)
@@ -394,7 +394,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      *
      * @param string $name The alias name for the sub-select.
      *
-     * @return self
+     * @return $this
      *
      */
     public function fromSubSelect($spec, $name)
@@ -442,7 +442,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      *
      * @param array $bind Values to bind to ?-placeholders in the condition.
      *
-     * @return self
+     * @return $this
      *
      * @throws Exception
      *
@@ -504,7 +504,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      *
      * @param array $bind Values to bind to ?-placeholders in the condition.
      *
-     * @return self
+     * @return $this
      *
      * @throws Exception
      *
@@ -524,7 +524,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      *
      * @param array $bind Values to bind to ?-placeholders in the condition.
      *
-     * @return self
+     * @return $this
      *
      * @throws Exception
      *
@@ -550,7 +550,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      *
      * @param array $bind Values to bind to ?-placeholders in the condition.
      *
-     * @return self
+     * @return $this
      *
      * @throws Exception
      *
@@ -579,7 +579,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      *
      * @param array $spec The column(s) to group by.
      *
-     * @return self
+     * @return $this
      *
      */
     public function groupBy(array $spec)
@@ -598,7 +598,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      *
      * @param string $cond The HAVING condition.
      *
-     * @return self
+     * @return $this
      *
      */
     public function having($cond)
@@ -615,7 +615,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      *
      * @param string $cond The HAVING condition.
      *
-     * @return self
+     * @return $this
      *
      * @see having()
      *
@@ -632,7 +632,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      *
      * @param int $page Limit results to this page number.
      *
-     * @return self
+     * @return $this
      *
      */
     public function page($page)
@@ -676,7 +676,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      * Takes the current select properties and retains them, then sets
      * UNION for the next set of properties.
      *
-     * @return self
+     * @return $this
      *
      */
     public function union()
@@ -691,7 +691,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      * Takes the current select properties and retains them, then sets
      * UNION ALL for the next set of properties.
      *
-     * @return self
+     * @return $this
      *
      */
     public function unionAll()
@@ -875,7 +875,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      * @param string $cond The WHERE condition.
      * @param mixed ...$bind arguments to bind to placeholders
      *
-     * @return self
+     * @return $this
      *
      */
     public function where($cond)
@@ -893,7 +893,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      * @param string $cond The WHERE condition.
      * @param mixed ...$bind arguments to bind to placeholders
      *
-     * @return self
+     * @return $this
      *
      * @see where()
      *
@@ -910,7 +910,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      *
      * @param int $limit The number of rows to select.
      *
-     * @return self
+     * @return $this
      *
      */
     public function limit($limit)
@@ -929,7 +929,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      *
      * @param int $offset Start returning after this many rows.
      *
-     * @return self
+     * @return $this
      *
      */
     public function offset($offset)
@@ -948,7 +948,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      *
      * @param array $spec The columns and direction to order by.
      *
-     * @return self
+     * @return $this
      *
      */
     public function orderBy(array $spec)

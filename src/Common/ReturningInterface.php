@@ -26,7 +26,7 @@ interface ReturningInterface
      *
      * @param array $cols The column(s) to add to the query.
      *
-     * @return self
+     * @return $this
      *
      */
     public function returning(array $cols);

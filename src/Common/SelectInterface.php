@@ -25,7 +25,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param int $paging The number of rows to page at.
      *
-     * @return self
+     * @return $this
      *
      */
     public function setPaging($paging);
@@ -46,7 +46,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @param bool $enable Whether or not the SELECT is FOR UPDATE (default
      * true).
      *
-     * @return self
+     * @return $this
      *
      */
     public function forUpdate($enable = true);
@@ -58,7 +58,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @param bool $enable Whether or not the SELECT is DISTINCT (default
      * true).
      *
-     * @return self
+     * @return $this
      *
      */
     public function distinct($enable = true);
@@ -72,7 +72,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param array $cols The column(s) to add to the query.
      *
-     * @return self
+     * @return $this
      *
      */
     public function cols(array $cols);
@@ -83,7 +83,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string $spec The table specification; "foo" or "foo AS bar".
      *
-     * @return self
+     * @return $this
      *
      */
     public function from($spec);
@@ -95,7 +95,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string $spec The table specification, e.g. "function_name()".
      *
-     * @return self
+     * @return $this
      *
      */
     public function fromRaw($spec);
@@ -109,7 +109,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string $name The alias name for the sub-select.
      *
-     * @return self
+     * @return $this
      *
      */
     public function fromSubSelect($spec, $name);
@@ -124,7 +124,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string $cond Join on this condition.
      *
-     * @return self
+     * @return $this
      *
      */
     public function join($join, $spec, $cond = null);
@@ -143,7 +143,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string $cond Join on this condition.
      *
-     * @return self
+     * @return $this
      *
      */
     public function joinSubSelect($join, $spec, $name, $cond = null);
@@ -154,7 +154,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param array $spec The column(s) to group by.
      *
-     * @return self
+     * @return $this
      *
      */
     public function groupBy(array $spec);
@@ -181,7 +181,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string $cond The HAVING condition.
      *
-     * @return self
+     * @return $this
      *
      */
     public function having($cond);
@@ -193,7 +193,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string $cond The HAVING condition.
      *
-     * @return self
+     * @return $this
      *
      * @see having()
      *
@@ -206,7 +206,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param int $page Limit results to this page number.
      *
-     * @return self
+     * @return $this
      *
      */
     public function page($page);
@@ -216,7 +216,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * Takes the current select properties and retains them, then sets
      * UNION for the next set of properties.
      *
-     * @return self
+     * @return $this
      *
      */
     public function union();
@@ -226,7 +226,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * Takes the current select properties and retains them, then sets
      * UNION ALL for the next set of properties.
      *
-     * @return self
+     * @return $this
      *
      */
     public function unionAll();

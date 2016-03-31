@@ -25,7 +25,7 @@ class Delete extends Common\Delete implements Common\OrderByInterface, Common\Li
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return self
+     * @return $this
      *
      */
     public function lowPriority($enable = true)
@@ -40,7 +40,7 @@ class Delete extends Common\Delete implements Common\OrderByInterface, Common\Li
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return self
+     * @return $this
      *
      */
     public function ignore($enable = true)
@@ -55,7 +55,7 @@ class Delete extends Common\Delete implements Common\OrderByInterface, Common\Li
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return self
+     * @return $this
      *
      */
     public function quick($enable = true)
@@ -70,7 +70,7 @@ class Delete extends Common\Delete implements Common\OrderByInterface, Common\Li
      *
      * @param int $limit The number of rows to select.
      *
-     * @return self
+     * @return $this
      *
      */
     public function limit($limit)
@@ -97,7 +97,7 @@ class Delete extends Common\Delete implements Common\OrderByInterface, Common\Li
      *
      * @param array $spec The columns and direction to order by.
      *
-     * @return self
+     * @return $this
      *
      */
     public function orderBy(array $spec)

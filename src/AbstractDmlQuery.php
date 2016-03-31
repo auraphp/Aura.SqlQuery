@@ -55,7 +55,7 @@ abstract class AbstractDmlQuery extends AbstractQuery
      *
      * @param string $col The column name.
      *
-     * @return self
+     * @return $this
      *
      */
     protected function addCol($col)
@@ -79,7 +79,7 @@ abstract class AbstractDmlQuery extends AbstractQuery
      * pairs where the key is a column name and the value is a bind value for
      * that column.
      *
-     * @return self
+     * @return $this
      *
      */
     protected function addCols(array $cols)
@@ -106,7 +106,7 @@ abstract class AbstractDmlQuery extends AbstractQuery
      *
      * @param string $value The column value expression.
      *
-     * @return self
+     * @return $this
      *
      */
     protected function setCol($col, $value)
@@ -130,7 +130,7 @@ abstract class AbstractDmlQuery extends AbstractQuery
      *
      * @param array $cols The column(s) to add to the query.
      *
-     * @return self
+     * @return $this
      *
      */
     protected function addReturning(array $cols)

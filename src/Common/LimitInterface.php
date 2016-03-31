@@ -23,7 +23,7 @@ interface LimitInterface
      *
      * @param int $limit The number of rows to select.
      *
-     * @return self
+     * @return $this
      *
      */
     public function limit($limit);
