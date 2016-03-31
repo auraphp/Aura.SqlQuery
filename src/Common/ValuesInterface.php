@@ -24,7 +24,7 @@ interface ValuesInterface
      *
      * @param string $col The column name.
      *
-     * @return self
+     * @return $this
      *
      */
     public function col($col);
@@ -39,7 +39,7 @@ interface ValuesInterface
      * pairs where the key is a column name and the value is a bind value for
      * that column.
      *
-     * @return self
+     * @return $this
      *
      */
     public function cols(array $cols);
@@ -53,7 +53,7 @@ interface ValuesInterface
      *
      * @param string $value The column value expression.
      *
-     * @return self
+     * @return $this
      *
      */
     public function set($col, $value);

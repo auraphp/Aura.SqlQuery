@@ -23,7 +23,7 @@ interface LimitOffsetInterface extends LimitInterface
      *
      * @param int $offset Start returning after this many rows.
      *
-     * @return self
+     * @return $this
      *
      */
     public function offset($offset);

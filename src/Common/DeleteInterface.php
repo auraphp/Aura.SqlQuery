@@ -25,7 +25,7 @@ interface DeleteInterface extends QueryInterface, WhereInterface
      *
      * @param string $from The table to delete from.
      *
-     * @return self
+     * @return $this
      *
      */
     public function from($from);

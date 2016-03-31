@@ -35,7 +35,7 @@ class Insert extends Common\Insert
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return self
+     * @return $this
      *
      */
     public function highPriority($enable = true)
@@ -50,7 +50,7 @@ class Insert extends Common\Insert
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return self
+     * @return $this
      *
      */
     public function lowPriority($enable = true)
@@ -65,7 +65,7 @@ class Insert extends Common\Insert
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return self
+     * @return $this
      *
      */
     public function ignore($enable = true)
@@ -80,7 +80,7 @@ class Insert extends Common\Insert
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return self
+     * @return $this
      *
      */
     public function delayed($enable = true)
@@ -99,7 +99,7 @@ class Insert extends Common\Insert
      *
      * @param mixed,... $val Optional: a value to bind to the placeholder.
      *
-     * @return self
+     * @return $this
      *
      */
     public function onDuplicateKeyUpdateCol($col)
@@ -124,7 +124,7 @@ class Insert extends Common\Insert
      * pairs where the key is a column name and the value is a bind value for
      * that column.
      *
-     * @return self
+     * @return $this
      *
      */
     public function onDuplicateKeyUpdateCols(array $cols)
@@ -152,7 +152,7 @@ class Insert extends Common\Insert
      *
      * @param string $value The column value expression.
      *
-     * @return self
+     * @return $this
      *
      */
     public function onDuplicateKeyUpdate($col, $value)

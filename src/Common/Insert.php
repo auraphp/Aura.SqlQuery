@@ -97,7 +97,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      *
      * @param string $into The table to insert into.
      *
-     * @return self
+     * @return $this
      *
      */
     public function into($into)
@@ -162,7 +162,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      *
      * @param mixed,...  $val Optional: a value to bind to the placeholder.
      *
-     * @return self
+     * @return $this
      *
      */
     public function col($col)
@@ -180,7 +180,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * pairs where the key is a column name and the value is a bind value for
      * that column.
      *
-     * @return self
+     * @return $this
      *
      */
     public function cols(array $cols)
@@ -197,7 +197,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      *
      * @param string $value The column value expression.
      *
-     * @return self
+     * @return $this
      *
      */
     public function set($col, $value)
@@ -224,7 +224,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @param array $rows An array of rows, where each element is an array of
      * column key-value pairs. The values are bound to placeholders.
      *
-     * @return self
+     * @return $this
      *
      */
     public function addRows(array $rows)
@@ -252,7 +252,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @param array $cols An array of column key-value pairs; the values are
      * bound to placeholders.
      *
-     * @return self
+     * @return $this
      *
      */
     public function addRow(array $cols = array())

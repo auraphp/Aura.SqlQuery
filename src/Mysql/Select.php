@@ -25,7 +25,7 @@ class Select extends Common\Select
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return self
+     * @return $this
      *
      */
     public function calcFoundRows($enable = true)
@@ -40,7 +40,7 @@ class Select extends Common\Select
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return self
+     * @return $this
      *
      */
     public function cache($enable = true)
@@ -55,7 +55,7 @@ class Select extends Common\Select
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return self
+     * @return $this
      *
      */
     public function noCache($enable = true)
@@ -70,7 +70,7 @@ class Select extends Common\Select
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return self
+     * @return $this
      *
      */
     public function straightJoin($enable = true)
@@ -85,7 +85,7 @@ class Select extends Common\Select
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return self
+     * @return $this
      *
      */
     public function highPriority($enable = true)
@@ -100,7 +100,7 @@ class Select extends Common\Select
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return self
+     * @return $this
      *
      */
     public function smallResult($enable = true)
@@ -115,7 +115,7 @@ class Select extends Common\Select
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return self
+     * @return $this
      *
      */
     public function bigResult($enable = true)
@@ -130,7 +130,7 @@ class Select extends Common\Select
      *
      * @param bool $enable Set or unset flag (default true).
      *
-     * @return self
+     * @return $this
      *
      */
     public function bufferResult($enable = true)

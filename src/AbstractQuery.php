@@ -216,7 +216,7 @@ abstract class AbstractQuery
      *
      * @param array $bind_values Values to bind to placeholders.
      *
-     * @return self
+     * @return $this
      *
      */
     public function bindValues(array $bind_values)
@@ -237,7 +237,7 @@ abstract class AbstractQuery
      *
      * @param mixed $value The value to bind to the placeholder.
      *
-     * @return self
+     * @return $this
      *
      */
     public function bindValue($name, $value)
@@ -317,7 +317,7 @@ abstract class AbstractQuery
      *
      * @param array $args Arguments for adding the condition.
      *
-     * @return self
+     * @return $this
      *
      */
     protected function addWhere($andor, $args)
@@ -437,7 +437,7 @@ abstract class AbstractQuery
      *
      * @param array $spec The columns and direction to order by.
      *
-     * @return self
+     * @return $this
      *
      */
     protected function addOrderBy(array $spec)

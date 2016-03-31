@@ -23,7 +23,7 @@ interface OrderByInterface
      *
      * @param array $spec The columns and direction to order by.
      *
-     * @return self
+     * @return $this
      *
      */
     public function orderBy(array $spec);

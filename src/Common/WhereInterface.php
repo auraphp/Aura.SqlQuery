@@ -26,7 +26,7 @@ interface WhereInterface
      * @param string $cond The WHERE condition.
      * @param mixed ...$params arguments to be bound to placeholders
      *
-     * @return self
+     * @return $this
      *
      */
     public function where($cond);
@@ -40,7 +40,7 @@ interface WhereInterface
      * @param string $cond The WHERE condition.
      * @param mixed ...$params arguments to be bound to placeholders
      *
-     * @return self
+     * @return $this
      *
      * @see where()
      *
