@@ -751,6 +751,34 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
     }
 
     /**
+     * if user needs to reset
+     */
+    public function resetCols()
+    {
+        $this->cols = [];
+    }
+
+    public function resetOrderBy()
+    {
+        $this->order_by = [];
+    }
+
+    public function resetLimit()
+    {
+        $this->limit = 0;
+    }
+
+    public function resetOffset()
+    {
+        $this->offset = 0;
+    }
+
+    public function resetPage()
+    {
+        $this->page = 0;
+    }
+
+    /**
      *
      * Builds this query object into a string.
      *
