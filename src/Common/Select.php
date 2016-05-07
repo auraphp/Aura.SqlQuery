@@ -755,12 +755,12 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      */
     public function resetCols()
     {
-        $this->cols = [];
+        $this->cols = array();
     }
 
     public function resetOrderBy()
     {
-        $this->order_by = [];
+        $this->order_by = array();
     }
 
     public function resetLimit()
