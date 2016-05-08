@@ -756,26 +756,73 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
     public function resetCols()
     {
         $this->cols = array();
+        return $this;
+    }
+
+    public function resetFrom()
+    {
+        $this->from = array();
+        return $this;
+    }
+
+    public function resetFromKey()
+    {
+        $this->from_key = -1;
+        return $this;
+    }
+
+    public function resetWhere()
+    {
+        $this->where = array();
+        return $this;
+    }
+
+    public function resetGroupBy()
+    {
+        $this->group_by = array();
+        return $this;
+    }
+
+    public function resetHaving()
+    {
+        $this->having = array();
+        return $this;
     }
 
     public function resetOrderBy()
     {
         $this->order_by = array();
+        return $this;
     }
 
     public function resetLimit()
     {
         $this->limit = 0;
+        return $this;
     }
 
     public function resetOffset()
     {
         $this->offset = 0;
+        return $this;
     }
 
     public function resetPage()
     {
         $this->page = 0;
+        return $this;
+    }
+
+    public function resetForUpdate()
+    {
+        $this->for_update = false;
+        return $this;
+    }
+
+    public function resetTableRefs()
+    {
+        $this->table_refs = array();
+        return $this;
     }
 
     /**
