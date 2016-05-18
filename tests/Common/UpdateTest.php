@@ -51,7 +51,7 @@ class UpdateTest extends AbstractQueryTest
 
         if($value instanceof \ArrayObject)
         {
-            call_user_func_array([$this->query, $method], $value->getArrayCopy());
+            call_user_func_array(array($this->query, $method), $value->getArrayCopy());
         }
         else
         {
