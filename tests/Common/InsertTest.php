@@ -333,4 +333,44 @@ class InsertTest extends AbstractQueryTest
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);
     }
+
+    /**
+     * @dataProvider clearSqlPartsProvider
+     */
+    public function testClearSqlParts($part, $method, $value, $partValue, $clearedValue)
+    {
+
+        if($value instanceof \ArrayObject)
+        {
+            call_user_func_array([$this->query, $method], $value->getArrayCopy());
+        }
+        else
+        {
+            $this->query->$method($value);
+        }
+        if($partValue === true)
+        {
+            // only check it has a value (may differ depending on Select implementation)
+            $this->assertAttributeNotEmpty($part, $this->query);
+        }
+        else {
+            $this->assertAttributeEquals($partValue, $part, $this->query);
+        }
+        $this->query->clear($part);
+        $this->assertAttributeEquals($clearedValue, $part, $this->query);
+
+    }
+
+    /**
+     * Data provider for method testClearSqlParts
+     *
+     * @return array
+     */
+    public function clearSqlPartsProvider()
+    {
+        return array(
+            array('into', 'into', 'table_name', 'table_name', null),
+            array('col_values', 'set', new \ArrayObject(array('column', 'value')), true, null),
+        );
+    }
 }

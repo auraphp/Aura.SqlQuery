@@ -21,6 +21,7 @@ use Aura\SqlQuery\Common\SubselectInterface;
  */
 abstract class AbstractQuery
 {
+
     /**
      *
      * Data to be bound to the query.

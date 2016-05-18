@@ -955,4 +955,28 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
     {
         return $this->addOrderBy($spec);
     }
+
+    /**
+     * Clear some part of the query
+     *
+     * @param $part
+     * @return $this
+     */
+    public function clear($part)
+    {
+
+        // arrays
+        if(in_array($part, array('where', 'cols', 'from', 'group_by', 'having', 'union')))
+        {
+            $this->$part = array();
+        }
+
+        // 0
+        if(in_array($part, array('limit', 'offset')))
+        {
+            $this->$part = 0;
+        }
+
+        return $this;
+    }
 }

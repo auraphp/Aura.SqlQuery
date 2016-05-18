@@ -927,4 +927,42 @@ class SelectTest extends AbstractQueryTest
         $actual = (string) $select->getStatement();
         $this->assertSameSql($expected, $actual);
     }
+
+    /**
+     * @dataProvider clearSqlPartsProvider
+     */
+    public function testClearSqlParts($part, $method, $value, $partValue, $clearedValue)
+    {
+
+        $this->query->$method($value);
+        if($partValue === true)
+        {
+            // only check it has a value (may differ depending on Select implementation)
+            $this->assertAttributeNotEmpty($part, $this->query);
+        }
+        else {
+            $this->assertAttributeEquals($partValue, $part, $this->query);
+        }
+        $this->query->clear($part);
+        $this->assertAttributeEquals($clearedValue, $part, $this->query);
+
+    }
+
+    /**
+     * Data provider for method testClearSqlParts
+     *
+     * @return array
+     */
+    public function clearSqlPartsProvider()
+    {
+        return array(
+          array('where', 'where', 'x = y', array('x = y'), array()),
+          array('limit', 'limit', '25', 25, 0),
+          array('offset', 'offset', '25', 25, 0),
+          array('cols', 'cols', array('x', 'y'), array('x', 'y'), array()),
+          array('from', 'from', 'x', true, array()),
+          array('group_by', 'groupBy', array('x'), array('x'), array()),
+          array('having', 'having', 'x = y', array('x = y'), array()),
+        );
+    }
 }

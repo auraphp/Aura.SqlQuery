@@ -74,4 +74,5 @@ abstract class AbstractQueryTest extends \PHPUnit_Framework_TestCase
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);
     }
+    
 }
