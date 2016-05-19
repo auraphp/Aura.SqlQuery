@@ -736,38 +736,29 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
     protected function reset()
     {
         $this->resetFlags();
-        $this->cols       = array();
-        $this->from       = array();
-        $this->from_key   = -1;
-        $this->where      = array();
-        $this->group_by   = array();
-        $this->having     = array();
-        $this->order_by   = array();
-        $this->limit      = 0;
-        $this->offset     = 0;
-        $this->page       = 0;
-        $this->for_update = false;
-        $this->table_refs = array();
+        $this->resetCols();
+        $this->resetTables();
+        $this->resetWhere();
+        $this->resetGroupBy();
+        $this->resetHaving();
+        $this->resetOrderBy();
+        $this->limit(0);
+        $this->offset(0);
+        $this->page(0);
+        $this->forUpdate(false);
     }
 
-    /**
-     * if user needs to reset
-     */
     public function resetCols()
     {
         $this->cols = array();
         return $this;
     }
 
-    public function resetFrom()
+    public function resetTables()
     {
         $this->from = array();
-        return $this;
-    }
-
-    public function resetFromKey()
-    {
         $this->from_key = -1;
+        $this->table_refs = array();
         return $this;
     }
 
@@ -795,33 +786,9 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
         return $this;
     }
 
-    public function resetLimit()
+    public function resetUnions()
     {
-        $this->limit = 0;
-        return $this;
-    }
-
-    public function resetOffset()
-    {
-        $this->offset = 0;
-        return $this;
-    }
-
-    public function resetPage()
-    {
-        $this->page = 0;
-        return $this;
-    }
-
-    public function resetForUpdate()
-    {
-        $this->for_update = false;
-        return $this;
-    }
-
-    public function resetTableRefs()
-    {
-        $this->table_refs = array();
+        $this->union = array();
         return $this;
     }
 
