@@ -468,24 +468,29 @@ abstract class AbstractQuery
      *
      * Builds the `LIMIT ... OFFSET` clause of the statement.
      *
+     * Note that this will allow OFFSET values with a LIMIT.
+     *
      * @return string
      *
      */
     protected function buildLimit()
     {
-        $has_limit = $this instanceof LimitInterface;
-        $has_offset = $this instanceof LimitOffsetInterface;
+        $clause = '';
+        $limit = $this instanceof LimitInterface && $this->limit;
+        $offset = $this instanceof LimitOffsetInterface && $this->offset;
 
-        if ($has_offset && $this->limit) {
-            $clause = PHP_EOL . "LIMIT {$this->limit}";
-            if ($this->offset) {
-                $clause .= " OFFSET {$this->offset}";
-            }
-            return $clause;
-        } elseif ($has_limit && $this->limit) {
-            return PHP_EOL . "LIMIT {$this->limit}";
+        if ($limit) {
+            $clause .= "LIMIT {$this->limit}";
         }
 
-        return ''; // not applicable
+        if ($offset) {
+            $clause .= " OFFSET {$this->offset}";
+        }
+
+        if ($clause) {
+            $clause = PHP_EOL . trim($clause);
+        }
+
+        return $clause;
     }
 }
