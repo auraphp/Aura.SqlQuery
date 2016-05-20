@@ -230,23 +230,42 @@ class SelectTest extends AbstractQueryTest
         $this->query->from('t1');
         $this->query->join('left', 't2', 't1.id = t2.id');
         $this->query->join('inner', 't3 AS a3', 't2.id = a3.id');
-        $this->query->join('natural', 't4');
+        $this->query->from('t4');
+        $this->query->join('natural', 't5');
         $expect = '
             SELECT
                 *
             FROM
                 <<t1>>
                     LEFT JOIN <<t2>> ON <<t1>>.<<id>> = <<t2>>.<<id>>
-                    INNER JOIN <<t3>> AS <<a3>> ON <<t2>>.<<id>> = <<a3>>.<<id>>
-                    NATURAL JOIN <<t4>>
+                    INNER JOIN <<t3>> AS <<a3>> ON <<t2>>.<<id>> = <<a3>>.<<id>>,
+                <<t4>>
+                    NATURAL JOIN <<t5>>
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
+    }
 
-        // try to join without from
-        $select = $this->newQuery();
-        $this->setExpectedException('Aura\SqlQuery\Exception');
-        $select->join('left', 't2', 't1.id = t2.id');
+    public function testJoinBeforeFrom()
+    {
+        $this->query->cols(array('*'));
+        $this->query->join('left', 't2', 't1.id = t2.id');
+        $this->query->join('inner', 't3 AS a3', 't2.id = a3.id');
+        $this->query->from('t1');
+        $this->query->from('t4');
+        $this->query->join('natural', 't5');
+        $expect = '
+            SELECT
+                *
+            FROM
+                <<t1>>
+                    LEFT JOIN <<t2>> ON <<t1>>.<<id>> = <<t2>>.<<id>>
+                    INNER JOIN <<t3>> AS <<a3>> ON <<t2>>.<<id>> = <<a3>>.<<id>>,
+                <<t4>>
+                    NATURAL JOIN <<t5>>
+        ';
+        $actual = $this->query->__toString();
+        $this->assertSameSql($expect, $actual);
     }
 
     public function testDuplicateJoinRef()
@@ -305,11 +324,6 @@ class SelectTest extends AbstractQueryTest
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
-
-        // try to join without from
-        $select = $this->newQuery();
-        $this->setExpectedException('Aura\SqlQuery\Exception');
-        $select->leftJoin('t2', 't1.id = t2.id');
     }
 
     public function testLeftAndInnerJoinWithBind()
@@ -356,11 +370,30 @@ class SelectTest extends AbstractQueryTest
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
+    }
 
-        // try to join without from
-        $select = $this->newQuery();
-        $this->setExpectedException('Aura\SqlQuery\Exception');
-        $select->joinSubSelect('left', $sub1, 'a2', 't2.c1 = a3.c1');
+    public function testJoinSubSelectBeforeFrom()
+    {
+        $sub1 = 'SELECT * FROM t2';
+        $sub2 = 'SELECT * FROM t3';
+        $this->query->cols(array('*'));
+        $this->query->joinSubSelect('left', $sub1, 'a2', 't2.c1 = a3.c1');
+        $this->query->joinSubSelect('natural', $sub2, 'a3');
+        $this->query->from('t1');
+        $expect = '
+            SELECT
+                *
+            FROM
+                <<t1>>
+                    LEFT JOIN (
+                        SELECT * FROM t2
+                    ) AS <<a2>> ON <<t2>>.<<c1>> = <<a3>>.<<c1>>
+                    NATURAL JOIN (
+                        SELECT * FROM t3
+                    ) AS <<a3>>
+        ';
+        $actual = $this->query->__toString();
+        $this->assertSameSql($expect, $actual);
     }
 
     public function testDuplicateJoinSubSelectRef()

@@ -65,6 +65,8 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      */
     protected $from_key = -1;
 
+    protected $join = array();
+
     /**
      *
      * GROUP BY these columns.
@@ -402,9 +404,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
         $this->addTableRef('FROM (SELECT ...) AS', $name);
         $spec = $this->subSelect($spec, '        ');
         $name = $this->quoter->quoteName($name);
-        $this->from[] = array("({$spec}    ) AS $name");
-        $this->from_key ++;
-        return $this;
+        return $this->addFrom("({$spec}    ) AS $name");
     }
 
     /**
@@ -449,17 +449,12 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      */
     public function join($join, $spec, $cond = null, array $bind = array())
     {
-        if (! $this->from) {
-            throw new Exception('Cannot join() without from() first.');
-        }
-
         $join = strtoupper(ltrim("$join JOIN"));
         $this->addTableRef($join, $spec);
 
         $spec = $this->quoter->quoteName($spec);
         $cond = $this->fixJoinCondition($cond, $bind);
-        $this->from[$this->from_key][] = rtrim("$join $spec $cond");
-        return $this;
+        return $this->addJoin(rtrim("$join $spec $cond"));
     }
 
     /**
@@ -557,10 +552,6 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      */
     public function joinSubSelect($join, $spec, $name, $cond = null, array $bind = array())
     {
-        if (! $this->from) {
-            throw new Exception('Cannot join() without from() first.');
-        }
-
         $join = strtoupper(ltrim("$join JOIN"));
         $this->addTableRef("$join (SELECT ...) AS", $name);
 
@@ -569,7 +560,13 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
         $cond = $this->fixJoinCondition($cond, $bind);
 
         $text = rtrim("$join ($spec        ) AS $name $cond");
-        $this->from[$this->from_key][] = '        ' . $text ;
+        return $this->addJoin('        ' . $text);
+    }
+
+    protected function addJoin($spec)
+    {
+        $from_key = ($this->from_key == -1) ? 0 : $this->from_key;
+        $this->join[$from_key][] = $spec;
         return $this;
     }
 
@@ -739,6 +736,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
         $this->cols       = array();
         $this->from       = array();
         $this->from_key   = -1;
+        $this->join       = array();
         $this->where      = array();
         $this->group_by   = array();
         $this->having     = array();
@@ -812,7 +810,10 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
         }
 
         $refs = array();
-        foreach ($this->from as $from) {
+        foreach ($this->from as $from_key => $from) {
+            if (isset($this->join[$from_key])) {
+                $from = array_merge($from, $this->join[$from_key]);
+            }
             $refs[] = implode(PHP_EOL, $from);
         }
         return PHP_EOL . 'FROM' . $this->indentCsv($refs);
