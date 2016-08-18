@@ -258,6 +258,12 @@ abstract class AbstractQuery
         return $this->bind_values;
     }
 
+    public function resetBindValues()
+    {
+        $this->bind_values = array();
+        return $this;
+    }
+
     /**
      *
      * Builds the flags as a space-separated string.
@@ -298,12 +304,13 @@ abstract class AbstractQuery
      *
      * Reset all query flags.
      *
-     * @return null
+     * @return $this
      *
      */
-    protected function resetFlags()
+    public function resetFlags()
     {
         $this->flags = array();
+        return $this;
     }
 
     /**
