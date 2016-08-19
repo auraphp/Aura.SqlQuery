@@ -149,7 +149,7 @@ $select
     ->joinSubSelect(                // JOIN to a sub-select
         'INNER',                    // left/inner/natural/etc
         'SELECT ...',               // the subselect to join on
-        'subjoin'                   // AS this name
+        'subjoin',                   // AS this name
         'sub.id = foo.id'           // ON these conditions
     )
     ->where('bar > :bar')           // AND WHERE these conditions
