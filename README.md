@@ -143,13 +143,13 @@ $select
     )
     ->join(                         // JOIN ...
         'LEFT',                     // left/inner/natural/etc
-        'doom AS d'                 // this table name
+        'doom AS d',                // this table name
         'foo.id = d.foo_id'         // ON these conditions
     )
     ->joinSubSelect(                // JOIN to a sub-select
         'INNER',                    // left/inner/natural/etc
         'SELECT ...',               // the subselect to join on
-        'subjoin'                   // AS this name
+        'subjoin',                  // AS this name
         'sub.id = foo.id'           // ON these conditions
     )
     ->where('bar > :bar')           // AND WHERE these conditions
