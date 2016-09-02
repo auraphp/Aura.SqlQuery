@@ -121,6 +121,8 @@ All query objects implement the "Common" methods.
 
 ### SELECT
 
+#### Building A Query
+
 Build a _Select_ query using the following methods. They do not need to
 be called in any particular order, and may be called multiple times.
 
@@ -180,6 +182,21 @@ mark placeholder in the condition clause.
 > Similarly, the `*join*()` methods take an optional final argument, a
 sequential array of values to bind to sequential question-mark placeholders in
 the condition clause.
+
+#### Resetting Query Clauses
+
+The _Select_ class comes with the following methods to "reset" various clauses
+a blank state. This can be useful when reusing the same query in different
+variations (e.g., to re-issue a query to get a `COUNT(*)` without a `LIMIT`, to
+find the total number of rows to be paginated over).
+
+- `resetCols()` removes all columns
+- `resetTable()` removes all `FROM` and `JOIN` clauses
+- `resetWhere()`, `resetGroupBy()`, `resetHaving()`, and `resetOrderBy()`
+  remove the respective clauses
+- `resetUnions()` removes all `UNION` and `UNION ALL` clauses
+
+#### Issuing The Query
 
 Once you have built the query, pass it to the database connection of your
 choice as a string, and send the bound values along with it.
