@@ -65,6 +65,13 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      */
     protected $from_key = -1;
 
+    /**
+     *
+     * Tracks which JOIN clauses are attached to which FROM tables.
+     *
+     * @var array
+     *
+     */
     protected $join = array();
 
     /**
@@ -563,6 +570,16 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
         return $this->addJoin('        ' . $text);
     }
 
+    /**
+     *
+     * Adds the JOIN to the right place, given whether or not a FROM has been
+     * specified yet.
+     *
+     * @param string $spec The JOIN clause.
+     *
+     * @return $this
+     *
+     */
     protected function addJoin($spec)
     {
         $from_key = ($this->from_key == -1) ? 0 : $this->from_key;
@@ -745,12 +762,26 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
         $this->forUpdate(false);
     }
 
+    /**
+     *
+     * Resets the columns on the SELECT.
+     *
+     * @return $this
+     *
+     */
     public function resetCols()
     {
         $this->cols = array();
         return $this;
     }
 
+    /**
+     *
+     * Resets the FROM and JOIN clauses on the SELECT.
+     *
+     * @return $this
+     *
+     */
     public function resetTables()
     {
         $this->from = array();
@@ -760,30 +791,65 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
         return $this;
     }
 
+    /**
+     *
+     * Resets the WHERE clause on the SELECT.
+     *
+     * @return $this
+     *
+     */
     public function resetWhere()
     {
         $this->where = array();
         return $this;
     }
 
+    /**
+     *
+     * Resets the GROUP BY clause on the SELECT.
+     *
+     * @return $this
+     *
+     */
     public function resetGroupBy()
     {
         $this->group_by = array();
         return $this;
     }
 
+    /**
+     *
+     * Resets the HAVING clause on the SELECT.
+     *
+     * @return $this
+     *
+     */
     public function resetHaving()
     {
         $this->having = array();
         return $this;
     }
 
+    /**
+     *
+     * Resets the ORDER BY clause on the SELECT.
+     *
+     * @return $this
+     *
+     */
     public function resetOrderBy()
     {
         $this->order_by = array();
         return $this;
     }
 
+    /**
+     *
+     * Resets the UNION and UNION ALL clauses on the SELECT.
+     *
+     * @return $this
+     *
+     */
     public function resetUnions()
     {
         $this->union = array();
