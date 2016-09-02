@@ -1,11 +1,10 @@
-- (DOC) Docblock and README updates; in particular, add an `@method getStatement()` to the QueryInterface for IDE auto-completion.
+- [DOC] Numerous docblock and README updates.
 
-- (ADD) Select::hasCols() reports if there are any columsn in the Select.
+- [ADD] Add various `Select::reset*()` methods. Fixes #84, #95, #94, #91.
 
-- (ADD) Select::getCols() gets the existing columns in the Select.
+- [FIX] On SELECT, allow OFFSET even when LIMIT not specified. Fixes #88.
 
-- (ADD) Select::removeCol() removes a previously-added column.
+- [FIX] On SELECT, allow `join*()` before `from*()`. Joins-before-from are added
+  to the first from. If no from is ever added, the joins will never be built
+  into the statement. Fixes #69, #90.
 
-- (FIX) Select::reset() now properly resets the table refs for a UNION.
-
-- (FIX) Select::forUpdate() is now fluent.
