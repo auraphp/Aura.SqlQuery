@@ -258,6 +258,13 @@ abstract class AbstractQuery
         return $this->bind_values;
     }
 
+    /**
+     *
+     * Reset all values bound to named placeholders.
+     *
+     * @return $this
+     *
+     */
     public function resetBindValues()
     {
         $this->bind_values = array();

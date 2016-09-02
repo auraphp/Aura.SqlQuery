@@ -183,7 +183,7 @@ mark placeholder in the condition clause.
 sequential array of values to bind to sequential question-mark placeholders in
 the condition clause.
 
-#### Resetting Query Clauses
+#### Resetting Query Elements
 
 The _Select_ class comes with the following methods to "reset" various clauses
 a blank state. This can be useful when reusing the same query in different
@@ -195,6 +195,8 @@ find the total number of rows to be paginated over).
 - `resetWhere()`, `resetGroupBy()`, `resetHaving()`, and `resetOrderBy()`
   remove the respective clauses
 - `resetUnions()` removes all `UNION` and `UNION ALL` clauses
+- `resetFlags()` removes all database-engine-specific flags
+- `resetBindValues()` removes all values bound to named placeholders
 
 #### Issuing The Query
 
