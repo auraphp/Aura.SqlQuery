@@ -12,4 +12,5 @@
   to address a language-level bug in PHP. Technically I think this is a BC
   break, but I hope it is understandable, given that PHP 5.3.x is end-of-life,
   and that Aura.SqlQuery itself simply will not operate on versions earlier
-  than that.
+  than that. Updated README to reflect the version requirement.
+
