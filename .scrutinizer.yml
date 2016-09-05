@@ -8,3 +8,7 @@ tools:
     php_pdepend: true
     php_analyzer: true
     php_cpd: true
+checks:
+    php:
+        code_rating: true
+        duplication: true
