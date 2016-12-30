@@ -55,7 +55,7 @@ abstract class AbstractDmlQuery extends AbstractQuery
      *
      * @param string $col The column name.
      *
-     * @param array  $value Value of the column
+     * @param array $value Value of the column
      *
      * @return $this
      */
