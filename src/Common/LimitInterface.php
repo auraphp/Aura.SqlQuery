@@ -27,4 +27,13 @@ interface LimitInterface
      *
      */
     public function limit($limit);
+
+    /**
+     *
+     * Returns the LIMIT value.
+     *
+     * @return int
+     *
+     */
+    public function getLimit();
 }

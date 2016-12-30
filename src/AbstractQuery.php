@@ -309,6 +309,20 @@ abstract class AbstractQuery
 
     /**
      *
+     * Returns true if the specified flag was enabled by setFlag().
+     *
+     * @param string $flag Flag to check
+     *
+     * @return bool
+     *
+     */
+    protected function hasFlag($flag)
+    {
+        return isset($this->flags[$flag]);
+    }
+
+    /**
+     *
      * Reset all query flags.
      *
      * @return $this

@@ -40,6 +40,7 @@ class SelectTest extends AbstractQueryTest
                 <<t1>>
         ';
         $this->assertSameSql($expect, $actual);
+        $this->assertTrue($this->query->isDistinct());
     }
 
     public function testDuplicateFlag()
@@ -80,6 +81,7 @@ class SelectTest extends AbstractQueryTest
                 <<t1>>
         ';
         $this->assertSameSql($expect, $actual);
+        $this->assertFalse($this->query->isDistinct());
     }
 
     public function testCols()
