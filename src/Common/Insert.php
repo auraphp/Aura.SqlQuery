@@ -160,14 +160,14 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      *
      * @param string $col The column name.
      *
-     * @param mixed,...  $val Optional: a value to bind to the placeholder.
+     * @param array $value Optional: a value to bind to the placeholder.
      *
      * @return $this
      *
      */
-    public function col($col)
+    public function col($col, ...$value)
     {
-        return call_user_func_array(array($this, 'addCol'), func_get_args());
+        return empty($value) ? $this->addCol($col) : $this->addCol($col, $value[0]);
     }
 
     /**

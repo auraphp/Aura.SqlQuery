@@ -97,19 +97,18 @@ class Insert extends Common\Insert
      *
      * @param string $col The column name.
      *
-     * @param mixed,... $val Optional: a value to bind to the placeholder.
+     * @param array $value Optional: a value to bind to the placeholder.
      *
      * @return $this
      *
      */
-    public function onDuplicateKeyUpdateCol($col)
+    public function onDuplicateKeyUpdateCol($col, ...$value)
     {
         $key = $this->quoter->quoteName($col);
         $bind = $col . '__on_duplicate_key';
         $this->col_on_update_values[$key] = ":$bind";
-        $args = func_get_args();
-        if (count($args) > 1) {
-            $this->bindValue($bind, $args[1]);
+        if (count($value) > 0) {
+            $this->bindValue($bind, $value[0]);
         }
         return $this;
     }

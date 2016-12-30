@@ -119,12 +119,13 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      *
      * @param string $col The column name.
      *
-     * @return $this
+     * @param array  $value
      *
+     * @return $this
      */
-    public function col($col)
+    public function col($col, ...$value)
     {
-        return call_user_func_array(array($this, 'addCol'), func_get_args());
+        return empty($value) ? $this->addCol($col) : $this->addCol($col, $value[0]);
     }
 
     /**
