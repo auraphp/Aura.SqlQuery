@@ -248,8 +248,6 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      * @param string $spec The column specification: "col alias",
      * "col AS alias", or something else entirely.
      *
-     * @return null
-     *
      */
     protected function addColWithAlias($spec)
     {
@@ -273,7 +271,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      *
      * @param string $alias The column to remove
      *
-     * @return null
+     * @return boolean
      *
      */
     public function removeCol($alias)
@@ -479,7 +477,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
     protected function fixJoinCondition($cond, array $bind)
     {
         if (! $cond) {
-            return;
+            return '';
         }
 
         $cond = $this->quoter->quoteNamesIn($cond);
