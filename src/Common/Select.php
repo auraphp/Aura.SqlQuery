@@ -248,6 +248,8 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      * @param string $spec The column specification: "col alias",
      * "col AS alias", or something else entirely.
      *
+     * @return null
+     *
      */
     protected function addColWithAlias($spec)
     {
