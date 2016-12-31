@@ -125,7 +125,7 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      */
     public function col($col, ...$value)
     {
-        return empty($value) ? $this->addCol($col) : $this->addCol($col, $value[0]);
+        return $this->addCol($col, ...$value);
     }
 
     /**
