@@ -92,7 +92,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string $alias The column to remove
      *
-     * @return null
+     * @return bool
      *
      */
     public function removeCol($alias);
