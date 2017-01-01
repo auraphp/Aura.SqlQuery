@@ -24,10 +24,11 @@ interface ValuesInterface
      *
      * @param string $col The column name.
      *
-     * @return $this
+     * @param array $value
      *
+     * @return $this
      */
-    public function col($col);
+    public function col($col, ...$value);
 
     /**
      *
