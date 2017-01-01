@@ -24,12 +24,12 @@ interface WhereInterface
      * those placeholders sequentially.
      *
      * @param string $cond The WHERE condition.
-     * @param mixed ...$params arguments to be bound to placeholders
+     * @param mixed ...$bind arguments to be bound to placeholders
      *
      * @return $this
      *
      */
-    public function where($cond);
+    public function where($cond, ...$bind);
 
     /**
      *
@@ -38,12 +38,12 @@ interface WhereInterface
      * those placeholders sequentially.
      *
      * @param string $cond The WHERE condition.
-     * @param mixed ...$params arguments to be bound to placeholders
+     * @param mixed ...$bind arguments to be bound to placeholders
      *
      * @return $this
      *
      * @see where()
      *
      */
-    public function orWhere($cond);
+    public function orWhere($cond, ...$bind);
 }

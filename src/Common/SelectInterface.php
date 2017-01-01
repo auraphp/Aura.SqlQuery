@@ -181,10 +181,12 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string $cond The HAVING condition.
      *
+     * @param array ...$bind arguments to bind to placeholders
+     *
      * @return $this
      *
      */
-    public function having($cond);
+    public function having($cond, ...$bind);
 
     /**
      *
@@ -193,12 +195,14 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string $cond The HAVING condition.
      *
+     * @param array ...$bind arguments to bind to placeholders
+     *
      * @return $this
      *
      * @see having()
      *
      */
-    public function orHaving($cond);
+    public function orHaving($cond, ...$bind);
 
     /**
      *

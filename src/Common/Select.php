@@ -612,12 +612,14 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      *
      * @param string $cond The HAVING condition.
      *
+     * @param array ...$bind arguments to bind to placeholders
+     *
      * @return $this
      *
      */
-    public function having($cond)
+    public function having($cond, ...$bind)
     {
-        $this->addClauseCondWithBind('having', 'AND', func_get_args());
+        $this->addClauseCondWithBind('having', 'AND', $cond, $bind);
         return $this;
     }
 
@@ -629,14 +631,16 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      *
      * @param string $cond The HAVING condition.
      *
+     * @param array ...$bind arguments to bind to placeholders
+     *
      * @return $this
      *
      * @see having()
      *
      */
-    public function orHaving($cond)
+    public function orHaving($cond, ...$bind)
     {
-        $this->addClauseCondWithBind('having', 'OR', func_get_args());
+        $this->addClauseCondWithBind('having', 'OR', $cond, $bind);
         return $this;
     }
 
@@ -987,9 +991,9 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      * @return $this
      *
      */
-    public function where($cond)
+    public function where($cond, ...$bind)
     {
-        $this->addWhere('AND', func_get_args());
+        $this->addWhere('AND', $cond, ...$bind);
         return $this;
     }
 
@@ -1007,9 +1011,9 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      * @see where()
      *
      */
-    public function orWhere($cond)
+    public function orWhere($cond, ...$bind)
     {
-        $this->addWhere('OR', func_get_args());
+        $this->addWhere('OR', $cond, ...$bind);
         return $this;
     }
 
