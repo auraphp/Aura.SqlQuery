@@ -99,6 +99,17 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
 
     /**
      *
+     * Has the column or alias been added to the query?
+     *
+     * @param string $alias The column or alias to look for
+     *
+     * @return bool
+     *
+     */
+    public function hasCol($alias);
+
+    /**
+     *
      * Does the query have any columns in it?
      *
      * @return bool

@@ -95,6 +95,10 @@ class SelectTest extends AbstractQueryTest
         ));
 
         $this->assertTrue($this->query->hasCols());
+        $this->assertTrue($this->query->hasCol('t1.c1'));
+        $this->assertTrue($this->query->hasCol('c2'));
+        $this->assertTrue($this->query->hasCol('a2'));
+        $this->assertFalse($this->query->hasCol('no_such_column'));
 
         $actual = $this->query->__toString();
         $expect = '

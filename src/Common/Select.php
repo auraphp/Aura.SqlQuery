@@ -307,6 +307,20 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
 
     /**
      *
+     * Has the column or alias been added to the query?
+     *
+     * @param string $alias The column or alias to look for
+     *
+     * @return bool
+     *
+     */
+    public function hasCol($alias)
+    {
+        return isset($this->cols[$alias]) || array_search($alias, $this->cols) !== false;
+    }
+
+    /**
+     *
      * Does the query have any columns in it?
      *
      * @return bool
