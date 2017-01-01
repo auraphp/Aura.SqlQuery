@@ -58,6 +58,21 @@ class InsertTest extends Common\InsertTest
         $this->assertSameSql($expect, $actual);
     }
 
+    public function testOrReplace()
+    {
+        $this->query->orReplace()
+                    ->into('t1')
+                    ->cols(array('c1', 'c2', 'c3'))
+                    ->set('c4', 'NOW()')
+                    ->set('c5', null);
+
+        $actual = $this->query->__toString();
+        $expect = sprintf($this->expected_sql_with_flag, '');
+        $expect = preg_replace('|INSERT |ms', 'REPLACE', $expect);
+
+        $this->assertSameSql($expect, $actual);
+    }
+
     public function testLowPriority()
     {
         $this->query->lowPriority()
