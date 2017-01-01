@@ -273,7 +273,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      *
      * @param string $alias The column to remove
      *
-     * @return null
+     * @return bool
      *
      */
     public function removeCol($alias)
@@ -479,7 +479,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
     protected function fixJoinCondition($cond, array $bind)
     {
         if (! $cond) {
-            return;
+            return '';
         }
 
         $cond = $this->quoter->quoteNamesIn($cond);
