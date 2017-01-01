@@ -150,7 +150,7 @@ abstract class AbstractDmlQuery extends AbstractQuery
      */
     protected function buildReturning()
     {
-        if (! $this->returning) {
+        if (empty($this->returning)) {
             return ''; // not applicable
         }
 

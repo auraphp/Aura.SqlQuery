@@ -280,7 +280,7 @@ abstract class AbstractQuery
      */
     protected function buildFlags()
     {
-        if (! $this->flags) {
+        if (empty($this->flags)) {
             return ''; // not applicable
         }
 
@@ -440,7 +440,7 @@ abstract class AbstractQuery
      */
     protected function buildWhere()
     {
-        if (! $this->where) {
+        if (empty($this->where)) {
             return ''; // not applicable
         }
 
@@ -473,7 +473,7 @@ abstract class AbstractQuery
      */
     protected function buildOrderBy()
     {
-        if (! $this->order_by) {
+        if (empty($this->order_by)) {
             return ''; // not applicable
         }
 
