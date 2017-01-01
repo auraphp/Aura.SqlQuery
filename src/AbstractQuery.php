@@ -329,14 +329,16 @@ abstract class AbstractQuery
      * @param string $andor Add the condition using this operator, typically
      * 'AND' or 'OR'.
      *
-     * @param array $args Arguments for adding the condition.
+     * @param string $cond The WHERE condition.
+     *
+     * @param array ...$bind arguments to bind to placeholders
      *
      * @return $this
      *
      */
-    protected function addWhere($andor, $args)
+    protected function addWhere($andor, $cond, ...$bind)
     {
-        $this->addClauseCondWithBind('where', $andor, $args);
+        $this->addClauseCondWithBind('where', $andor, $cond, $bind);
         return $this;
     }
 
@@ -350,18 +352,18 @@ abstract class AbstractQuery
      * @param string $andor Add the condition using this operator, typically
      * 'AND' or 'OR'.
      *
-     * @param array $args Arguments for adding the condition.
+     * @param string $cond The WHERE condition.
+
+     * @param array $bind arguments to bind to placeholders
      *
      * @return null
      *
      */
-    protected function addClauseCondWithBind($clause, $andor, $args)
+    protected function addClauseCondWithBind($clause, $andor, $cond, $bind)
     {
-        // remove the condition from the args and quote names in it
-        $cond = array_shift($args);
-        $cond = $this->rebuildCondAndBindValues($cond, $args);
+        $cond = $this->rebuildCondAndBindValues($cond, $bind);
 
-        // add condition to clause; $this->where
+        // add condition to clause; eg $this->where or $this->having
         $clause =& $this->$clause;
         if ($clause) {
             $clause[] = "$andor $cond";

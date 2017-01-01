@@ -85,9 +85,9 @@ class Delete extends AbstractDmlQuery implements DeleteInterface
      * @return $this
      *
      */
-    public function where($cond)
+    public function where($cond, ...$bind)
     {
-        $this->addWhere('AND', func_get_args());
+        $this->addWhere('AND', $cond, ...$bind);
         return $this;
     }
 
@@ -105,9 +105,9 @@ class Delete extends AbstractDmlQuery implements DeleteInterface
      * @see where()
      *
      */
-    public function orWhere($cond)
+    public function orWhere($cond, ...$bind)
     {
-        $this->addWhere('OR', func_get_args());
+        $this->addWhere('OR', $cond, ...$bind);
         return $this;
     }
 }
