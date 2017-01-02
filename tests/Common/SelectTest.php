@@ -960,4 +960,28 @@ class SelectTest extends AbstractQueryTest
         $actual = (string) $select->getStatement();
         $this->assertSameSql($expected, $actual);
     }
+
+    public function testResetUnion()
+    {
+        $select = $this->query
+            ->cols(array(
+                '...'
+            ))
+            ->from('a')
+            ->union()
+            ->cols(array(
+                '...'
+            ))
+            ->from('b');
+
+        // should remove all prior queries and just leave the last.
+        $select->resetUnions();
+        $expected = 'SELECT
+                    ...
+                    FROM
+                    <<b>>';
+
+        $actual = (string) $select->getStatement();
+        $this->assertSameSql($expected, $actual);
+    }
 }
