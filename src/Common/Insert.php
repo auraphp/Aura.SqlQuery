@@ -257,11 +257,11 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      */
     public function addRow(array $cols = array())
     {
-        if (! $this->col_values) {
+        if (empty($this->col_values)) {
             return $this->cols($cols);
         }
 
-        if (! $this->col_order) {
+        if (empty($this->col_order)) {
             $this->col_order = array_keys($this->col_values);
         }
 
@@ -281,7 +281,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      */
     protected function finishRow()
     {
-        if (! $this->col_values) {
+        if (empty($this->col_values)) {
             return;
         }
 

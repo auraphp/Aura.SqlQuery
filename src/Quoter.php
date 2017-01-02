@@ -92,7 +92,7 @@ class Quoter
      *
      * @param string $spec The identifier name to quote.
      *
-     * @return string|array The quoted identifier name.
+     * @return string The quoted identifier name.
      *
      * @see replaceName()
      *

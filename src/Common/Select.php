@@ -129,7 +129,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
     public function getStatement()
     {
         $union = '';
-        if ($this->union) {
+        if (! empty($this->union)) {
             $union = implode(PHP_EOL, $this->union) . PHP_EOL;
         }
         return $union . $this->build();
@@ -892,7 +892,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      */
     protected function buildCols()
     {
-        if (! $this->cols) {
+        if (empty($this->cols)) {
             throw new Exception('No columns in the SELECT.');
         }
 
@@ -917,7 +917,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      */
     protected function buildFrom()
     {
-        if (! $this->from) {
+        if (empty($this->from)) {
             return ''; // not applicable
         }
 
@@ -940,7 +940,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      */
     protected function buildGroupBy()
     {
-        if (! $this->group_by) {
+        if (empty($this->group_by)) {
             return ''; // not applicable
         }
 
@@ -956,7 +956,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      */
     protected function buildHaving()
     {
-        if (! $this->having) {
+        if (empty($this->having)) {
             return ''; // not applicable
         }
 

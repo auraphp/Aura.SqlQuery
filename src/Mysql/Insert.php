@@ -192,7 +192,7 @@ class Insert extends Common\Insert
      */
     protected function buildValuesForUpdateOnDuplicateKey()
     {
-        if (! $this->col_on_update_values) {
+        if (empty($this->col_on_update_values)) {
             return ''; // not applicable
         }
 
