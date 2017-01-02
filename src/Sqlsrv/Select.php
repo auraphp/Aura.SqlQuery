@@ -55,23 +55,25 @@ class Select extends Common\Select
      */
     protected function applyLimit($stm)
     {
-        if (! $this->limit && ! $this->offset) {
+        $limit = $this->getLimit();
+        $offset = $this->getOffset();
+        if (! $limit && ! $offset) {
             return $stm; // no limit or offset
         }
 
         // limit but no offset?
-        if ($this->limit && ! $this->offset) {
+        if ($limit && ! $offset) {
             // use TOP in place
             return preg_replace(
                 '/^(SELECT( DISTINCT)?)/',
-                "$1 TOP {$this->limit}",
+                "$1 TOP {$limit}",
                 $stm
             );
         }
 
         // both limit and offset. must have an ORDER clause to work; OFFSET is
         // a sub-clause of the ORDER clause. cannot use FETCH without OFFSET.
-        return $stm . PHP_EOL . "OFFSET {$this->offset} ROWS "
-                    . "FETCH NEXT {$this->limit} ROWS ONLY";
+        return $stm . PHP_EOL . "OFFSET {$offset} ROWS "
+                    . "FETCH NEXT {$limit} ROWS ONLY";
     }
 }

@@ -19,59 +19,7 @@ use Aura\SqlQuery\Common;
  */
 class Delete extends Common\Delete implements Common\OrderByInterface, Common\LimitOffsetInterface
 {
-    /**
-     *
-     * Sets a limit count on the query.
-     *
-     * @param int $limit The number of rows to select.
-     *
-     * @return $this
-     *
-     */
-    public function limit($limit)
-    {
-        $this->limit = (int) $limit;
-        return $this;
-    }
-
-    /**
-     *
-     * Returns the LIMIT value.
-     *
-     * @return int
-     *
-     */
-    public function getLimit()
-    {
-        return $this->limit;
-    }
-
-    /**
-     *
-     * Sets a limit offset on the query.
-     *
-     * @param int $offset Start returning after this many rows.
-     *
-     * @return $this
-     *
-     */
-    public function offset($offset)
-    {
-        $this->offset = (int) $offset;
-        return $this;
-    }
-
-    /**
-     *
-     * Returns the OFFSET value.
-     *
-     * @return int
-     *
-     */
-    public function getOffset()
-    {
-        return $this->offset;
-    }
+    use Common\LimitOffsetTrait;
 
     /**
      *

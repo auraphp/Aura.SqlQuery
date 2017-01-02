@@ -19,6 +19,8 @@ use Aura\SqlQuery\Common;
  */
 class Update extends Common\Update implements Common\OrderByInterface, Common\LimitInterface
 {
+    use Common\LimitTrait;
+
     /**
      *
      * Adds or removes LOW_PRIORITY flag.
@@ -47,33 +49,6 @@ class Update extends Common\Update implements Common\OrderByInterface, Common\Li
     {
         $this->setFlag('IGNORE', $enable);
         return $this;
-    }
-
-    /**
-     *
-     * Sets a limit count on the query.
-     *
-     * @param int $limit The number of rows to select.
-     *
-     * @return $this
-     *
-     */
-    public function limit($limit)
-    {
-        $this->limit = (int) $limit;
-        return $this;
-    }
-
-    /**
-     *
-     * Returns the LIMIT value.
-     *
-     * @return int
-     *
-     */
-    public function getLimit()
-    {
-        return $this->limit;
     }
 
     /**
