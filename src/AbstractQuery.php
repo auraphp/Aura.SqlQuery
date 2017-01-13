@@ -459,20 +459,4 @@ abstract class AbstractQuery
 
         return PHP_EOL . 'ORDER BY' . $this->indentCsv($this->order_by);
     }
-
-    /**
-     *
-     * Template method overridden for queries that allow LIMIT and OFFSET.
-     *
-     * Builds the `LIMIT ... OFFSET` clause of the statement.
-     *
-     * Note that this will allow OFFSET values with a LIMIT.
-     *
-     * @return string
-     *
-     */
-    protected function buildLimit()
-    {
-        return '';
-    }
 }
