@@ -407,6 +407,19 @@ abstract class AbstractQuery
                 continue;
             }
 
+            if (is_array($bind_value) && !empty($bind_value)) {
+                $part = '';
+                $subCount = count($bind_value);
+                foreach ($bind_value as $subKey => $subValue) {
+                    $seqPlaceholder = $this->getSeqPlaceholder();
+                    $part .= ':' . $seqPlaceholder;
+                    if ($subCount > $subKey + 1) $part .= ', ';
+                    $this->bind_values[$seqPlaceholder] = $subValue;
+                }
+                $parts[$key] = $part;
+                continue;
+            }
+
             $placeholder = $this->getSeqPlaceholder();
             $parts[$key] = ':' . $placeholder;
             $this->bind_values[$placeholder] = $bind_value;
