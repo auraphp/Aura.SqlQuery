@@ -409,12 +409,14 @@ abstract class AbstractQuery
 
             if (is_array($bind_value) && !empty($bind_value)) {
                 $part = '';
+                $ind = 0;
                 $subCount = count($bind_value);
-                foreach ($bind_value as $subKey => $subValue) {
+                foreach ($bind_value as $subValue) {
                     $seqPlaceholder = $this->getSeqPlaceholder();
                     $part .= ':' . $seqPlaceholder;
-                    if ($subCount > $subKey + 1) $part .= ', ';
+                    if ($subCount > $ind + 1) $part .= ', ';
                     $this->bind_values[$seqPlaceholder] = $subValue;
+                    $ind++;
                 }
                 $parts[$key] = $part;
                 continue;
