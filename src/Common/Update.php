@@ -142,4 +142,20 @@ class Update extends AbstractDmlQuery implements UpdateInterface
         }
         return PHP_EOL . 'SET' . $this->indentCsv($values);
     }
+
+    /**
+     *
+     * Template method overridden for queries that allow LIMIT and OFFSET.
+     *
+     * Builds the `LIMIT ... OFFSET` clause of the statement.
+     *
+     * Note that this will allow OFFSET values with a LIMIT.
+     *
+     * @return string
+     *
+     */
+    protected function buildLimit()
+    {
+        return '';
+    }
 }

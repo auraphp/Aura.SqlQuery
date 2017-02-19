@@ -8,8 +8,6 @@
  */
 namespace Aura\SqlQuery;
 
-use Aura\SqlQuery\Common\LimitInterface;
-use Aura\SqlQuery\Common\LimitOffsetInterface;
 use Aura\SqlQuery\Common\SubselectInterface;
 
 /**
@@ -47,24 +45,6 @@ abstract class AbstractQuery
      *
      */
     protected $order_by = array();
-
-    /**
-     *
-     * The number of rows to select
-     *
-     * @var int
-     *
-     */
-    protected $limit = 0;
-
-    /**
-     *
-     * Return rows after this offset.
-     *
-     * @var int
-     *
-     */
-    protected $offset = 0;
 
     /**
      *
@@ -492,35 +472,5 @@ abstract class AbstractQuery
         }
 
         return PHP_EOL . 'ORDER BY' . $this->indentCsv($this->order_by);
-    }
-
-    /**
-     *
-     * Builds the `LIMIT ... OFFSET` clause of the statement.
-     *
-     * Note that this will allow OFFSET values with a LIMIT.
-     *
-     * @return string
-     *
-     */
-    protected function buildLimit()
-    {
-        $clause = '';
-        $limit = $this instanceof LimitInterface && $this->limit;
-        $offset = $this instanceof LimitOffsetInterface && $this->offset;
-
-        if ($limit) {
-            $clause .= "LIMIT {$this->limit}";
-        }
-
-        if ($offset) {
-            $clause .= " OFFSET {$this->offset}";
-        }
-
-        if ($clause) {
-            $clause = PHP_EOL . trim($clause);
-        }
-
-        return $clause;
     }
 }

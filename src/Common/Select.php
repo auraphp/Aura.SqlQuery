@@ -21,6 +21,7 @@ use Aura\SqlQuery\Exception;
 class Select extends AbstractQuery implements SelectInterface, SubselectInterface
 {
     use WhereTrait;
+    use LimitOffsetTrait { limit as setLimit; offset as setOffset; }
 
     /**
      *
@@ -697,11 +698,11 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      */
     protected function setPagingLimitOffset()
     {
-        $this->limit  = 0;
-        $this->offset = 0;
+        $this->setLimit(0);
+        $this->setOffset(0);
         if ($this->page) {
-            $this->limit  = $this->paging;
-            $this->offset = $this->paging * ($this->page - 1);
+            $this->setLimit($this->paging);
+            $this->setOffset($this->paging * ($this->page - 1));
         }
     }
 
@@ -745,30 +746,6 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
         $this->union[] = $this->build() . PHP_EOL . 'UNION ALL';
         $this->reset();
         return $this;
-    }
-
-    /**
-     *
-     * Returns the LIMIT value.
-     *
-     * @return int
-     *
-     */
-    public function getLimit()
-    {
-        return $this->limit;
-    }
-
-    /**
-     *
-     * Returns the OFFSET value.
-     *
-     * @return int
-     *
-     */
-    public function getOffset()
-    {
-        return $this->offset;
     }
 
     /**
@@ -1018,10 +995,10 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      */
     public function limit($limit)
     {
-        $this->limit = (int) $limit;
+        $this->setLimit($limit);
         if ($this->page) {
             $this->page = 0;
-            $this->offset = 0;
+            $this->setOffset(0);
         }
         return $this;
     }
@@ -1037,10 +1014,10 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      */
     public function offset($offset)
     {
-        $this->offset = (int) $offset;
+        $this->setOffset($offset);
         if ($this->page) {
             $this->page = 0;
-            $this->limit = 0;
+            $this->setLimit(0);
         }
         return $this;
     }
