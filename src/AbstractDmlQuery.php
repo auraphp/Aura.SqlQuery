@@ -45,7 +45,7 @@ abstract class AbstractDmlQuery extends AbstractQuery
      */
     public function hasCols()
     {
-        return (bool) $this->col_values;
+        return !empty($this->col_values);
     }
 
     /**

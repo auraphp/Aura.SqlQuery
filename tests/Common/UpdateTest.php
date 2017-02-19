@@ -42,4 +42,12 @@ class UpdateTest extends AbstractQueryTest
         );
         $this->assertSame($expect, $actual);
     }
+
+    public function testHasCols()
+    {
+        $this->query->table('t1');
+        $this->assertFalse($this->query->hasCols());
+        $this->query->cols(['c1', 'c2']);
+        $this->assertTrue($this->query->hasCols());
+    }
 }
