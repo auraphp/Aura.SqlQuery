@@ -21,6 +21,15 @@ class Insert extends Common\Insert
 {
     /**
      *
+     * if true, use a REPLACE sql command instead of INSERT
+     *
+     * @var bool
+     *
+     */
+    private $use_replace = false;
+
+    /**
+     *
      * Column values for ON DUPLICATE KEY UPDATE section of query; the key is
      * the column name and the value is the column value.
      *
@@ -28,6 +37,22 @@ class Insert extends Common\Insert
      *
      */
     protected $col_on_update_values;
+
+    /**
+     *
+     * Use a REPLACE statement.
+     * Matches similar orReplace() function for Sqlite
+     *
+     * @param bool $enable Set or unset flag (default true).
+     *
+     * @return $this
+     *
+     */
+    public function orReplace($enable = true)
+    {
+        $this->use_replace = $enable;
+        return $this;
+    }
 
     /**
      *
@@ -175,7 +200,7 @@ class Insert extends Common\Insert
      */
     protected function build()
     {
-        return 'INSERT'
+        return ($this->use_replace ? 'REPLACE' : 'INSERT')
             . $this->buildFlags()
             . $this->buildInto()
             . $this->buildValuesForInsert()
