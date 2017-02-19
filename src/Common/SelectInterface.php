@@ -65,6 +65,15 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
 
     /**
      *
+     * Is the select DISTINCT?
+     *
+     * @return bool
+     *
+     */
+    public function isDistinct();
+
+    /**
+     *
      * Adds columns to the query.
      *
      * Multiple calls to cols() will append to the list of columns, not
@@ -76,6 +85,46 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      */
     public function cols(array $cols);
+
+    /**
+     *
+     * Remove a column via its alias.
+     *
+     * @param string $alias The column to remove
+     *
+     * @return bool
+     *
+     */
+    public function removeCol($alias);
+
+    /**
+     *
+     * Has the column or alias been added to the query?
+     *
+     * @param string $alias The column or alias to look for
+     *
+     * @return bool
+     *
+     */
+    public function hasCol($alias);
+
+    /**
+     *
+     * Does the query have any columns in it?
+     *
+     * @return bool
+     *
+     */
+    public function hasCols();
+
+    /**
+     *
+     * Returns a list of columns.
+     *
+     * @return array
+     *
+     */
+    public function getCols();
 
     /**
      *
@@ -128,6 +177,40 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      */
     public function join($join, $spec, $cond = null);
+
+    /**
+     *
+     * Adds a INNER JOIN table and columns to the query.
+     *
+     * @param string $spec The table specification; "foo" or "foo AS bar".
+     *
+     * @param string $cond Join on this condition.
+     *
+     * @param array $bind Values to bind to ?-placeholders in the condition.
+     *
+     * @return $this
+     *
+     * @throws \Exception
+     *
+     */
+    public function innerJoin($spec, $cond = null, array $bind = array());
+
+    /**
+     *
+     * Adds a LEFT JOIN table and columns to the query.
+     *
+     * @param string $spec The table specification; "foo" or "foo AS bar".
+     *
+     * @param string $cond Join on this condition.
+     *
+     * @param array $bind Values to bind to ?-placeholders in the condition.
+     *
+     * @return $this
+     *
+     * @throws \Exception
+     *
+     */
+    public function leftJoin($spec, $cond = null, array $bind = array());
 
     /**
      *
@@ -217,6 +300,15 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
 
     /**
      *
+     * Returns the page number being selected.
+     *
+     * @return int
+     *
+     */
+    public function getPage();
+
+    /**
+     *
      * Takes the current select properties and retains them, then sets
      * UNION for the next set of properties.
      *
@@ -234,4 +326,77 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      */
     public function unionAll();
+
+    /**
+     *
+     * Clears the current select properties, usually called after a union.
+     * You may need to call resetUnions() if you have used one
+     *
+     * @return null
+     *
+     */
+    public function reset();
+
+    /**
+     *
+     * Resets the columns on the SELECT.
+     *
+     * @return $this
+     *
+     */
+    public function resetCols();
+
+    /**
+     *
+     * Resets the FROM and JOIN clauses on the SELECT.
+     *
+     * @return $this
+     *
+     */
+    public function resetTables();
+
+    /**
+     *
+     * Resets the WHERE clause on the SELECT.
+     *
+     * @return $this
+     *
+     */
+    public function resetWhere();
+
+    /**
+     *
+     * Resets the GROUP BY clause on the SELECT.
+     *
+     * @return $this
+     *
+     */
+    public function resetGroupBy();
+
+    /**
+     *
+     * Resets the HAVING clause on the SELECT.
+     *
+     * @return $this
+     *
+     */
+    public function resetHaving();
+
+    /**
+     *
+     * Resets the ORDER BY clause on the SELECT.
+     *
+     * @return $this
+     *
+     */
+    public function resetOrderBy();
+
+    /**
+     *
+     * Resets the UNION and UNION ALL clauses on the SELECT.
+     *
+     * @return $this
+     *
+     */
+    public function resetUnions();
 }

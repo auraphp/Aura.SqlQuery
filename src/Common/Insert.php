@@ -33,7 +33,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      *
      * A map of fully-qualified `table.column` names to last-insert-id names.
      * This is used to look up the right last-insert-id name for a given table
-     * and column. Generally useful only for extended tables in Posgres.
+     * and column. Generally useful only for extended tables in Postgres.
      *
      * @var array
      *
@@ -81,7 +81,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
     /**
      *
      * Sets the map of fully-qualified `table.column` names to last-insert-id
-     * names. Generally useful only for extended tables in Posgres.
+     * names. Generally useful only for extended tables in Postgres.
      *
      * @param array $last_insert_id_names The list of ID names.
      *

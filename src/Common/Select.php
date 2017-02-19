@@ -201,6 +201,18 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
 
     /**
      *
+     * Is the select DISTINCT?
+     *
+     * @return bool
+     *
+     */
+    public function isDistinct()
+    {
+        return $this->hasFlag('DISTINCT');
+    }
+
+    /**
+     *
      * Adds columns to the query.
      *
      * Multiple calls to cols() will append to the list of columns, not
@@ -293,6 +305,20 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
         }
 
         return false;
+    }
+
+    /**
+     *
+     * Has the column or alias been added to the query?
+     *
+     * @param string $alias The column or alias to look for
+     *
+     * @return bool
+     *
+     */
+    public function hasCol($alias)
+    {
+        return isset($this->cols[$alias]) || array_search($alias, $this->cols) !== false;
     }
 
     /**
@@ -753,7 +779,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      * @return null
      *
      */
-    protected function reset()
+    public function reset()
     {
         $this->resetFlags();
         $this->resetCols();

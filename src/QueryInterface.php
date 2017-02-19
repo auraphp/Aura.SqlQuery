@@ -14,12 +14,6 @@ namespace Aura\SqlQuery;
  *
  * @package Aura.SqlQuery
  *
- * @method string getStatement() Returns the query statement as a string;
- * missing from the interface but present in the implementations.
- *
- * @todo Add getStatement() to the interface in 3.x, since adding it in 2.x
- * would be a BC break.
- *
  */
 interface QueryInterface
 {
@@ -31,6 +25,15 @@ interface QueryInterface
      *
      */
     public function __toString();
+
+    /**
+     *
+     * Returns this query object as an SQL statement string.
+     *
+     * @return string
+     *
+     */
+    public function getStatement();
 
     /**
      *
@@ -82,4 +85,13 @@ interface QueryInterface
      *
      */
     public function getBindValues();
+
+    /**
+     *
+     * Reset all query flags.
+     *
+     * @return $this
+     *
+     */
+    public function resetFlags();
 }
