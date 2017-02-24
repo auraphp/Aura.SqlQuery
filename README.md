@@ -20,9 +20,8 @@ Alternatively, [download a release](https://github.com/auraphp/Aura.SqlQuery/rel
 [![Code Coverage](https://scrutinizer-ci.com/g/auraphp/Aura.SqlQuery/badges/coverage.png?b=2.x)](https://scrutinizer-ci.com/g/auraphp/Aura.SqlQuery/?branch=2.x)
 [![Build Status](https://travis-ci.org/auraphp/Aura.SqlQuery.png?branch=2.x)](https://travis-ci.org/auraphp/Aura.SqlQuery)
 
-To run the unit tests at the command line, issue `phpunit` at the package root. (This requires [PHPUnit][] to be available as `phpunit`.)
+To run the [PHPUnit](http://phpunit.de/manual/) unit tests at the command line, issue `composer install` and then `vendor/bin/phpunit` at the package root. (This requires [Composer](http://getcomposer.org/) to be available as `composer`.)
 
-[PHPUnit]: http://phpunit.de/manual/
 
 This library attempts to comply with [PSR-1][], [PSR-2][], and [PSR-4][]. If
 you notice compliance oversights, please send a patch via pull request.
