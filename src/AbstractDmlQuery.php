@@ -55,16 +55,16 @@ abstract class AbstractDmlQuery extends AbstractQuery
      *
      * @param string $col The column name.
      *
-     * @return $this
+     * @param array  $value Value of the column
      *
+     * @return $this
      */
-    protected function addCol($col)
+    protected function addCol($col, ...$value)
     {
         $key = $this->quoter->quoteName($col);
         $this->col_values[$key] = ":$col";
-        $args = func_get_args();
-        if (count($args) > 1) {
-            $this->bindValue($col, $args[1]);
+        if (count($value) > 0) {
+            $this->bindValue($col, $value[0]);
         }
         return $this;
     }
