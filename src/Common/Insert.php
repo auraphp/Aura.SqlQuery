@@ -371,4 +371,34 @@ class Insert extends AbstractDmlQuery implements InsertInterface
             . "VALUES" . PHP_EOL
             . implode("," . PHP_EOL, $vals);
     }
+
+    /**
+     * Clear some part of the query
+     *
+     * @param $part
+     * @return $this
+     */
+    public function clear($part)
+    {
+
+        // arrays
+        if(in_array($part, array('where')))
+        {
+            $this->$part = array();
+        }
+
+        // 0
+        if(in_array($part, array('limit', 'offset')))
+        {
+            $this->$part = 0;
+        }
+
+        // null
+        if(in_array($part, array('into', 'col_values')))
+        {
+            unset($this->$part);
+        }
+
+        return $this;
+    }
 }

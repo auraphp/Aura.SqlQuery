@@ -177,4 +177,34 @@ class Update extends AbstractDmlQuery implements UpdateInterface
         }
         return PHP_EOL . 'SET' . $this->indentCsv($values);
     }
+
+    /**
+     * Clear some part of the query
+     * 
+     * @param $part
+     * @return $this
+     */
+    public function clear($part)
+    {
+
+        // arrays
+        if(in_array($part, array('where')))
+        {
+            $this->$part = array();
+        }
+
+        // 0
+        if(in_array($part, array('limit', 'offset')))
+        {
+            $this->$part = 0;
+        }
+
+        // null
+        if(in_array($part, array('table', 'col_values')))
+        {
+            unset($this->$part);
+        }
+
+        return $this;
+    }
 }

@@ -97,4 +97,19 @@ class UpdateTest extends Common\UpdateTest
 
         $this->assertSame(5, $this->query->getLimit());
     }
+
+    /**
+     * Data provider for method testClearSqlParts
+     *
+     * @return array
+     */
+    public function clearSqlPartsProvider()
+    {
+        return array(
+            array('where', 'where', 'x = y', array('x = y'), array()),
+            array('table', 'table', 'table_name', true, null),
+            array('limit', 'limit', 1, 1, 0),
+            array('col_values', 'set', new \ArrayObject(array('column', 'value')), true, null),
+        );
+    }
 }
