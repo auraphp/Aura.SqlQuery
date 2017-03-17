@@ -205,7 +205,7 @@ class QueryFactory
 
         return new $queryClass(
             $this->getQuoter(),
-            new $builderClass($this->getQuoter()),
+            new $builderClass(),
             $this->newSeqBindPrefix()
         );
     }

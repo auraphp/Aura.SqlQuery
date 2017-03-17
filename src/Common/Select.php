@@ -876,7 +876,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
     {
         return 'SELECT'
             . $this->builder->buildFlags($this->flags)
-            . $this->builder->buildCols($this->cols)
+            . $this->builder->buildCols($this->cols, $this->quoter)
             . $this->builder->buildFrom($this->from, $this->join)
             . $this->builder->buildWhere($this->where)
             . $this->builder->buildGroupBy($this->group_by)

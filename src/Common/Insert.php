@@ -29,6 +29,8 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      */
     protected $into;
 
+    protected $into_raw;
+
     /**
      *
      * A map of fully-qualified `table.column` names to last-insert-id names.
@@ -102,8 +104,8 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      */
     public function into($into)
     {
-        // don't quote yet, we might need it for getLastInsertIdName()
-        $this->into = $into;
+        $this->into_raw = $into;
+        $this->into = $this->quoter->quoteName($into);
         return $this;
     }
 
@@ -142,7 +144,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      */
     public function getLastInsertIdName($col)
     {
-        $key = $this->into . '.' . $col;
+        $key = $this->into_raw . '.' . $col;
         if (isset($this->last_insert_id_names[$key])) {
             return $this->last_insert_id_names[$key];
         }

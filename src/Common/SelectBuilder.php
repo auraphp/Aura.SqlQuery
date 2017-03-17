@@ -14,7 +14,7 @@ class SelectBuilder extends AbstractBuilder
      * @throws Exception when there are no columns in the SELECT.
      *
      */
-    public function buildCols($cols)
+    public function buildCols($cols, $quoter)
     {
         if (empty($cols)) {
             throw new Exception('No columns in the SELECT.');
@@ -23,9 +23,9 @@ class SelectBuilder extends AbstractBuilder
         $list = array();
         foreach ($cols as $key => $val) {
             if (is_int($key)) {
-                $list[] = $this->quoter->quoteNamesIn($val);
+                $list[] = $quoter->quoteNamesIn($val);
             } else {
-                $list[] = $this->quoter->quoteNamesIn("$val AS $key");
+                $list[] = $quoter->quoteNamesIn("$val AS $key");
             }
         }
 

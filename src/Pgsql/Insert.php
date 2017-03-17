@@ -39,7 +39,7 @@ class Insert extends Common\Insert implements Common\ReturningInterface
     {
         $name = parent::getLastInsertIdName($col);
         if (! $name) {
-            $name = "{$this->into}_{$col}_seq";
+            $name = "{$this->into_raw}_{$col}_seq";
         }
         return $name;
     }

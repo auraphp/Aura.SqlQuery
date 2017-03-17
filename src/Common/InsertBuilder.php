@@ -13,7 +13,7 @@ class InsertBuilder extends AbstractBuilder
      */
     public function buildInto($into)
     {
-        return " INTO " . $this->quoter->quoteName($into);
+        return " INTO {$into}";
     }
 
 

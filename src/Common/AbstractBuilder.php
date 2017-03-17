@@ -5,11 +5,6 @@ use Aura\SqlQuery\Exception;
 
 abstract class AbstractBuilder
 {
-    public function __construct($quoter)
-    {
-        $this->quoter = $quoter;
-    }
-
     /**
      *
      * Builds the flags as a space-separated string.
