@@ -17,8 +17,10 @@ use Aura\SqlQuery\Common;
  * @package Aura.SqlQuery
  *
  */
-class Insert extends Common\Insert implements Common\ReturningInterface
+class Insert extends Common\Insert implements ReturningInterface
 {
+    use ReturningTrait;
+
     protected function build()
     {
         return parent::build()
@@ -42,22 +44,5 @@ class Insert extends Common\Insert implements Common\ReturningInterface
             $name = "{$this->into_raw}_{$col}_seq";
         }
         return $name;
-    }
-
-    /**
-     *
-     * Adds returning columns to the query.
-     *
-     * Multiple calls to returning() will append to the list of columns, not
-     * overwrite the previous columns.
-     *
-     * @param array $cols The column(s) to add to the query.
-     *
-     * @return $this
-     *
-     */
-    public function returning(array $cols)
-    {
-        return $this->addReturning($cols);
     }
 }
