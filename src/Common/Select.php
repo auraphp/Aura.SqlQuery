@@ -874,9 +874,18 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      */
     protected function build()
     {
+        $cols = array();
+        foreach ($this->cols as $key => $val) {
+            if (is_int($key)) {
+                $cols[] = $this->quoter->quoteNamesIn($val);
+            } else {
+                $cols[] = $this->quoter->quoteNamesIn("$val AS $key");
+            }
+        }
+
         return 'SELECT'
             . $this->builder->buildFlags($this->flags)
-            . $this->builder->buildCols($this->cols, $this->quoter)
+            . $this->builder->buildCols($cols)
             . $this->builder->buildFrom($this->from, $this->join)
             . $this->builder->buildWhere($this->where)
             . $this->builder->buildGroupBy($this->group_by)
