@@ -200,15 +200,11 @@ class Insert extends Common\Insert
      */
     protected function build()
     {
-        $stm = ($this->use_replace ? 'REPLACE' : 'INSERT')
-            . $this->builder->buildFlags($this->flags)
-            . $this->builder->buildInto($this->into);
+        $stm = parent::build();
 
-        if ($this->row) {
-            $this->finishRow();
-            $stm .= $this->builder->buildValuesForBulkInsert($this->col_order, $this->col_values_bulk);
-        } else {
-            $stm .= $this->builder->buildValuesForInsert($this->col_values);
+        if ($this->use_replace) {
+            // change INSERT to REPLACE
+            $stm = 'REPLACE' . substr($stm, 6);
         }
 
         return $stm
