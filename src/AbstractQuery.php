@@ -84,9 +84,10 @@ abstract class AbstractQuery
      * placeholders (@see getSeqPlaceholder()).
      *
      */
-    public function __construct(Quoter $quoter, $seq_bind_prefix = '')
+    public function __construct(Quoter $quoter, $builder, $seq_bind_prefix = '')
     {
         $this->quoter = $quoter;
+        $this->builder = $builder;
         $this->seq_bind_prefix = $seq_bind_prefix;
     }
 
@@ -162,36 +163,6 @@ abstract class AbstractQuery
 
     /**
      *
-     * Returns an array as an indented comma-separated values string.
-     *
-     * @param array $list The values to convert.
-     *
-     * @return string
-     *
-     */
-    protected function indentCsv(array $list)
-    {
-        return PHP_EOL . '    '
-             . implode(',' . PHP_EOL . '    ', $list);
-    }
-
-    /**
-     *
-     * Returns an array as an indented string.
-     *
-     * @param array $list The values to convert.
-     *
-     * @return string
-     *
-     */
-    protected function indent(array $list)
-    {
-        return PHP_EOL . '    '
-             . implode(PHP_EOL . '    ', $list);
-    }
-
-    /**
-     *
      * Binds multiple values to placeholders; merges with existing values.
      *
      * @param array $bind_values Values to bind to placeholders.
@@ -249,22 +220,6 @@ abstract class AbstractQuery
     {
         $this->bind_values = array();
         return $this;
-    }
-
-    /**
-     *
-     * Builds the flags as a space-separated string.
-     *
-     * @return string
-     *
-     */
-    protected function buildFlags()
-    {
-        if (empty($this->flags)) {
-            return ''; // not applicable
-        }
-
-        return ' ' . implode(' ', array_keys($this->flags));
     }
 
     /**
@@ -427,22 +382,6 @@ abstract class AbstractQuery
 
     /**
      *
-     * Builds the `WHERE` clause of the statement.
-     *
-     * @return string
-     *
-     */
-    protected function buildWhere()
-    {
-        if (empty($this->where)) {
-            return ''; // not applicable
-        }
-
-        return PHP_EOL . 'WHERE' . $this->indent($this->where);
-    }
-
-    /**
-     *
      * Adds a column order to the query.
      *
      * @param array $spec The columns and direction to order by.
@@ -456,21 +395,5 @@ abstract class AbstractQuery
             $this->order_by[] = $this->quoter->quoteNamesIn($col);
         }
         return $this;
-    }
-
-    /**
-     *
-     * Builds the `ORDER BY ...` clause of the statement.
-     *
-     * @return string
-     *
-     */
-    protected function buildOrderBy()
-    {
-        if (empty($this->order_by)) {
-            return ''; // not applicable
-        }
-
-        return PHP_EOL . 'ORDER BY' . $this->indentCsv($this->order_by);
     }
 }

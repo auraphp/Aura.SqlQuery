@@ -55,39 +55,9 @@ class Delete extends AbstractDmlQuery implements DeleteInterface
     protected function build()
     {
         return 'DELETE'
-            . $this->buildFlags()
-            . $this->buildFrom()
-            . $this->buildWhere()
-            . $this->buildOrderBy()
-            . $this->buildLimit()
-            . $this->buildReturning();
-    }
-
-    /**
-     *
-     * Builds the FROM clause.
-     *
-     * @return string
-     *
-     */
-    protected function buildFrom()
-    {
-        return " FROM {$this->from}";
-    }
-
-    /**
-     *
-     * Template method overridden for queries that allow LIMIT and OFFSET.
-     *
-     * Builds the `LIMIT ... OFFSET` clause of the statement.
-     *
-     * Note that this will allow OFFSET values with a LIMIT.
-     *
-     * @return string
-     *
-     */
-    protected function buildLimit()
-    {
-        return '';
+            . $this->builder->buildFlags($this->flags)
+            . $this->builder->buildFrom($this->from)
+            . $this->builder->buildWhere($this->where)
+            . $this->builder->buildOrderBy($this->order_by);
     }
 }

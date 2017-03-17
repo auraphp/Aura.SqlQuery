@@ -19,6 +19,12 @@ use Aura\SqlQuery\Common;
  */
 class Update extends Common\Update implements Common\ReturningInterface
 {
+    protected function build()
+    {
+        return parent::build()
+            . $this->builder->buildReturning($this->returning);
+    }
+
     /**
      *
      * Adds returning columns to the query.

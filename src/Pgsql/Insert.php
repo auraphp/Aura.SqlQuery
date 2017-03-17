@@ -19,6 +19,12 @@ use Aura\SqlQuery\Common;
  */
 class Insert extends Common\Insert implements Common\ReturningInterface
 {
+    protected function build()
+    {
+        return parent::build()
+            . $this->builder->buildReturning($this->returning);
+    }
+
     /**
      *
      * Returns the proper name for passing to `PDO::lastInsertId()`.

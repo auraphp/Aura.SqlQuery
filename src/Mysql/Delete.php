@@ -21,6 +21,12 @@ class Delete extends Common\Delete implements Common\OrderByInterface, Common\Li
 {
     use Common\LimitTrait;
 
+    protected function build()
+    {
+        return parent::build()
+            . $this->builder->buildLimit($this->getLimit());
+    }
+
     /**
      *
      * Adds or removes LOW_PRIORITY flag.

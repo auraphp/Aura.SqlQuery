@@ -140,20 +140,4 @@ abstract class AbstractDmlQuery extends AbstractQuery
         }
         return $this;
     }
-
-    /**
-     *
-     * Builds the `RETURNING` clause of the statement.
-     *
-     * @return string
-     *
-     */
-    protected function buildReturning()
-    {
-        if (empty($this->returning)) {
-            return ''; // not applicable
-        }
-
-        return PHP_EOL . 'RETURNING' . $this->indentCsv($this->returning);
-    }
 }

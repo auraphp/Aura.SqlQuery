@@ -19,7 +19,7 @@ trait LimitOffsetTrait
 {
     use LimitTrait;
 
-    private $offset = 0;
+    protected $offset = 0;
 
     /**
      *
@@ -46,32 +46,5 @@ trait LimitOffsetTrait
     public function getOffset()
     {
         return $this->offset;
-    }
-
-    /**
-     *
-     * Builds the `LIMIT ... OFFSET` clause of the statement.
-     *
-     * @return string
-     *
-     */
-    protected function buildLimit()
-    {
-        $clause = '';
-
-        $limit = $this->getLimit();
-        if (!empty($limit)) {
-            $clause .= "LIMIT {$limit}";
-        }
-
-        if (!empty($this->offset)) {
-            $clause .= " OFFSET {$this->offset}";
-        }
-
-        if (!empty($clause)) {
-            $clause = PHP_EOL . trim($clause);
-        }
-
-        return $clause;
     }
 }

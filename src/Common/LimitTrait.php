@@ -17,7 +17,7 @@ namespace Aura\SqlQuery\Common;
  */
 trait LimitTrait
 {
-    private $limit = 0;
+    protected $limit = 0;
 
     /**
      *
@@ -44,20 +44,5 @@ trait LimitTrait
     public function getLimit()
     {
         return $this->limit;
-    }
-
-    /**
-     *
-     * Builds the `LIMIT` clause of the statement.
-     *
-     * @return string
-     *
-     */
-    protected function buildLimit()
-    {
-        if (empty($this->limit)) {
-            return '';
-        }
-        return PHP_EOL . "LIMIT {$this->limit}";
     }
 }

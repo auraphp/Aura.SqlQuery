@@ -116,23 +116,18 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      */
     protected function build()
     {
-        return 'INSERT'
-            . $this->buildFlags()
-            . $this->buildInto()
-            . $this->buildValuesForInsert()
-            . $this->buildReturning();
-    }
+        $stm = 'INSERT'
+            . $this->builder->buildFlags($this->flags)
+            . $this->builder->buildInto($this->into);
 
-    /**
-     *
-     * Builds the INTO clause.
-     *
-     * @return string
-     *
-     */
-    protected function buildInto()
-    {
-        return " INTO " . $this->quoter->quoteName($this->into);
+        if ($this->row) {
+            $this->finishRow();
+            $stm .= $this->builder->buildValuesForBulkInsert($this->col_order, $this->col_values_bulk);
+        } else {
+            $stm .= $this->builder->buildValuesForInsert($this->col_values);
+        }
+
+        return $stm;
     }
 
     /**
@@ -330,45 +325,5 @@ class Insert extends AbstractDmlQuery implements InsertInterface
         if (array_key_exists($name, $this->bind_values)) {
             $this->bind_values_bulk["{$name}_{$this->row}"] = $this->bind_values[$name];
         }
-    }
-
-    /**
-     *
-     * Builds the inserted columns and values of the statement.
-     *
-     * @return string
-     *
-     */
-    protected function buildValuesForInsert()
-    {
-        if ($this->row) {
-            return $this->buildValuesForBulkInsert();
-        }
-
-        return ' ('
-            . $this->indentCsv(array_keys($this->col_values))
-            . PHP_EOL . ') VALUES ('
-            . $this->indentCsv(array_values($this->col_values))
-            . PHP_EOL . ')';
-    }
-
-    /**
-     *
-     * Builds the bulk-inserted columns and values of the statement.
-     *
-     * @return string
-     *
-     */
-    protected function buildValuesForBulkInsert()
-    {
-        $this->finishRow();
-        $cols = "    (" . implode(', ', $this->col_order) . ")";
-        $vals = array();
-        foreach ($this->col_values_bulk as $row_values) {
-            $vals[] = "    (" . implode(', ', $row_values) . ")";
-        }
-        return PHP_EOL . $cols . PHP_EOL
-            . "VALUES" . PHP_EOL
-            . implode("," . PHP_EOL, $vals);
     }
 }
