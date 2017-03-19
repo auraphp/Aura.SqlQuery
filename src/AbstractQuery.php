@@ -9,7 +9,7 @@
 namespace Aura\SqlQuery;
 
 use Aura\SqlQuery\Common\SubselectInterface;
-use Aura\SqlQuery\Common\Quoter;
+use Aura\SqlQuery\Common\QuoterInterface;
 
 /**
  *
@@ -85,7 +85,7 @@ abstract class AbstractQuery
      * placeholders (@see getSeqPlaceholder()).
      *
      */
-    public function __construct(Quoter $quoter, $builder, $seq_bind_prefix = '')
+    public function __construct(QuoterInterface $quoter, $builder, $seq_bind_prefix = '')
     {
         $this->quoter = $quoter;
         $this->builder = $builder;

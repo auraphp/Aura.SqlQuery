@@ -37,23 +37,6 @@ class Quoter implements QuoterInterface
 
     /**
      *
-     * Constructor.
-     *
-     * @param string $quote_name_prefix The prefix to use when quoting
-     * identifier names.
-     *
-     * @param string $quote_name_suffix The suffix to use when quoting
-     * identifier names.
-     *
-     */
-    public function __construct($quote_name_prefix, $quote_name_suffix)
-    {
-        $this->quote_name_prefix = $quote_name_prefix;
-        $this->quote_name_suffix = $quote_name_suffix;
-    }
-
-    /**
-     *
      * Returns the prefix to use when quoting identifier names.
      *
      * @return string
