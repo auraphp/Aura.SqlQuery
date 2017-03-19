@@ -205,6 +205,7 @@ class QueryFactory
         }
         return new $quoterClass();
     }
+
     /**
      *
      * Returns a new sequential-placeholder prefix for a query object.
