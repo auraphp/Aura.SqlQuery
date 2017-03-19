@@ -193,16 +193,19 @@ class QueryFactory
      */
     protected function newInstance($query)
     {
+        $queryClass = "Aura\SqlQuery\\{$this->db}\\{$query}";
         if ($this->common) {
-            $class = "Aura\SqlQuery\Common";
-        } else {
-            $class = "Aura\SqlQuery\\{$this->db}";
+            $queryClass = "Aura\SqlQuery\Common\\{$query}";
         }
 
-        $class .= "\\{$query}";
+        $builderClass = "Aura\SqlQuery\\{$this->db}\\{$query}Builder";
+        if ($this->common || ! class_exists($builderClass)) {
+            $builderClass = "Aura\SqlQuery\Common\\{$query}Builder";
+        }
 
-        return new $class(
+        return new $queryClass(
             $this->getQuoter(),
+            new $builderClass(),
             $this->newSeqBindPrefix()
         );
     }

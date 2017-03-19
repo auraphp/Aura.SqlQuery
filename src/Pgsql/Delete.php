@@ -17,22 +17,13 @@ use Aura\SqlQuery\Common;
  * @package Aura.SqlQuery
  *
  */
-class Delete extends Common\Delete implements Common\ReturningInterface
+class Delete extends Common\Delete implements ReturningInterface
 {
-    /**
-     *
-     * Adds returning columns to the query.
-     *
-     * Multiple calls to returning() will append to the list of columns, not
-     * overwrite the previous columns.
-     *
-     * @param array $cols The column(s) to add to the query.
-     *
-     * @return $this
-     *
-     */
-    public function returning(array $cols)
+    use ReturningTrait;
+
+    protected function build()
     {
-        return $this->addReturning($cols);
+        return parent::build()
+            . $this->builder->buildReturning($this->returning);
     }
 }

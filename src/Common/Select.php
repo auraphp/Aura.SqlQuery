@@ -874,33 +874,6 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      */
     protected function build()
     {
-        return 'SELECT'
-            . $this->buildFlags()
-            . $this->buildCols()
-            . $this->buildFrom() // includes JOIN
-            . $this->buildWhere()
-            . $this->buildGroupBy()
-            . $this->buildHaving()
-            . $this->buildOrderBy()
-            . $this->buildLimit()
-            . $this->buildForUpdate();
-    }
-
-    /**
-     *
-     * Builds the columns clause.
-     *
-     * @return string
-     *
-     * @throws Exception when there are no columns in the SELECT.
-     *
-     */
-    protected function buildCols()
-    {
-        if (empty($this->cols)) {
-            throw new Exception('No columns in the SELECT.');
-        }
-
         $cols = array();
         foreach ($this->cols as $key => $val) {
             if (is_int($key)) {
@@ -910,78 +883,16 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
             }
         }
 
-        return $this->indentCsv($cols);
-    }
-
-    /**
-     *
-     * Builds the FROM clause.
-     *
-     * @return string
-     *
-     */
-    protected function buildFrom()
-    {
-        if (empty($this->from)) {
-            return ''; // not applicable
-        }
-
-        $refs = array();
-        foreach ($this->from as $from_key => $from) {
-            if (isset($this->join[$from_key])) {
-                $from = array_merge($from, $this->join[$from_key]);
-            }
-            $refs[] = implode(PHP_EOL, $from);
-        }
-        return PHP_EOL . 'FROM' . $this->indentCsv($refs);
-    }
-
-    /**
-     *
-     * Builds the GROUP BY clause.
-     *
-     * @return string
-     *
-     */
-    protected function buildGroupBy()
-    {
-        if (empty($this->group_by)) {
-            return ''; // not applicable
-        }
-
-        return PHP_EOL . 'GROUP BY' . $this->indentCsv($this->group_by);
-    }
-
-    /**
-     *
-     * Builds the HAVING clause.
-     *
-     * @return string
-     *
-     */
-    protected function buildHaving()
-    {
-        if (empty($this->having)) {
-            return ''; // not applicable
-        }
-
-        return PHP_EOL . 'HAVING' . $this->indent($this->having);
-    }
-
-    /**
-     *
-     * Builds the FOR UPDATE clause.
-     *
-     * @return string
-     *
-     */
-    protected function buildForUpdate()
-    {
-        if (! $this->for_update) {
-            return ''; // not applicable
-        }
-
-        return PHP_EOL . 'FOR UPDATE';
+        return 'SELECT'
+            . $this->builder->buildFlags($this->flags)
+            . $this->builder->buildCols($cols)
+            . $this->builder->buildFrom($this->from, $this->join)
+            . $this->builder->buildWhere($this->where)
+            . $this->builder->buildGroupBy($this->group_by)
+            . $this->builder->buildHaving($this->having)
+            . $this->builder->buildOrderBy($this->order_by)
+            . $this->builder->buildLimitOffset($this->limit, $this->offset)
+            . $this->builder->buildForUpdate($this->for_update);
     }
 
     /**

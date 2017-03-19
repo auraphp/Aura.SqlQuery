@@ -29,15 +29,6 @@ abstract class AbstractDmlQuery extends AbstractQuery
 
     /**
      *
-     * The columns to be returned.
-     *
-     * @var array
-     *
-     */
-    protected $returning = array();
-
-    /**
-     *
      * Does the query have any columns in it?
      *
      * @return bool
@@ -119,41 +110,5 @@ abstract class AbstractDmlQuery extends AbstractQuery
         $value = $this->quoter->quoteNamesIn($value);
         $this->col_values[$key] = $value;
         return $this;
-    }
-
-    /**
-     *
-     * Adds returning columns to the query.
-     *
-     * Multiple calls to returning() will append to the list of columns, not
-     * overwrite the previous columns.
-     *
-     * @param array $cols The column(s) to add to the query.
-     *
-     * @return $this
-     *
-     */
-    protected function addReturning(array $cols)
-    {
-        foreach ($cols as $col) {
-            $this->returning[] = $this->quoter->quoteNamesIn($col);
-        }
-        return $this;
-    }
-
-    /**
-     *
-     * Builds the `RETURNING` clause of the statement.
-     *
-     * @return string
-     *
-     */
-    protected function buildReturning()
-    {
-        if (empty($this->returning)) {
-            return ''; // not applicable
-        }
-
-        return PHP_EOL . 'RETURNING' . $this->indentCsv($this->returning);
     }
 }

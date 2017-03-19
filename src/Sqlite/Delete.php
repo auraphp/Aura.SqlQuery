@@ -21,6 +21,12 @@ class Delete extends Common\Delete implements Common\OrderByInterface, Common\Li
 {
     use Common\LimitOffsetTrait;
 
+    protected function build()
+    {
+        return parent::build()
+            . $this->builder->buildLimitOffset($this->getLimit(), $this->offset);
+    }
+
     /**
      *
      * Adds a column order to the query.

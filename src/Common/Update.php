@@ -55,25 +55,11 @@ class Update extends AbstractDmlQuery implements UpdateInterface
     protected function build()
     {
         return 'UPDATE'
-            . $this->buildFlags()
-            . $this->buildTable()
-            . $this->buildValuesForUpdate()
-            . $this->buildWhere()
-            . $this->buildOrderBy()
-            . $this->buildLimit()
-            . $this->buildReturning();
-    }
-
-    /**
-     *
-     * Builds the table clause.
-     *
-     * @return null
-     *
-     */
-    protected function buildTable()
-    {
-        return " {$this->table}";
+            . $this->builder->buildFlags($this->flags)
+            . $this->builder->buildTable($this->table)
+            . $this->builder->buildValuesForUpdate($this->col_values)
+            . $this->builder->buildWhere($this->where)
+            . $this->builder->buildOrderBy($this->order_by);
     }
 
     /**
@@ -125,37 +111,5 @@ class Update extends AbstractDmlQuery implements UpdateInterface
     public function set($col, $value)
     {
         return $this->setCol($col, $value);
-    }
-
-    /**
-     *
-     * Builds the updated columns and values of the statement.
-     *
-     * @return string
-     *
-     */
-    protected function buildValuesForUpdate()
-    {
-        $values = array();
-        foreach ($this->col_values as $col => $value) {
-            $values[] = "{$col} = {$value}";
-        }
-        return PHP_EOL . 'SET' . $this->indentCsv($values);
-    }
-
-    /**
-     *
-     * Template method overridden for queries that allow LIMIT and OFFSET.
-     *
-     * Builds the `LIMIT ... OFFSET` clause of the statement.
-     *
-     * Note that this will allow OFFSET values with a LIMIT.
-     *
-     * @return string
-     *
-     */
-    protected function buildLimit()
-    {
-        return '';
     }
 }

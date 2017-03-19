@@ -26,7 +26,7 @@ class Insert extends Common\Insert
      * @var bool
      *
      */
-    private $use_replace = false;
+    protected $use_replace = false;
 
     /**
      *
@@ -200,33 +200,14 @@ class Insert extends Common\Insert
      */
     protected function build()
     {
-        return ($this->use_replace ? 'REPLACE' : 'INSERT')
-            . $this->buildFlags()
-            . $this->buildInto()
-            . $this->buildValuesForInsert()
-            . $this->buildValuesForUpdateOnDuplicateKey()
-            . $this->buildReturning();
-    }
+        $stm = parent::build();
 
-    /**
-     *
-     * Builds the UPDATE ON DUPLICATE KEY part of the statement.
-     *
-     * @return string
-     *
-     */
-    protected function buildValuesForUpdateOnDuplicateKey()
-    {
-        if (empty($this->col_on_update_values)) {
-            return ''; // not applicable
+        if ($this->use_replace) {
+            // change INSERT to REPLACE
+            $stm = 'REPLACE' . substr($stm, 6);
         }
 
-        $values = array();
-        foreach ($this->col_on_update_values as $key => $row) {
-            $values[] = $this->indent(array($key . ' = ' . $row));
-        }
-
-        return ' ON DUPLICATE KEY UPDATE'
-            . implode (',', $values);
+        return $stm
+            . $this->builder->buildValuesForUpdateOnDuplicateKey($this->col_on_update_values);
     }
 }
