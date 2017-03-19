@@ -220,7 +220,7 @@ class QueryFactory
     protected function getQuoter()
     {
         if (! $this->quoter) {
-            $this->quoter = new Quoter(
+            $this->quoter = new Common\Quoter(
                 $this->quote_name_prefix,
                 $this->quote_name_suffix
             );

@@ -9,6 +9,7 @@
 namespace Aura\SqlQuery;
 
 use Aura\SqlQuery\Common\SubselectInterface;
+use Aura\SqlQuery\Common\Quoter;
 
 /**
  *
