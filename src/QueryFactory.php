@@ -39,39 +39,6 @@ class QueryFactory
 
     /**
      *
-     * The quote prefix/suffix to use for each type.
-     *
-     * @param array
-     *
-     */
-    protected $quotes = array(
-        'Common' => array('"', '"'),
-        'Mysql'  => array('`', '`'),
-        'Pgsql'  => array('"', '"'),
-        'Sqlite' => array('"', '"'),
-        'Sqlsrv' => array('[', ']'),
-    );
-
-    /**
-     *
-     * The quote name prefix extracted from `$quotes`.
-     *
-     * @var string
-     *
-     */
-    protected $quote_name_prefix;
-
-    /**
-     *
-     * The quote name suffix extracted from `$quotes`.
-     *
-     * @var string
-     *
-     */
-    protected $quote_name_suffix;
-
-    /**
-     *
      * A map of `table.col` names to last-insert-id names.
      *
      * @var array
@@ -83,7 +50,7 @@ class QueryFactory
      *
      * A Quoter for identifiers.
      *
-     * @param Quoter
+     * @param QuoterInterface
      *
      */
     protected $quoter;
@@ -107,14 +74,10 @@ class QueryFactory
      * query objects instead of db-specific ones.
      *
      */
-    public function __construct(
-        $db,
-        $common = null
-    ) {
+    public function __construct($db, $common = null)
+    {
         $this->db = ucfirst(strtolower($db));
         $this->common = ($common === self::COMMON);
-        $this->quote_name_prefix = $this->quotes[$this->db][0];
-        $this->quote_name_suffix = $this->quotes[$this->db][1];
     }
 
     /**
@@ -205,9 +168,18 @@ class QueryFactory
 
         return new $queryClass(
             $this->getQuoter(),
-            new $builderClass(),
+            $this->newBuilder($query),
             $this->newSeqBindPrefix()
         );
+    }
+
+    protected function newBuilder($query)
+    {
+        $builderClass = "Aura\SqlQuery\\{$this->db}\\{$query}Builder";
+        if ($this->common || ! class_exists($builderClass)) {
+            $builderClass = "Aura\SqlQuery\Common\\{$query}Builder";
+        }
+        return new $builderClass();
     }
 
     /**
@@ -220,13 +192,18 @@ class QueryFactory
     protected function getQuoter()
     {
         if (! $this->quoter) {
-            $this->quoter = new Quoter(
-                $this->quote_name_prefix,
-                $this->quote_name_suffix
-            );
+            $this->quoter = $this->newQuoter();
         }
-
         return $this->quoter;
+    }
+
+    protected function newQuoter()
+    {
+        $quoterClass = "Aura\SqlQuery\\{$this->db}\Quoter";
+        if ($this->common || ! class_exists($quoterClass)) {
+            $quoterClass = "Aura\SqlQuery\Common\Quoter";
+        }
+        return new $quoterClass();
     }
 
     /**

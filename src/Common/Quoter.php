@@ -6,7 +6,7 @@
  * @license http://opensource.org/licenses/bsd-license.php BSD
  *
  */
-namespace Aura\SqlQuery;
+namespace Aura\SqlQuery\Common;
 
 /**
  *
@@ -15,7 +15,7 @@ namespace Aura\SqlQuery;
  * @package Aura.SqlQuery
  *
  */
-class Quoter
+class Quoter implements QuoterInterface
 {
     /**
      *
@@ -34,23 +34,6 @@ class Quoter
      *
      */
     protected $quote_name_suffix = '"';
-
-    /**
-     *
-     * Constructor.
-     *
-     * @param string $quote_name_prefix The prefix to use when quoting
-     * identifier names.
-     *
-     * @param string $quote_name_suffix The suffix to use when quoting
-     * identifier names.
-     *
-     */
-    public function __construct($quote_name_prefix, $quote_name_suffix)
-    {
-        $this->quote_name_prefix = $quote_name_prefix;
-        $this->quote_name_suffix = $quote_name_suffix;
-    }
 
     /**
      *
