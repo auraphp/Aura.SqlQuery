@@ -272,28 +272,6 @@ abstract class AbstractQuery
 
     /**
      *
-     * Adds a WHERE condition to the query by AND or OR. If the condition has
-     * ?-placeholders, additional arguments to the method will be bound to
-     * those placeholders sequentially.
-     *
-     * @param string $andor Add the condition using this operator, typically
-     * 'AND' or 'OR'.
-     *
-     * @param string $cond The WHERE condition.
-     *
-     * @param array ...$bind arguments to bind to placeholders
-     *
-     * @return $this
-     *
-     */
-    protected function addWhere($andor, $cond, ...$bind)
-    {
-        $this->addClauseCondWithBind('where', $andor, $cond, $bind);
-        return $this;
-    }
-
-    /**
-     *
      * Adds conditions and binds values to a clause.
      *
      * @param string $clause The clause to work with, typically 'where' or
