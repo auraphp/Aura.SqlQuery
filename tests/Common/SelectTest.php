@@ -293,8 +293,8 @@ class SelectTest extends AbstractQueryTest
         $this->query->join(
             'left',
             't2',
-            't1.id = t2.id AND t1.foo = :_1_',
-            ['_1_' => 'bar']
+            't1.id = t2.id AND t1.foo = :foo',
+            ['foo' => 'bar']
         );
 
         $expect = '
@@ -302,12 +302,12 @@ class SelectTest extends AbstractQueryTest
                 *
             FROM
                 <<t1>>
-            LEFT JOIN <<t2>> ON <<t1>>.<<id>> = <<t2>>.<<id>> AND <<t1>>.<<foo>> = :_1_
+            LEFT JOIN <<t2>> ON <<t1>>.<<id>> = <<t2>>.<<id>> AND <<t1>>.<<foo>> = :foo
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
 
-        $expect = array('_1_' => 'bar');
+        $expect = array('foo' => 'bar');
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);
     }
@@ -336,20 +336,20 @@ class SelectTest extends AbstractQueryTest
     {
         $this->query->cols(array('*'));
         $this->query->from('t1');
-        $this->query->leftJoin('t2', 't2.id = :_1_', ['_1_' => 'foo']);
-        $this->query->innerJoin('t3 AS a3', 'a3.id = :_2_', ['_2_' => 'bar']);
+        $this->query->leftJoin('t2', 't2.id = :t2_id', ['t2_id' => 'foo']);
+        $this->query->innerJoin('t3 AS a3', 'a3.id = :a3_id', ['a3_id' => 'bar']);
         $expect = '
             SELECT
                 *
             FROM
                 <<t1>>
-            LEFT JOIN <<t2>> ON <<t2>>.<<id>> = :_1_
-            INNER JOIN <<t3>> AS <<a3>> ON <<a3>>.<<id>> = :_2_
+            LEFT JOIN <<t2>> ON <<t2>>.<<id>> = :t2_id
+            INNER JOIN <<t3>> AS <<a3>> ON <<a3>>.<<id>> = :a3_id
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
 
-        $expect = array('_1_' => 'foo', '_2_' => 'bar');
+        $expect = array('t2_id' => 'foo', 'a3_id' => 'bar');
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);
     }
