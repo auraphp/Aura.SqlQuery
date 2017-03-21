@@ -263,7 +263,7 @@ abstract class AbstractQuery
     protected function addClauseCondWithBind($clause, $andor, $cond, $bind)
     {
         $cond = $this->quoter->quoteNamesIn($cond);
-        $cond = $this->fixCondWithBind($cond, $bind);
+        $cond = $this->rebuildCondAndBindValues($cond, $bind);
 
         $clause =& $this->$clause;
         if ($clause) {
@@ -273,11 +273,25 @@ abstract class AbstractQuery
         }
     }
 
-    protected function fixCondWithBind($cond, array $bind)
+    /**
+     *
+     * Rebuilds a condition string, replacing sequential placeholders with
+     * named placeholders, and binding the sequential values to the named
+     * placeholders.
+     *
+     * @param string $cond The condition with sequential placeholders.
+     *
+     * @param array $bind_values The values to bind to the sequential
+     * placeholders under their named versions.
+     *
+     * @return string The rebuilt condition string.
+     *
+     */
+    protected function rebuildCondAndBindValues($cond, array $bind_values)
     {
         $selects = [];
 
-        foreach ($bind as $key => $val) {
+        foreach ($bind_values as $key => $val) {
             if ($val instanceof SubselectInterface) {
                 $selects[":{$key}"] = $val;
             } else {

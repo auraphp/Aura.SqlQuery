@@ -512,7 +512,7 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
         }
 
         $cond = $this->quoter->quoteNamesIn($cond);
-        $cond = $this->fixCondWithBind($cond, $bind);
+        $cond = $this->rebuildCondAndBindValues($cond, $bind);
 
         if (strtoupper(substr(ltrim($cond), 0, 3)) == 'ON ') {
             return $cond;
