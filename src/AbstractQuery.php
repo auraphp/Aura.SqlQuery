@@ -67,42 +67,15 @@ abstract class AbstractQuery
 
     /**
      *
-     * Prefix to use on placeholders for "sequential" bound values; used for
-     * deconfliction when merging bound values from sub-selects, etc.
-     *
-     * @var mixed
-     *
-     */
-    protected $seq_bind_prefix = '';
-
-    /**
-     *
      * Constructor.
      *
      * @param Quoter $quoter A helper for quoting identifier names.
      *
-     * @param string $seq_bind_prefix A prefix for rewritten sequential-binding
-     * placeholders (@see getSeqPlaceholder()).
-     *
      */
-    public function __construct(QuoterInterface $quoter, $builder, $seq_bind_prefix = '')
+    public function __construct(QuoterInterface $quoter, $builder)
     {
         $this->quoter = $quoter;
         $this->builder = $builder;
-        $this->seq_bind_prefix = $seq_bind_prefix;
-    }
-
-    /**
-     *
-     * Returns the prefix for rewritten sequential-binding placeholders
-     * (@see getSeqPlaceholder()).
-     *
-     * @return string
-     *
-     */
-    public function getSeqBindPrefix()
-    {
-        return $this->seq_bind_prefix;
     }
 
     /**
@@ -323,19 +296,6 @@ abstract class AbstractQuery
 
         $cond = strtr($cond, $selects);
         return $cond;
-    }
-
-    /**
-     *
-     * Gets the current sequential placeholder name.
-     *
-     * @return string
-     *
-     */
-    protected function getSeqPlaceholder()
-    {
-        $i = count($this->bind_values) + 1;
-        return $this->seq_bind_prefix . "_{$i}_";
     }
 
     /**
