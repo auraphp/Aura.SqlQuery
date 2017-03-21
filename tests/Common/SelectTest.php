@@ -293,8 +293,8 @@ class SelectTest extends AbstractQueryTest
         $this->query->join(
             'left',
             't2',
-            't1.id = t2.id AND t1.foo = ?',
-            array('bar')
+            't1.id = t2.id AND t1.foo = :_1_',
+            ['_1_' => 'bar']
         );
 
         $expect = '
@@ -336,8 +336,8 @@ class SelectTest extends AbstractQueryTest
     {
         $this->query->cols(array('*'));
         $this->query->from('t1');
-        $this->query->leftJoin('t2', 't2.id = ?', array('foo'));
-        $this->query->innerJoin('t3 AS a3', 'a3.id = ?', array('bar'));
+        $this->query->leftJoin('t2', 't2.id = :_1_', ['_1_' => 'foo']);
+        $this->query->innerJoin('t3 AS a3', 'a3.id = :_2_', ['_2_' => 'bar']);
         $expect = '
             SELECT
                 *
