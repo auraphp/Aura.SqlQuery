@@ -290,6 +290,7 @@ abstract class AbstractQuery
     protected function addClauseCondWithBind($clause, $andor, $cond, $bind)
     {
         $cond = $this->quoter->quoteNamesIn($cond);
+        $cond = $this->fixCondWithBind($cond, $bind);
 
         $clause =& $this->$clause;
         if ($clause) {
@@ -298,9 +299,30 @@ abstract class AbstractQuery
             $clause[] = $cond;
         }
 
+    }
+
+    protected function fixCondWithBind($cond, array $bind)
+    {
+        $selects = [];
+
         foreach ($bind as $key => $val) {
-            $this->bindValue($key, $val);
+            if ($val instanceof SubselectInterface) {
+                $selects[":{$key}"] = $val;
+            } else {
+                $this->bindValue($key, $val);
+            }
         }
+
+        foreach ($selects as $key => $select) {
+            $selects[$key] = $select->getStatement();
+            $this->bind_values = array_merge(
+                $this->bind_values,
+                $select->getBindValues()
+            );
+        }
+
+        $cond = strtr($cond, $selects);
+        return $cond;
     }
 
     /**

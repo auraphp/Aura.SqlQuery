@@ -813,8 +813,6 @@ class SelectTest extends AbstractQueryTest
 
     public function testIssue47()
     {
-        $this->markTestIncomplete("Finish subselect-as-condition.");
-
         // sub select
         $sub = $this->newQuery()
             ->cols(array('*'))
@@ -832,7 +830,7 @@ class SelectTest extends AbstractQueryTest
         $select = $this->newQuery()
             ->cols(array('*'))
             ->from('table2 AS t2')
-            ->where("field IN (?)", $sub);
+            ->where("field IN (:field)", ['field' => $sub]);
 
         $expect = '
             SELECT
@@ -884,13 +882,11 @@ class SelectTest extends AbstractQueryTest
 
     public function testWhereSubSelectImportsBoundValues()
     {
-        $this->markTestIncomplete("Finish subselect-as-condition.");
-
         // sub select
         $sub = $this->newQuery()
             ->cols(array('*'))
             ->from('table1 AS t1')
-            ->where('t1.foo = ?', 'bar');
+            ->where('t1.foo = :foo', ['foo' => 'bar']);
 
         $expect = '
             SELECT
@@ -898,7 +894,7 @@ class SelectTest extends AbstractQueryTest
             FROM
                 <<table1>> AS <<t1>>
             WHERE
-                <<t1>>.<<foo>> = :_1_1_
+                <<t1>>.<<foo>> = :foo
         ';
         $actual = $sub->getStatement();
         $this->assertSameSql($expect, $actual);
@@ -907,8 +903,8 @@ class SelectTest extends AbstractQueryTest
         $select = $this->newQuery()
             ->cols(array('*'))
             ->from('table2 AS t2')
-            ->where("field IN (?)", $sub)
-            ->where("t2.baz = ?", 'dib');
+            ->where("field IN (:field)", ['field' => $sub])
+            ->where("t2.baz = :baz", ['baz' => 'dib']);
 
         $expect = '
             SELECT
@@ -921,8 +917,8 @@ class SelectTest extends AbstractQueryTest
                     FROM
                         <<table1>> AS <<t1>>
                     WHERE
-                        <<t1>>.<<foo>> = :_1_1_)
-            AND <<t2>>.<<baz>> = :_2_2_
+                        <<t1>>.<<foo>> = :foo)
+            AND <<t2>>.<<baz>> = :baz
         ';
 
         // B.b.: The _2_2_ means "2nd query, 2nd sequential bound value". It's
@@ -933,8 +929,8 @@ class SelectTest extends AbstractQueryTest
         $this->assertSameSql($expect, $actual);
 
         $expect = array(
-            '_1_1_' => 'bar',
-            '_2_2_' => 'dib',
+            'foo' => 'bar',
+            'baz' => 'dib',
         );
         $actual = $select->getBindValues();
         $this->assertSame($expect, $actual);
