@@ -10,12 +10,12 @@ class UpdateTest extends AbstractQueryTest
     public function testCommon()
     {
         $this->query->table('t1')
-                    ->cols(array('c1', 'c2'))
+                    ->cols(['c1', 'c2'])
                     ->col('c3')
                     ->set('c4', null)
                     ->set('c5', 'NOW()')
-                    ->where('foo = ?', 'bar')
-                    ->where('baz = ?', 'dib')
+                    ->where('foo = :_1_', ['_1_' => 'bar'])
+                    ->where('baz = :_2_', ['_2_' => 'dib'])
                     ->orWhere('zim = gir');
 
         $actual = $this->query->__toString();

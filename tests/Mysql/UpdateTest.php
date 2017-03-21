@@ -49,8 +49,8 @@ class UpdateTest extends Common\UpdateTest
                     ->cols(array('c1', 'c2', 'c3'))
                     ->set('c4', null)
                     ->set('c5', 'NOW()')
-                    ->where('foo = ?', 'bar')
-                    ->where('baz = ?', 'dib')
+                    ->where('foo = :_1_', ['_1_' => 'bar'])
+                    ->where('baz = :_2_', ['_2_' => 'dib'])
                     ->orWhere('zim = gir')
                     ->limit(5);
 
@@ -73,8 +73,8 @@ class UpdateTest extends Common\UpdateTest
                     ->cols(array('c1', 'c2', 'c3'))
                     ->set('c4', null)
                     ->set('c5', 'NOW()')
-                    ->where('foo = ?', 'bar')
-                    ->where('baz = ?', 'dib')
+                    ->where('foo = :_1_', ['_1_' => 'bar'])
+                    ->where('baz = :_2_', ['_2_' => 'dib'])
                     ->orWhere('zim = gir')
                     ->limit(5);
 

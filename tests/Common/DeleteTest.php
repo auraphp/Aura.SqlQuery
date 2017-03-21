@@ -10,8 +10,8 @@ class DeleteTest extends AbstractQueryTest
     public function testCommon()
     {
         $this->query->from('t1')
-                    ->where('foo = ?', 'bar')
-                    ->where('baz = ?', 'dib')
+                    ->where('foo = :_1_', ['_1_' => 'bar'])
+                    ->where('baz = :_2_', ['_2_' => 'dib'])
                     ->orWhere('zim = gir');
 
         $actual = $this->query->__toString();

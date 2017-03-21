@@ -10,8 +10,8 @@ class DeleteTest extends Common\DeleteTest
     public function testReturning()
     {
         $this->query->from('t1')
-                    ->where('foo = ?', 'bar')
-                    ->where('baz = ?', 'dib')
+                    ->where('foo = :_1_', ['_1_' => 'bar'])
+                    ->where('baz = :_2_', ['_2_' => 'dib'])
                     ->orWhere('zim = gir')
                     ->returning(array('foo', 'baz', 'zim'));
 

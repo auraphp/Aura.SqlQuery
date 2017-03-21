@@ -204,11 +204,11 @@ class SelectTest extends AbstractQueryTest
         $sub = $this->newQuery();
         $sub->cols(array('*'))
             ->from('t2')
-            ->where('foo = ?', 'bar');
+            ->where('foo = :foo', ['foo' => 'bar']);
 
         $this->query->cols(array('*'))
             ->fromSubSelect($sub, 'a2')
-            ->where('a2.baz = ?', 'dib');
+            ->where('a2.baz = :baz', ['baz' => 'dib']);
 
         $expect = '
             SELECT
@@ -220,10 +220,10 @@ class SelectTest extends AbstractQueryTest
                     FROM
                         <<t2>>
                     WHERE
-                        foo = :_1_1_
+                        foo = :foo
                 ) AS <<a2>>
             WHERE
-                <<a2>>.<<baz>> = :_2_
+                <<a2>>.<<baz>> = :baz
         ';
 
         $actual = $this->query->__toString();
@@ -419,12 +419,12 @@ class SelectTest extends AbstractQueryTest
     public function testJoinSubSelectObject()
     {
         $sub = $this->newQuery();
-        $sub->cols(array('*'))->from('t2')->where('foo = ?', 'bar');
+        $sub->cols(array('*'))->from('t2')->where('foo = :foo', ['foo' => 'bar']);
 
         $this->query->cols(array('*'));
         $this->query->from('t1');
         $this->query->joinSubSelect('left', $sub, 'a3', 't2.c1 = a3.c1');
-        $this->query->where('baz = ?', 'dib');
+        $this->query->where('baz = :baz', ['baz' => 'dib']);
 
         $expect = '
             SELECT
@@ -437,10 +437,10 @@ class SelectTest extends AbstractQueryTest
                         FROM
                             <<t2>>
                         WHERE
-                            foo = :_1_1_
+                            foo = :foo
                     ) AS <<a3>> ON <<t2>>.<<c1>> = <<a3>>.<<c1>>
             WHERE
-                baz = :_2_
+                baz = :baz
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
@@ -492,20 +492,20 @@ class SelectTest extends AbstractQueryTest
     {
         $this->query->cols(array('*'));
         $this->query->where('c1 = c2')
-                     ->where('c3 = ?', 'foo');
+                     ->where('c3 = :c3', ['c3' => 'foo']);
         $expect = '
             SELECT
                 *
             WHERE
                 c1 = c2
-                AND c3 = :_1_
+                AND c3 = :c3
         ';
 
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
 
         $actual = $this->query->getBindValues();
-        $expect = array('_1_' => 'foo');
+        $expect = ['c3' => 'foo'];
         $this->assertSame($expect, $actual);
     }
 
@@ -513,21 +513,21 @@ class SelectTest extends AbstractQueryTest
     {
         $this->query->cols(array('*'));
         $this->query->orWhere('c1 = c2')
-                     ->orWhere('c3 = ?', 'foo');
+                     ->orWhere('c3 = :c3', ['c3' => 'foo']);
 
         $expect = '
             SELECT
                 *
             WHERE
                 c1 = c2
-                OR c3 = :_1_
+                OR c3 = :c3
         ';
 
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
 
         $actual = $this->query->getBindValues();
-        $expect = array('_1_' => 'foo');
+        $expect = ['c3' => 'foo'];
         $this->assertSame($expect, $actual);
     }
 
@@ -551,20 +551,20 @@ class SelectTest extends AbstractQueryTest
     {
         $this->query->cols(array('*'));
         $this->query->having('c1 = c2')
-                     ->having('c3 = ?', 'foo');
+                     ->having('c3 = :c3', ['c3' => 'foo']);
         $expect = '
             SELECT
                 *
             HAVING
                 c1 = c2
-                AND c3 = :_1_
+                AND c3 = :c3
         ';
 
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
 
         $actual = $this->query->getBindValues();
-        $expect = array('_1_' => 'foo');
+        $expect = ['c3' => 'foo'];
         $this->assertSame($expect, $actual);
     }
 
@@ -572,20 +572,20 @@ class SelectTest extends AbstractQueryTest
     {
         $this->query->cols(array('*'));
         $this->query->orHaving('c1 = c2')
-                     ->orHaving('c3 = ?', 'foo');
+                     ->orHaving('c3 = :c3', ['c3' => 'foo']);
         $expect = '
             SELECT
                 *
             HAVING
                 c1 = c2
-                OR c3 = :_1_
+                OR c3 = :c3
         ';
 
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
 
         $actual = $this->query->getBindValues();
-        $expect = array('_1_' => 'foo');
+        $expect = ['c3' => 'foo'];
         $this->assertSame($expect, $actual);
     }
 
@@ -712,24 +712,24 @@ class SelectTest extends AbstractQueryTest
     public function testAutobind()
     {
         // do these out of order
-        $this->query->having('baz IN (?)', array('dib', 'zim', 'gir'));
-        $this->query->where('foo = ?', 'bar');
+        $this->query->having('baz IN (:baz)', ['baz' => ['dib', 'zim', 'gir']]);
+        $this->query->where('foo = :foo', ['foo' => 'bar']);
         $this->query->cols(array('*'));
 
         $expect = '
             SELECT
                 *
             WHERE
-                foo = :_2_
+                foo = :foo
             HAVING
-                baz IN (:_1_)
+                baz IN (:baz)
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
 
         $expect = array(
-            '_1_' => array('dib', 'zim', 'gir'),
-            '_2_' => 'bar',
+            'baz' => array('dib', 'zim', 'gir'),
+            'foo' => 'bar',
         );
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);
@@ -813,6 +813,8 @@ class SelectTest extends AbstractQueryTest
 
     public function testIssue47()
     {
+        $this->markTestIncomplete("Finish subselect-as-condition.");
+
         // sub select
         $sub = $this->newQuery()
             ->cols(array('*'))
@@ -882,6 +884,8 @@ class SelectTest extends AbstractQueryTest
 
     public function testWhereSubSelectImportsBoundValues()
     {
+        $this->markTestIncomplete("Finish subselect-as-condition.");
+
         // sub select
         $sub = $this->newQuery()
             ->cols(array('*'))

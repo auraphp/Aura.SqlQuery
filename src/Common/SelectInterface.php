@@ -244,48 +244,31 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
 
     /**
      *
-     * Adds a HAVING condition to the query by AND; if a value is passed as
-     * the second param, it will be quoted and replaced into the condition
-     * wherever a question-mark appears.
-     *
-     * Array values are quoted and comma-separated.
-     *
-     * {{code: php
-     *     // simplest but non-secure
-     *     $select->having("COUNT(id) = $count");
-     *
-     *     // secure
-     *     $select->having('COUNT(id) = ?', $count);
-     *
-     *     // equivalent security with named binding
-     *     $select->having('COUNT(id) = :count');
-     *     $select->bind('count', $count);
-     * }}
+     * Adds a HAVING condition to the query by AND.
      *
      * @param string $cond The HAVING condition.
      *
-     * @param array ...$bind arguments to bind to placeholders
+     * @param array $bind Values to be bound to placeholders.
      *
      * @return $this
      *
      */
-    public function having($cond, ...$bind);
+    public function having($cond, array $bind = []);
 
     /**
      *
-     * Adds a HAVING condition to the query by AND; otherwise identical to
-     * `having()`.
+     * Adds a HAVING condition to the query by OR.
      *
      * @param string $cond The HAVING condition.
      *
-     * @param array ...$bind arguments to bind to placeholders
+     * @param array $bind Values to be bound to placeholders.
      *
      * @return $this
      *
      * @see having()
      *
      */
-    public function orHaving($cond, ...$bind);
+    public function orHaving($cond, array $bind = []);
 
     /**
      *

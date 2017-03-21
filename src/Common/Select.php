@@ -635,18 +635,16 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
 
     /**
      *
-     * Adds a HAVING condition to the query by AND. If the condition has
-     * ?-placeholders, additional arguments to the method will be bound to
-     * those placeholders sequentially.
+     * Adds a HAVING condition to the query by AND.
      *
      * @param string $cond The HAVING condition.
      *
-     * @param array ...$bind arguments to bind to placeholders
+     * @param array $bind arguments to bind to placeholders
      *
      * @return $this
      *
      */
-    public function having($cond, ...$bind)
+    public function having($cond, array $bind = [])
     {
         $this->addClauseCondWithBind('having', 'AND', $cond, $bind);
         return $this;
@@ -654,20 +652,18 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
 
     /**
      *
-     * Adds a HAVING condition to the query by AND. If the condition has
-     * ?-placeholders, additional arguments to the method will be bound to
-     * those placeholders sequentially.
+     * Adds a HAVING condition to the query by OR.
      *
      * @param string $cond The HAVING condition.
      *
-     * @param array ...$bind arguments to bind to placeholders
+     * @param array $bind arguments to bind to placeholders
      *
      * @return $this
      *
      * @see having()
      *
      */
-    public function orHaving($cond, ...$bind)
+    public function orHaving($cond, array $bind = [])
     {
         $this->addClauseCondWithBind('having', 'OR', $cond, $bind);
         return $this;

@@ -19,17 +19,16 @@ trait WhereTrait
 {
     /**
      *
-     * Adds a WHERE condition to the query by AND. If the condition has
-     * ?-placeholders, additional arguments to the method will be bound to
-     * those placeholders sequentially.
+     * Adds a WHERE condition to the query by AND.
      *
      * @param string $cond The WHERE condition.
-     * @param mixed ...$bind arguments to be bound to placeholders
+     *
+     * @param array $bind Values to be bound to placeholders
      *
      * @return $this
      *
      */
-    public function where($cond, ...$bind)
+    public function where($cond, array $bind = [])
     {
         $this->addClauseCondWithBind('where', 'AND', $cond, $bind);
         return $this;
@@ -42,14 +41,15 @@ trait WhereTrait
      * those placeholders sequentially.
      *
      * @param string $cond The WHERE condition.
-     * @param mixed ...$bind arguments to be bound to placeholders
+     *
+     * @param array $bind Values to be bound to placeholders
      *
      * @return $this
      *
      * @see where()
      *
      */
-    public function orWhere($cond, ...$bind)
+    public function orWhere($cond, array $bind = [])
     {
         $this->addClauseCondWithBind('where', 'OR', $cond, $bind);
         return $this;

@@ -281,7 +281,7 @@ abstract class AbstractQuery
      * 'AND' or 'OR'.
      *
      * @param string $cond The WHERE condition.
-
+     *
      * @param array $bind arguments to bind to placeholders
      *
      * @return null
@@ -289,14 +289,17 @@ abstract class AbstractQuery
      */
     protected function addClauseCondWithBind($clause, $andor, $cond, $bind)
     {
-        $cond = $this->rebuildCondAndBindValues($cond, $bind);
+        $cond = $this->quoter->quoteNamesIn($cond);
 
-        // add condition to clause; eg $this->where or $this->having
         $clause =& $this->$clause;
         if ($clause) {
             $clause[] = "$andor $cond";
         } else {
             $clause[] = $cond;
+        }
+
+        foreach ($bind as $key => $val) {
+            $this->bindValue($key, $val);
         }
     }
 

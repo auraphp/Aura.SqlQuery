@@ -36,8 +36,8 @@ class DeleteTest extends Common\DeleteTest
     {
         $this->query->lowPriority()
                     ->from('t1')
-                    ->where('foo = ?', 'bar')
-                    ->where('baz = ?', 'dib')
+                    ->where('foo = :_1_', ['_1_' => 'bar'])
+                    ->where('baz = :_2_', ['_2_' => 'dib'])
                     ->orWhere('zim = gir');
 
         $actual = $this->query->__toString();
@@ -56,8 +56,8 @@ class DeleteTest extends Common\DeleteTest
     {
         $this->query->quick()
                     ->from('t1')
-                    ->where('foo = ?', 'bar')
-                    ->where('baz = ?', 'dib')
+                    ->where('foo = :_1_', ['_1_' => 'bar'])
+                    ->where('baz = :_2_', ['_2_' => 'dib'])
                     ->orWhere('zim = gir');
 
         $actual = $this->query->__toString();
@@ -76,8 +76,8 @@ class DeleteTest extends Common\DeleteTest
     {
         $this->query->ignore()
                     ->from('t1')
-                    ->where('foo = ?', 'bar')
-                    ->where('baz = ?', 'dib')
+                    ->where('foo = :_1_', ['_1_' => 'bar'])
+                    ->where('baz = :_2_', ['_2_' => 'dib'])
                     ->orWhere('zim = gir');
 
         $actual = $this->query->__toString();
