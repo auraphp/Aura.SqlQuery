@@ -271,7 +271,6 @@ abstract class AbstractQuery
         } else {
             $clause[] = $cond;
         }
-
     }
 
     protected function fixCondWithBind($cond, array $bind)
