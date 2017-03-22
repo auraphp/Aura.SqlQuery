@@ -142,7 +142,7 @@ class QueryFactory
      *
      * @param string $query The query object type.
      *
-     * @return AbstractQuery
+     * @return Common\SelectInterface|Common\InsertInterface|Common\UpdateInterface|Common\DeleteInterface
      *
      */
     protected function newInstance($query)
