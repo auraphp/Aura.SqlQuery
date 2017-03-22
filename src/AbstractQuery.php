@@ -8,7 +8,7 @@
  */
 namespace Aura\SqlQuery;
 
-use Aura\SqlQuery\Common\SubselectInterface;
+use Aura\SqlQuery\Common\SelectInterface;
 use Aura\SqlQuery\Common\QuoterInterface;
 
 /**
@@ -350,7 +350,7 @@ abstract class AbstractQuery
             }
 
             $bind_value = array_shift($bind_values);
-            if ($bind_value instanceof SubselectInterface) {
+            if ($bind_value instanceof SelectInterface) {
                 $parts[$key] = $bind_value->getStatement();
                 $this->bind_values = array_merge(
                     $this->bind_values,
