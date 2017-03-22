@@ -8,7 +8,7 @@
  */
 namespace Aura\SqlQuery;
 
-use Aura\SqlQuery\Common\SubselectInterface;
+use Aura\SqlQuery\Common\SelectInterface;
 use Aura\SqlQuery\Common\QuoterInterface;
 
 /**
@@ -292,7 +292,7 @@ abstract class AbstractQuery
         $selects = [];
 
         foreach ($bind_values as $key => $val) {
-            if ($val instanceof SubselectInterface) {
+            if ($val instanceof SelectInterface) {
                 $selects[":{$key}"] = $val;
             } else {
                 $this->bindValue($key, $val);
