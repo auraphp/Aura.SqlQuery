@@ -201,7 +201,6 @@ Once you have built the query, pass it to the database connection of your
 choice as a string, and send the bound values along with it.
 
 ```php
-<?php
 // a PDO connection
 $pdo = new PDO(...);
 
@@ -213,5 +212,4 @@ $sth->execute($select->getBindValues());
 
 // get the results back as an associative array
 $result = $sth->fetch(PDO::FETCH_ASSOC);
-?>
 ```

@@ -4,7 +4,6 @@ In most cases, the query objects will quote identifiers for you. For example,
 under the common _Select_ object with double-quotes for identifiers:
 
 ```php
-<?php
 $select->cols(['foo', 'bar AS barbar'])
        ->from('table1')
        ->from('table2')
@@ -20,7 +19,6 @@ echo $select->getStatement();
 // WHERE
 //     "table2"."zim" = 99
 
-?>
 ```
 
 If you discover that a partially-qualified identifier has not been auto-quoted

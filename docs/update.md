@@ -4,7 +4,6 @@ Build an _Update_ query using the following methods. They do not need to
 be called in any particular order, and may be called multiple times.
 
 ```php
-<?php
 $update = $queryFactory->newUpdate();
 
 $update
@@ -23,14 +22,12 @@ $update
         'zim' => 'dib',
         'gir' => 'doom',
     ]);
-?>
 ```
 
 The `cols()` method allows you to pass an array of key-value pairs where the
 key is the column name and the value is a bind value (not a raw value):
 
 ```php
-<?php
 $update = $queryFactory->newUpdate();
 
 $update->table('foo')           // update this table
@@ -39,14 +36,12 @@ $update->table('foo')           // update this table
         'bar' => 'bar_value',
         'baz' => 'baz_value',
     ]);
-?>
 ```
 
 Once you have built the query, pass it to the database connection of your
 choice as a string, and send the bound values along with it.
 
 ```php
-<?php
 // the PDO connection
 $pdo = new PDO(...);
 
@@ -55,5 +50,4 @@ $sth = $pdo->prepare($update->getStatement())
 
 // execute with bound values
 $sth->execute($update->getBindValues());
-?>
 ```

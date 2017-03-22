@@ -3,22 +3,18 @@
 First, instantiate a _QueryFactory_ with a database type:
 
 ```php
-<?php
 use Aura\SqlQuery\QueryFactory;
 
 $queryFactory = new QueryFactory('sqlite');
-?>
 ```
 
 You can then use the factory to create query objects:
 
 ```php
-<?php
 $select = $queryFactory->newSelect();
 $insert = $queryFactory->newInsert();
 $update = $queryFactory->newUpdate();
 $delete = $queryFactory->newDelete();
-?>
 ```
 
 Although you must specify a database type when instantiating a _QueryFactory_,
@@ -28,12 +24,10 @@ helps with writing database-portable applications. To do so, pass the constant
 `QueryFactory::COMMON` as the second constructor parameter.
 
 ```php
-<?php
 use Aura\SqlQuery\QueryFactory;
 
 // return Common, not SQLite-specific, query objects
 $queryFactory = new QueryFactory('sqlite', QueryFactory::COMMON);
-?>
 ```
 
 > N.b. You still need to pass a database type so that identifiers can be

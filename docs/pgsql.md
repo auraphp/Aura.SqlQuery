@@ -21,7 +21,6 @@ and the _Insert_ object will use the mapped sequence names instead of the
 default names.
 
 ```php
-<?php
 $queryFactory->setLastInsertIdNames([
     'child.id' => 'parent_id_seq'
 ]);
@@ -30,7 +29,6 @@ $insert = $queryFactory->newInsert();
 $insert->into('child');
 // ...
 $seq = $insert->getLastInsertIdName('id');
-?>
 ```
 
 The `$seq` name is now `parent_id_seq`, not `child_id_seq` as it would have been

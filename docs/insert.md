@@ -6,7 +6,6 @@ Build an _Insert_ query using the following methods. They do not need to
 be called in any particular order, and may be called multiple times.
 
 ```php
-<?php
 $insert = $queryFactory->newInsert();
 
 $insert
@@ -21,14 +20,12 @@ $insert
         'bar' => 'foo',
         'baz' => 'zim',
     ]);
-?>
 ```
 
 The `cols()` method allows you to pass an array of key-value pairs where the
 key is the column name and the value is a bind value (not a raw value):
 
 ```php
-<?php
 $insert = $queryFactory->newInsert();
 
 $insert->into('foo')             // insert into this table
@@ -37,14 +34,12 @@ $insert->into('foo')             // insert into this table
         'bar' => 'bar_value',
         'baz' => 'baz_value',
     ]);
-?>
 ```
 
 Once you have built the query, pass it to the database connection of your
 choice as a string, and send the bound values along with it.
 
 ```php
-<?php
 // the PDO connection
 $pdo = new PDO(...);
 
@@ -57,7 +52,6 @@ $sth->execute($insert->getBindValues());
 // get the last insert ID
 $name = $insert->getLastInsertIdName('id');
 $id = $pdo->lastInsertId($name);
-?>
 ```
 
 ## Multiple-Row (Bulk) Insert
@@ -68,7 +62,6 @@ columns in the rows after the first will be inserted in the same order as the
 first row.
 
 ```php
-<?php
 $insert = $queryFactory->newInsert();
 
 // insert into this table
@@ -99,7 +92,6 @@ $insert->addRow();
 $pdo = new PDO(...);
 $sth = $pdo->prepare($insert->getStatement());
 $sth->execute($insert->getBindValues());
-?>
 ```
 
 > N.b.: If you add a row and do not specify a value for a column that was
@@ -110,7 +102,6 @@ bound to the next row, thus allowing you to skip setting up the first row
 manually with `col()` and `cols()`:
 
 ```php
-<?php
 // set up the first row
 $insert->addRow([
     'bar' => 'bar-0',
@@ -126,7 +117,6 @@ $insert->addRow([
 $insert->set('ts', 'NOW()');
 
 // etc.
-?>
 ```
 
 If you only need to use bound values, and do not need to set raw values, and
@@ -134,7 +124,6 @@ have the entire data set as an array already, you can use `addRows()` to add
 them all at once:
 
 ```php
-<?php
 $rows = [
     [
         'bar' => 'bar-0',
@@ -146,7 +135,6 @@ $rows = [
     ],
 ];
 $insert->addRows($rows);
-?>
 ```
 
 > N.b.: SQLite 3.7.10 and earlier do not support the "standard" multiple-row
