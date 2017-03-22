@@ -10,6 +10,7 @@ namespace Aura\SqlQuery;
 
 use Aura\SqlQuery\Common\SelectInterface;
 use Aura\SqlQuery\Common\QuoterInterface;
+use Closure;
 
 /**
  *
@@ -262,6 +263,12 @@ abstract class AbstractQuery
      */
     protected function addClauseCondWithBind($clause, $andor, $cond, $bind)
     {
+        if ($cond instanceof Closure) {
+            $this->addClauseCondClosure($clause, $andor, $cond);
+            $this->bindValues($bind);
+            return;
+        }
+
         $cond = $this->quoter->quoteNamesIn($cond);
         $cond = $this->rebuildCondAndBindValues($cond, $bind);
 
@@ -271,6 +278,42 @@ abstract class AbstractQuery
         } else {
             $clause[] = $cond;
         }
+    }
+
+    protected function addClauseCondClosure($clause, $andor, $closure)
+    {
+        // retain the prior set of conditions, and temporarily reset the clause
+        // for the closure to work with (otherwise there will be an extraneous
+        // opening AND/OR keyword)
+        $set = $this->$clause;
+        $this->$clause = [];
+
+        // invoke the closure, which will re-populate the $this->$clause
+        $closure($this);
+
+        // are there new clause elements?
+        if (! $this->$clause) {
+            // no: restore the old ones, and done
+            $this->$clause = $set;
+            return;
+        }
+
+        // append an opening parenthesis to the prior set of conditions,
+        // with AND/OR as needed ...
+        if ($set) {
+            $set[] = "{$andor} (";
+        } else {
+            $set[] = "(";
+        }
+
+        // append the new conditions to the set, with indenting
+        foreach ($this->$clause as $cond) {
+            $set[] = "    {$cond}";
+        }
+        $set[] = ")";
+
+        // ... then put the full set of conditions back into $this->$clause
+        $this->$clause = $set;
     }
 
     /**

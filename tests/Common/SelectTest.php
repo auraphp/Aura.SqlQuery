@@ -990,4 +990,39 @@ class SelectTest extends AbstractQueryTest
         $actual = (string) $select->getStatement();
         $this->assertSameSql($expected, $actual);
     }
+
+    public function testClosureConditions()
+    {
+        $select = $this->query
+            ->cols(['foo', 'bar'])
+            ->from('baz')
+            ->where(function ($select) {
+                $select->where('foo > 1')
+                    ->where('bar > 1');
+            })->orWhere(function ($select) {
+                $select->where('foo < 1')
+                    ->where('bar < 1');
+            })->where(function ($select) {
+                // do nothing
+            });
+
+        $expect = '
+            SELECT
+                foo,
+                bar
+            FROM
+                <<baz>>
+            WHERE
+                (
+                    foo > 1
+                    AND bar > 1
+                )
+                OR (
+                    foo < 1
+                    AND bar < 1
+                )
+            ';
+        $actual = (string) $select->getStatement();
+        $this->assertSameSql($expect, $actual);
+    }
 }
