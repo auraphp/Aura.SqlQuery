@@ -57,15 +57,6 @@ class QueryFactory
 
     /**
      *
-     * A count of Query instances, used for determining $seq_bind_prefix.
-     *
-     * @var int
-     *
-     */
-    protected $instance_count = 0;
-
-    /**
-     *
      * Constructor.
      *
      * @param string $db The database type.
@@ -168,8 +159,7 @@ class QueryFactory
 
         return new $queryClass(
             $this->getQuoter(),
-            $this->newBuilder($query),
-            $this->newSeqBindPrefix()
+            $this->newBuilder($query)
         );
     }
 
@@ -204,25 +194,5 @@ class QueryFactory
             $quoterClass = "Aura\SqlQuery\Common\Quoter";
         }
         return new $quoterClass();
-    }
-
-    /**
-     *
-     * Returns a new sequential-placeholder prefix for a query object.
-     *
-     * We need these to deconflict between bound values in subselect queries.
-     *
-     * @return string
-     *
-     */
-    protected function newSeqBindPrefix()
-    {
-        $seq_bind_prefix = '';
-        if ($this->instance_count) {
-            $seq_bind_prefix = '_' . $this->instance_count;
-        }
-
-        $this->instance_count ++;
-        return $seq_bind_prefix;
     }
 }

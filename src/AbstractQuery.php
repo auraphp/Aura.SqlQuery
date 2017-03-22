@@ -67,42 +67,15 @@ abstract class AbstractQuery
 
     /**
      *
-     * Prefix to use on placeholders for "sequential" bound values; used for
-     * deconfliction when merging bound values from sub-selects, etc.
-     *
-     * @var mixed
-     *
-     */
-    protected $seq_bind_prefix = '';
-
-    /**
-     *
      * Constructor.
      *
      * @param Quoter $quoter A helper for quoting identifier names.
      *
-     * @param string $seq_bind_prefix A prefix for rewritten sequential-binding
-     * placeholders (@see getSeqPlaceholder()).
-     *
      */
-    public function __construct(QuoterInterface $quoter, $builder, $seq_bind_prefix = '')
+    public function __construct(QuoterInterface $quoter, $builder)
     {
         $this->quoter = $quoter;
         $this->builder = $builder;
-        $this->seq_bind_prefix = $seq_bind_prefix;
-    }
-
-    /**
-     *
-     * Returns the prefix for rewritten sequential-binding placeholders
-     * (@see getSeqPlaceholder()).
-     *
-     * @return string
-     *
-     */
-    public function getSeqBindPrefix()
-    {
-        return $this->seq_bind_prefix;
     }
 
     /**
@@ -272,28 +245,6 @@ abstract class AbstractQuery
 
     /**
      *
-     * Adds a WHERE condition to the query by AND or OR. If the condition has
-     * ?-placeholders, additional arguments to the method will be bound to
-     * those placeholders sequentially.
-     *
-     * @param string $andor Add the condition using this operator, typically
-     * 'AND' or 'OR'.
-     *
-     * @param string $cond The WHERE condition.
-     *
-     * @param array ...$bind arguments to bind to placeholders
-     *
-     * @return $this
-     *
-     */
-    protected function addWhere($andor, $cond, ...$bind)
-    {
-        $this->addClauseCondWithBind('where', $andor, $cond, $bind);
-        return $this;
-    }
-
-    /**
-     *
      * Adds conditions and binds values to a clause.
      *
      * @param string $clause The clause to work with, typically 'where' or
@@ -303,7 +254,7 @@ abstract class AbstractQuery
      * 'AND' or 'OR'.
      *
      * @param string $cond The WHERE condition.
-
+     *
      * @param array $bind arguments to bind to placeholders
      *
      * @return null
@@ -311,9 +262,9 @@ abstract class AbstractQuery
      */
     protected function addClauseCondWithBind($clause, $andor, $cond, $bind)
     {
+        $cond = $this->quoter->quoteNamesIn($cond);
         $cond = $this->rebuildCondAndBindValues($cond, $bind);
 
-        // add condition to clause; eg $this->where or $this->having
         $clause =& $this->$clause;
         if ($clause) {
             $clause[] = "$andor $cond";
@@ -338,47 +289,26 @@ abstract class AbstractQuery
      */
     protected function rebuildCondAndBindValues($cond, array $bind_values)
     {
-        $cond = $this->quoter->quoteNamesIn($cond);
+        $selects = [];
 
-        // bind values against ?-mark placeholders, but because PDO is finicky
-        // about the numbering of sequential placeholders, convert each ?-mark
-        // to a named placeholder
-        $parts = preg_split('/(\?)/', $cond, null, PREG_SPLIT_DELIM_CAPTURE);
-        foreach ($parts as $key => $val) {
-            if ($val != '?') {
-                continue;
+        foreach ($bind_values as $key => $val) {
+            if ($val instanceof SelectInterface) {
+                $selects[":{$key}"] = $val;
+            } else {
+                $this->bindValue($key, $val);
             }
-
-            $bind_value = array_shift($bind_values);
-            if ($bind_value instanceof SelectInterface) {
-                $parts[$key] = $bind_value->getStatement();
-                $this->bind_values = array_merge(
-                    $this->bind_values,
-                    $bind_value->getBindValues()
-                );
-                continue;
-            }
-
-            $placeholder = $this->getSeqPlaceholder();
-            $parts[$key] = ':' . $placeholder;
-            $this->bind_values[$placeholder] = $bind_value;
         }
 
-        $cond = implode('', $parts);
-        return $cond;
-    }
+        foreach ($selects as $key => $select) {
+            $selects[$key] = $select->getStatement();
+            $this->bind_values = array_merge(
+                $this->bind_values,
+                $select->getBindValues()
+            );
+        }
 
-    /**
-     *
-     * Gets the current sequential placeholder name.
-     *
-     * @return string
-     *
-     */
-    protected function getSeqPlaceholder()
-    {
-        $i = count($this->bind_values) + 1;
-        return $this->seq_bind_prefix . "_{$i}_";
+        $cond = strtr($cond, $selects);
+        return $cond;
     }
 
     /**
