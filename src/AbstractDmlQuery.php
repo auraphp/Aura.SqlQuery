@@ -49,6 +49,7 @@ abstract class AbstractDmlQuery extends AbstractQuery
      * @param array $value Value of the column
      *
      * @return $this
+     *
      */
     protected function addCol($col, ...$value)
     {
