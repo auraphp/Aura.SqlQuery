@@ -203,7 +203,7 @@ class QueryFactory
      *
      * Returns a new Quoter for the database driver.
      *
-     * @return Quoter
+     * @return QuoterInerface
      *
      */
     protected function newQuoter()
