@@ -21,6 +21,13 @@ class Update extends Common\Update implements Common\OrderByInterface, Common\Li
 {
     use Common\LimitOffsetTrait;
 
+    /**
+     *
+     * Builds the statement.
+     *
+     * @return string
+     *
+     */
     protected function build()
     {
         return parent::build()

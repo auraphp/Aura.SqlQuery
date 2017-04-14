@@ -21,6 +21,13 @@ class Delete extends Common\Delete implements Common\OrderByInterface, Common\Li
 {
     use Common\LimitTrait;
 
+    /**
+     *
+     * Builds the statement.
+     *
+     * @return string
+     *
+     */
     protected function build()
     {
         return parent::build()

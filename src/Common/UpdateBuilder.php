@@ -19,9 +19,11 @@ class UpdateBuilder extends AbstractBuilder
 {
     /**
      *
-     * Builds the table clause.
+     * Builds the table portion of the UPDATE.
      *
-     * @return null
+     * @param string $table The table name.
+     *
+     * @return string
      *
      */
     public function buildTable($table)
@@ -31,12 +33,14 @@ class UpdateBuilder extends AbstractBuilder
 
     /**
      *
-     * Builds the updated columns and values of the statement.
+     * Builds the columns and values for the statement.
+     *
+     * @param array $col_values The columns and values.
      *
      * @return string
      *
      */
-    public function buildValuesForUpdate($col_values)
+    public function buildValuesForUpdate(array $col_values)
     {
         $values = array();
         foreach ($col_values as $col => $value) {

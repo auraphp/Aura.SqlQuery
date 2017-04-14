@@ -17,6 +17,9 @@ namespace Aura\SqlQuery;
  */
 class QueryFactory
 {
+    /**
+     * Use the 'common' driver instead of a database-specific one.
+     */
     const COMMON = 'common';
 
     /**
@@ -163,6 +166,15 @@ class QueryFactory
         );
     }
 
+    /**
+     *
+     * Returns a new Builder for the database driver.
+     *
+     * @param string $query The query type.
+     *
+     * @return AbstractBuilder
+     *
+     */
     protected function newBuilder($query)
     {
         $builderClass = "Aura\SqlQuery\\{$this->db}\\{$query}Builder";
@@ -187,6 +199,13 @@ class QueryFactory
         return $this->quoter;
     }
 
+    /**
+     *
+     * Returns a new Quoter for the database driver.
+     *
+     * @return Quoter
+     *
+     */
     protected function newQuoter()
     {
         $quoterClass = "Aura\SqlQuery\\{$this->db}\Quoter";

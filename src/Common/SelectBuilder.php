@@ -21,14 +21,16 @@ class SelectBuilder extends AbstractBuilder
 {
     /**
      *
-     * Builds the columns clause.
+     * Builds the columns portion of the SELECT.
+     *
+     * @param array $cols The columns.
      *
      * @return string
      *
      * @throws Exception when there are no columns in the SELECT.
      *
      */
-    public function buildCols($cols)
+    public function buildCols(array $cols)
     {
         if (empty($cols)) {
             throw new Exception('No columns in the SELECT.');
@@ -40,10 +42,14 @@ class SelectBuilder extends AbstractBuilder
      *
      * Builds the FROM clause.
      *
+     * @param array $from The FROM elements.
+     *
+     * @param array $join The JOIN elements.
+     *
      * @return string
      *
      */
-    public function buildFrom($from, $join)
+    public function buildFrom(array $from, array $join)
     {
         if (empty($from)) {
             return ''; // not applicable
@@ -63,10 +69,12 @@ class SelectBuilder extends AbstractBuilder
      *
      * Builds the GROUP BY clause.
      *
+     * @param array $group_by The GROUP BY elements.
+     *
      * @return string
      *
      */
-    public function buildGroupBy($group_by)
+    public function buildGroupBy(array $group_by)
     {
         if (empty($group_by)) {
             return ''; // not applicable
@@ -79,10 +87,12 @@ class SelectBuilder extends AbstractBuilder
      *
      * Builds the HAVING clause.
      *
+     * @param array $having The HAVING elements.
+     *
      * @return string
      *
      */
-    public function buildHaving($having)
+    public function buildHaving(array $having)
     {
         if (empty($having)) {
             return ''; // not applicable
@@ -93,7 +103,9 @@ class SelectBuilder extends AbstractBuilder
 
     /**
      *
-     * Builds the FOR UPDATE clause.
+     * Builds the FOR UPDATE portion of the SELECT.
+     *
+     * @param bool $for_update True if FOR UPDATE, false if not.
      *
      * @return string
      *

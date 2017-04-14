@@ -23,6 +23,10 @@ class SelectBuilder extends Common\SelectBuilder
      *
      * Override so that LIMIT equivalent will be applied by applyLimit().
      *
+     * @param int $limit Ignored.
+     *
+     * @param int $offset Ignored.
+     *
      * @see build()
      *
      * @see applyLimit()
@@ -37,8 +41,13 @@ class SelectBuilder extends Common\SelectBuilder
      *
      * Modify the statement applying limit/offset equivalent portions to it.
      *
-     * @param string $stm SQL statement
-     * @return string SQL statement with limit/offset applied
+     * @param string $stm The SQL statement.
+     *
+     * @param int $limit The LIMIT value.
+     *
+     * @param int $offset The OFFSET value.
+     *
+     * @return string
      *
      */
     public function applyLimit($stm, $limit, $offset)

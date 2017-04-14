@@ -96,7 +96,7 @@ abstract class AbstractBuilder
      *
      * @param int $limit The LIMIT element.
      *
-     * @param int $limit The OFFSET element.
+     * @param int $offset The OFFSET element.
      *
      * @return string
      *

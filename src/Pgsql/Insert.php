@@ -21,6 +21,13 @@ class Insert extends Common\Insert implements ReturningInterface
 {
     use ReturningTrait;
 
+    /**
+     *
+     * Builds the statement.
+     *
+     * @return string
+     *
+     */
     protected function build()
     {
         return parent::build()
