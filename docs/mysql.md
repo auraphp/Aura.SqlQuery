@@ -15,6 +15,7 @@ These 'mysql' query objects have additional MySQL-specific behvaiors.
 
 ## INSERT
 
+- `orReplace()` to add or remove `OR REPLACE`
 - `highPriority()` to add or remove `HIGH_PRIORITY` flag
 - `lowPriority()` to add or remove `LOW_PRIORITY` flag
 - `ignore()` to add or remove `IGNORE` flag
