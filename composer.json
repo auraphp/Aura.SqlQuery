@@ -22,7 +22,7 @@
         "dml"
     ],
     "homepage": "https://github.com/auraphp/Aura.SqlQuery",
-    "license": "BSD-2-Clause",
+    "license": "MIT",
     "authors": [
         {
             "name": "Aura.SqlQuery Contributors",
@@ -45,15 +45,7 @@
             "Aura\\SqlQuery\\": "tests/"
         }
     },
-    "extra": {
-        "aura": {
-            "type": "library"
-        }
-    },
     "suggest": {
-        "aura/sql": "Provides an extension to the native PDO along with a profiler and connection locator. Use version 2.*."
-    },
-    "scripts": {
-        "test": "./vendor/bin/phpunit"
+        "aura/sql": "Provides an extension to the native PDO along with a profiler and connection locator."
     }
 }
