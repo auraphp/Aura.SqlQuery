@@ -33,8 +33,8 @@ without compromising flexibility. For specifics, please examine the package
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 To run the unit tests at the command line, issue `composer install` and then
-`phpunit` at the package root. This requires [Composer][] to be available as
-`composer`, and [PHPUnit][] to be available as `phpunit`.
+`./vendor/bin/phpunit` at the package root. This requires [Composer][] to be
+available as `composer`.
 
 This package attempts to comply with [PSR-1][], [PSR-2][], and [PSR-4][]. If
 you notice compliance oversights, please send a patch via pull request.
