@@ -68,9 +68,20 @@ abstract class AbstractQuery
 
     /**
      *
+     * A builder for the query.
+     *
+     * @var AbstractBuilder
+     *
+     */
+    protected $builder;
+
+    /**
+     *
      * Constructor.
      *
      * @param Quoter $quoter A helper for quoting identifier names.
+     *
+     * @param AbstractBuilder $builder A builder for the query.
      *
      */
     public function __construct(QuoterInterface $quoter, $builder)
@@ -280,6 +291,21 @@ abstract class AbstractQuery
         }
     }
 
+    /**
+     *
+     * Adds to a clause through a closure, enclosing within parentheses.
+     *
+     * @param string $clause The clause to work with, typically 'where' or
+     * 'having'.
+     *
+     * @param string $andor Add the condition using this operator, typically
+     * 'AND' or 'OR'.
+     *
+     * @param callable $closure The closure that adds to the clause.
+     *
+     * @return null
+     *
+     */
     protected function addClauseCondClosure($clause, $andor, $closure)
     {
         // retain the prior set of conditions, and temporarily reset the clause

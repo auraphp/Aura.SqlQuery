@@ -10,6 +10,13 @@ namespace Aura\SqlQuery\Mysql;
 
 use Aura\SqlQuery\Common;
 
+/**
+ *
+ * INSERT builder for MySQL.
+ *
+ * @package Aura.SqlQuery
+ *
+ */
 class InsertBuilder extends Common\InsertBuilder
 {
     /**

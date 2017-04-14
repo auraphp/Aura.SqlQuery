@@ -17,6 +17,13 @@ namespace Aura\SqlQuery\Common;
  */
 trait LimitTrait
 {
+    /**
+     *
+     * The LIMIT value.
+     *
+     * @var int
+     *
+     */
     protected $limit = 0;
 
     /**

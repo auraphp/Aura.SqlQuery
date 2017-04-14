@@ -85,8 +85,8 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      * that column.
      *
      * @param array $cols A list of column names, optionally as key-value
-     *                    pairs where the key is a column name and the value is a bind value for
-     *                    that column.
+     * pairs where the key is a column name and the value is a bind value for
+     * that column.
      *
      * @return $this
      *
@@ -101,7 +101,7 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      * Sets a column value directly; the value will not be escaped, although
      * fully-qualified identifiers in the value will be quoted.
      *
-     * @param string $col   The column name.
+     * @param string $col The column name.
      *
      * @param string $value The column value expression.
      *

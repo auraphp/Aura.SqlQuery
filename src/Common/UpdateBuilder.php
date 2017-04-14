@@ -1,6 +1,20 @@
 <?php
+/**
+ *
+ * This file is part of Aura for PHP.
+ *
+ * @license http://opensource.org/licenses/mit-license.php MIT
+ *
+ */
 namespace Aura\SqlQuery\Common;
 
+/**
+ *
+ * Common UPDATE builder.
+ *
+ * @package Aura.SqlQuery
+ *
+ */
 class UpdateBuilder extends AbstractBuilder
 {
     /**

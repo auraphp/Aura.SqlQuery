@@ -22,13 +22,20 @@ class Insert extends AbstractDmlQuery implements InsertInterface
 {
     /**
      *
-     * The table to insert into.
+     * The table to insert into (quoted).
      *
      * @var string
      *
      */
     protected $into;
 
+    /**
+     *
+     * The table to insert into (raw, for last-insert-id use).
+     *
+     * @var string
+     *
+     */
     protected $into_raw;
 
     /**

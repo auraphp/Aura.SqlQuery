@@ -1,18 +1,34 @@
 <?php
+/**
+ *
+ * This file is part of Aura for PHP.
+ *
+ * @license http://opensource.org/licenses/mit-license.php MIT
+ *
+ */
 namespace Aura\SqlQuery\Common;
 
 use Aura\SqlQuery\Exception;
 
+/**
+ *
+ * Base builder for all query objects.
+ *
+ * @package Aura.SqlQuery
+ *
+ */
 abstract class AbstractBuilder
 {
     /**
      *
      * Builds the flags as a space-separated string.
      *
+     * @param array $flags The flags to build.
+     *
      * @return string
      *
      */
-    public function buildFlags($flags)
+    public function buildFlags(array $flags)
     {
         if (empty($flags)) {
             return ''; // not applicable
@@ -25,10 +41,12 @@ abstract class AbstractBuilder
      *
      * Builds the `WHERE` clause of the statement.
      *
+     * @param array $where The WHERE elements.
+     *
      * @return string
      *
      */
-    public function buildWhere($where)
+    public function buildWhere(array $where)
     {
         if (empty($where)) {
             return ''; // not applicable
@@ -41,10 +59,12 @@ abstract class AbstractBuilder
      *
      * Builds the `ORDER BY ...` clause of the statement.
      *
+     * @param array $order_by The ORDER BY elements.
+     *
      * @return string
      *
      */
-    public function buildOrderBy($order_by)
+    public function buildOrderBy(array $order_by)
     {
         if (empty($order_by)) {
             return ''; // not applicable
@@ -56,6 +76,8 @@ abstract class AbstractBuilder
     /**
      *
      * Builds the `LIMIT` clause of the statement.
+     *
+     * @param int $limit The LIMIT element.
      *
      * @return string
      *
@@ -71,6 +93,10 @@ abstract class AbstractBuilder
     /**
      *
      * Builds the `LIMIT ... OFFSET` clause of the statement.
+     *
+     * @param int $limit The LIMIT element.
+     *
+     * @param int $limit The OFFSET element.
      *
      * @return string
      *

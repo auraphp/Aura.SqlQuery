@@ -19,6 +19,13 @@ trait LimitOffsetTrait
 {
     use LimitTrait;
 
+    /**
+     *
+     * The OFFSET value.
+     *
+     * @var int
+     *
+     */
     protected $offset = 0;
 
     /**

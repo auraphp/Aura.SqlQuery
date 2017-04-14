@@ -1,8 +1,22 @@
 <?php
+/**
+ *
+ * This file is part of Aura for PHP.
+ *
+ * @license http://opensource.org/licenses/mit-license.php MIT
+ *
+ */
 namespace Aura\SqlQuery\Common;
 
 use Aura\SqlQuery\Exception;
 
+/**
+ *
+ * Common SELECT builder.
+ *
+ * @package Aura.SqlQuery
+ *
+ */
 class SelectBuilder extends AbstractBuilder
 {
     /**

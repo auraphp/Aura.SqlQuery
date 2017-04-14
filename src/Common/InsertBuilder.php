@@ -1,12 +1,27 @@
 <?php
+/**
+ *
+ * This file is part of Aura for PHP.
+ *
+ * @license http://opensource.org/licenses/mit-license.php MIT
+ *
+ */
 namespace Aura\SqlQuery\Common;
 
+/**
+ *
+ * Common INSERT builder.
+ *
+ * @package Aura.SqlQuery
+ *
+ */
 class InsertBuilder extends AbstractBuilder
 {
-
     /**
      *
      * Builds the INTO clause.
+     *
+     * @param string $into The INTO element.
      *
      * @return string
      *
@@ -21,10 +36,12 @@ class InsertBuilder extends AbstractBuilder
      *
      * Builds the inserted columns and values of the statement.
      *
+     * @param array $col_values The column names and values.
+     *
      * @return string
      *
      */
-    public function buildValuesForInsert($col_values)
+    public function buildValuesForInsert(array $col_values)
     {
         return ' ('
             . $this->indentCsv(array_keys($col_values))
@@ -37,10 +54,15 @@ class InsertBuilder extends AbstractBuilder
      *
      * Builds the bulk-inserted columns and values of the statement.
      *
+     * @param array $col_order The column names to insert, in order.
+     *
+     * @param array $col_values_bulk The bulk-insert values, in the same order
+     * the column names.
+     *
      * @return string
      *
      */
-    public function buildValuesForBulkInsert($col_order, $col_values_bulk)
+    public function buildValuesForBulkInsert(array $col_order, array $col_values_bulk)
     {
         $cols = "    (" . implode(', ', $col_order) . ")";
         $vals = array();
