@@ -82,4 +82,13 @@ interface QueryInterface
      *
      */
     public function getBindValues();
+
+    /**
+     *
+     * Gets the query statement text.
+     *
+     * @return string
+     *
+     */
+    public function getStatement();
 }
