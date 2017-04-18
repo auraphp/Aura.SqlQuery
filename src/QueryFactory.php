@@ -209,7 +209,7 @@ class QueryFactory
     protected function newQuoter()
     {
         $quoterClass = "Aura\SqlQuery\\{$this->db}\Quoter";
-        if ($this->common || ! class_exists($quoterClass)) {
+        if (! class_exists($quoterClass)) {
             $quoterClass = "Aura\SqlQuery\Common\Quoter";
         }
         return new $quoterClass();
