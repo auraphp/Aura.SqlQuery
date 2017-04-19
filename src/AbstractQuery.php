@@ -292,7 +292,7 @@ abstract class AbstractQuery
         $cond = $this->fixConditions($cond);
         $clause =& $this->$clause;
         if ($clause) {
-            $clause[] = "{$andor} {$cond}";
+            $clause[] = "$andor $cond";
         } else {
             $clause[] = $cond;
         }
