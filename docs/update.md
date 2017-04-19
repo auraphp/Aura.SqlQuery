@@ -14,7 +14,7 @@ $update
     ])
     ->set('ts', 'NOW()')            // raw value as "(ts) VALUES (NOW())"
     ->where('zim = :zim')           // AND WHERE these conditions
-    ->where('gir = ?', 'doom')      // bind this value to the condition
+    ->where('gir = :gir', ['gir' => 'gir_val'])      // bind this value to the condition
     ->orWhere('gir = :gir')         // OR WHERE these conditions
     ->bindValue('bar', 'bar_val')   // bind one value to a placeholder
     ->bindValues([                  // bind these values to the query

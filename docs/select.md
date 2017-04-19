@@ -101,15 +101,15 @@ will OR the condition.
 
 ```php
     ->where('bar > :bar')           // WHERE bar > :bar
-    ->where('zim = :zim')           // AND ZIM = :ZIM
+    ->where('zim = :zim')           // AND zim = :ZIM
     ->orWhere('baz < :baz')         // OR baz < :baz
 ```
 
-The `*where()` and `*having()` methods take an arbitrary number of
-trailing arguments, each of which is a value to bind to a sequential question-
-mark placeholder in the condition clause.
+The `*where()` and `*having()` methods take a trailing trailing argument of a
+placholder-to-value array, which will be bound to the query right then.
 
-    ->where('zim = ?', 'zim_val')   // bind 'zim_val' to the ? placeholder
+    // bind 'zim_val' to the :zim placeholder
+    ->where('zim = :zim', ['zim' => 'zim_val'])
 
 ## GROUP BY
 
@@ -121,7 +121,7 @@ mark placeholder in the condition clause.
 
 ```php
     ->having('foo = :foo')          // AND HAVING these conditions
-    ->having('bar > ?', 'bar_val')  // bind 'bar_val' to the ? placeholder
+    ->having('bar > :bar', ['bar' => 'bar_val'])  // bind 'bar_val' to the :bar placeholder
     ->orHaving('baz < :baz')        // OR HAVING these conditions
 ```
 
@@ -158,7 +158,7 @@ mark placeholder in the condition clause.
 ```php
     ->forUpdate()                   // FOR UPDATE
     ->distinct()                    // SELECT DISTINCT
-    public function isDistinct()
+    ->isDistinct()                  // returns true if query is DISTINCT
 ```
 
 ## Binding Values
