@@ -37,6 +37,10 @@ class QuoterTest extends \PHPUnit_Framework_TestCase
         // star dot star
         $actual = $this->quoter->quoteName('*.*');
         $this->assertSame('*.*', $actual);
+
+        // table dot star
+        $actual = $this->quoter->quoteName('table.*');
+        $this->assertSame('"table".*', $actual);
     }
 
     public function testQuoteNamesIn()
