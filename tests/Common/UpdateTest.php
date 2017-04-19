@@ -14,8 +14,8 @@ class UpdateTest extends AbstractQueryTest
                     ->col('c3')
                     ->set('c4', null)
                     ->set('c5', 'NOW()')
-                    ->where('foo = :foo', ['foo' => 'bar'])
-                    ->where('baz = :baz', ['baz' => 'dib'])
+                    ->where('foo = ', 'bar')
+                    ->where('baz = ', 'dib')
                     ->orWhere('zim = gir');
 
         $actual = $this->query->__toString();
@@ -28,8 +28,8 @@ class UpdateTest extends AbstractQueryTest
                 <<c4>> = NULL,
                 <<c5>> = NOW()
             WHERE
-                foo = :foo
-                AND baz = :baz
+                foo = :_1_
+                AND baz = :_2_
                 OR zim = gir
         ";
 
@@ -37,8 +37,8 @@ class UpdateTest extends AbstractQueryTest
 
         $actual = $this->query->getBindValues();
         $expect = array(
-            'foo' => 'bar',
-            'baz' => 'dib',
+            '_1_' => 'bar',
+            '_2_' => 'dib',
         );
         $this->assertSame($expect, $actual);
     }

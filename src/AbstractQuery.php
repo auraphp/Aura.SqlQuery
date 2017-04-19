@@ -75,9 +75,9 @@ abstract class AbstractQuery
      */
     protected $builder;
 
-    static protected $instance_count = 0;
-
     protected $seq_bind_prefix = '';
+
+    protected $seq_bind_number = 0;
 
     /**
      *
@@ -88,16 +88,14 @@ abstract class AbstractQuery
      * @param AbstractBuilder $builder A builder for the query.
      *
      */
-    public function __construct(QuoterInterface $quoter, $builder)
-    {
+    public function __construct(
+        QuoterInterface $quoter,
+        $builder,
+        $seq_bind_prefix = ''
+    ) {
         $this->quoter = $quoter;
         $this->builder = $builder;
-
-        if (static::$instance_count > 0) {
-            $this->seq_bind_prefix = '_' . static::$instance_count;
-        }
-
-        static::$instance_count ++;
+        $this->seq_bind_prefix = $seq_bind_prefix;
     }
 
     /**
@@ -267,7 +265,7 @@ abstract class AbstractQuery
 
     /**
      *
-     * Adds conditions and binds values to a clause.
+     * Adds conditions to a clause, and binds values.
      *
      * @param string $clause The clause to work with, typically 'where' or
      * 'having'.
@@ -275,30 +273,81 @@ abstract class AbstractQuery
      * @param string $andor Add the condition using this operator, typically
      * 'AND' or 'OR'.
      *
-     * @param string $cond The WHERE condition.
-     *
-     * @param array $bind arguments to bind to placeholders
+     * @param array $cond The intermixed WHERE snippets and bind values.
      *
      * @return null
      *
      */
-    protected function addClauseCondWithBind($clause, $andor, $cond, $bind)
+    protected function addClauseConditions($clause, $andor, array $cond)
     {
-        if ($cond instanceof Closure) {
-            $this->addClauseCondClosure($clause, $andor, $cond);
-            $this->bindValues($bind);
+        if (empty($cond)) {
             return;
         }
 
-        $cond = $this->quoter->quoteNamesIn($cond);
-        $cond = $this->rebuildCondAndBindValues($cond, $bind);
+        if ($cond[0] instanceof Closure) {
+            $this->addClauseClosure($clause, $andor, $cond[0]);
+            return;
+        }
 
+        $cond = $this->fixConditions($cond);
         $clause =& $this->$clause;
         if ($clause) {
-            $clause[] = "$andor $cond";
+            $clause[] = "{$andor} {$cond}";
         } else {
             $clause[] = $cond;
         }
+    }
+
+    /**
+     *
+     * Rebuilds intermixed condition snippets and bind values into a single
+     * string, binding along the way.
+     *
+     * @param array $cond The intermixed condition snippets and bind values.
+     *
+     * @return string The rebuilt condition string.
+     *
+     */
+    protected function fixConditions(array $cond)
+    {
+        $fixed = '';
+        while (! empty($cond)) {
+            $fixed .= $this->fixCondition($cond);
+        }
+        return $fixed;
+    }
+
+    /**
+     *
+     * Rebuilds the next condition snippets and its bind value.
+     *
+     * @param array $cond The intermixed condition snippets and bind values.
+     *
+     * @return string The rebuilt condition string.
+     *
+     */
+    protected function fixCondition(&$cond)
+    {
+        $fixed = $this->quoter->quoteNamesIn(array_shift($cond));
+        if (! $cond) {
+            return $fixed;
+        }
+
+        $value = array_shift($cond);
+
+        if ($value instanceof SelectInterface) {
+            $fixed .= $value->getStatement();
+            $this->bind_values = array_merge(
+                $this->bind_values,
+                $value->getBindValues()
+            );
+            return $fixed;
+        }
+
+        $place = $this->getSeqPlaceholder();
+        $fixed .= ":{$place}";
+        $this->bindValue($place, $value);
+        return $fixed;
     }
 
     /**
@@ -316,7 +365,7 @@ abstract class AbstractQuery
      * @return null
      *
      */
-    protected function addClauseCondClosure($clause, $andor, $closure)
+    protected function addClauseClosure($clause, $andor, $closure)
     {
         // retain the prior set of conditions, and temporarily reset the clause
         // for the closure to work with (otherwise there will be an extraneous
@@ -352,43 +401,6 @@ abstract class AbstractQuery
         $this->$clause = $set;
     }
 
-    /**
-     *
-     * Rebuilds a condition string, replacing sequential placeholders with
-     * named placeholders, and binding the sequential values to the named
-     * placeholders.
-     *
-     * @param string $cond The condition with sequential placeholders.
-     *
-     * @param array $bind_values The values to bind to the sequential
-     * placeholders under their named versions.
-     *
-     * @return string The rebuilt condition string.
-     *
-     */
-    protected function rebuildCondAndBindValues($cond, array $bind_values)
-    {
-        $selects = [];
-
-        foreach ($bind_values as $key => $val) {
-            if ($val instanceof SelectInterface) {
-                $selects[":{$key}"] = $val;
-            } else {
-                $this->bindValue($key, $val);
-            }
-        }
-
-        foreach ($selects as $key => $select) {
-            $selects[$key] = $select->getStatement();
-            $this->bind_values = array_merge(
-                $this->bind_values,
-                $select->getBindValues()
-            );
-        }
-
-        $cond = strtr($cond, $selects);
-        return $cond;
-    }
 
     /**
      *
@@ -409,7 +421,8 @@ abstract class AbstractQuery
 
     protected function getSeqPlaceholder()
     {
-        $i = count($this->bind_values) + 1;
-        return $this->seq_bind_prefix . "_{$i}_";
+        $this->seq_bind_number ++;
+        return $this->seq_bind_prefix . "_{$this->seq_bind_number}_";
     }
+
 }
