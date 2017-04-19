@@ -75,6 +75,10 @@ abstract class AbstractQuery
      */
     protected $builder;
 
+    static protected $instance_count = 0;
+
+    protected $seq_bind_prefix = '';
+
     /**
      *
      * Constructor.
@@ -88,6 +92,12 @@ abstract class AbstractQuery
     {
         $this->quoter = $quoter;
         $this->builder = $builder;
+
+        if (static::$instance_count > 0) {
+            $this->seq_bind_prefix = '_' . static::$instance_count;
+        }
+
+        static::$instance_count ++;
     }
 
     /**
@@ -395,5 +405,11 @@ abstract class AbstractQuery
             $this->order_by[] = $this->quoter->quoteNamesIn($col);
         }
         return $this;
+    }
+
+    protected function getSeqPlaceholder()
+    {
+        $i = count($this->bind_values) + 1;
+        return $this->seq_bind_prefix . "_{$i}_";
     }
 }
