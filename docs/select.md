@@ -84,6 +84,7 @@ $select->joinSubSelect(
     'subjoin',                  // AS this name
     'subjoin.id = foo.id'       // ON these conditions
 );
+```
 
 Also as with FROM, you can pass a SELECT object instead of a query string as the
 subselect.
