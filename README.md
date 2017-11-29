@@ -130,44 +130,45 @@ be called in any particular order, and may be called multiple times.
 $select = $query_factory->newSelect();
 
 $select
-    ->distinct()                    // SELECT DISTINCT
-    ->cols(array(                   // select these columns
-        'id',                       // column name
-        'name AS namecol',          // one way of aliasing
-        'col_name' => 'col_alias',  // another way of aliasing
-        'COUNT(foo) AS foo_count'   // embed calculations directly
+    ->distinct()                         // SELECT DISTINCT
+    ->cols(array(                        // select these columns
+        'id',                            // column name
+        'name AS namecol',               // one way of aliasing
+        'col_name' => 'col_alias',       // another way of aliasing
+        'COUNT(foo) AS foo_count'        // embed calculations directly
     ))
-    ->from('foo AS f')              // FROM these tables
-    ->fromSubSelect(                // FROM sub-select AS my_sub
+    ->from('foo AS f')                   // FROM these tables
+    ->fromSubSelect(                     // FROM sub-select AS my_sub
         'SELECT ...',
         'my_sub'
     )
-    ->join(                         // JOIN ...
-        'LEFT',                     // left/inner/natural/etc
-        'doom AS d',                // this table name
-        'foo.id = d.foo_id'         // ON these conditions
+    ->join(                              // JOIN ...
+        'LEFT',                          // left/inner/natural/etc
+        'doom AS d',                     // this table name
+        'foo.id = d.foo_id'              // ON these conditions
     )
-    ->joinSubSelect(                // JOIN to a sub-select
-        'INNER',                    // left/inner/natural/etc
-        'SELECT ...',               // the subselect to join on
-        'subjoin',                  // AS this name
-        'sub.id = foo.id'           // ON these conditions
+    ->joinSubSelect(                     // JOIN to a sub-select
+        'INNER',                         // left/inner/natural/etc
+        'SELECT ...',                    // the subselect to join on
+        'subjoin',                       // AS this name
+        'sub.id = foo.id'                // ON these conditions
     )
-    ->where('bar > :bar')           // AND WHERE these conditions
-    ->where('zim = ?', 'zim_val')   // bind 'zim_val' to the ? placeholder
-    ->orWhere('baz < :baz')         // OR WHERE these conditions
-    ->groupBy(array('dib'))         // GROUP BY these columns
-    ->having('foo = :foo')          // AND HAVING these conditions
-    ->having('bar > ?', 'bar_val')  // bind 'bar_val' to the ? placeholder
-    ->orHaving('baz < :baz')        // OR HAVING these conditions
-    ->orderBy(array('baz'))         // ORDER BY these columns
-    ->limit(10)                     // LIMIT 10
-    ->offset(40)                    // OFFSET 40
-    ->forUpdate()                   // FOR UPDATE
-    ->union()                       // UNION with a followup SELECT
-    ->unionAll()                    // UNION ALL with a followup SELECT
-    ->bindValue('foo', 'foo_val')   // bind one value to a placeholder
-    ->bindValues(array(             // bind these values to named placeholders
+    ->where('bar > :bar')                // AND WHERE these conditions
+    ->where('zim = ?', 'zim_val')        // bind 'zim_val' to the ? placeholder
+    ->where('id IN (?, ?, ?)', 1, 2, 3)  // WHERE id IN(1, 2, 3)
+    ->orWhere('baz < :baz')              // OR WHERE these conditions
+    ->groupBy(array('dib'))              // GROUP BY these columns
+    ->having('foo = :foo')               // AND HAVING these conditions
+    ->having('bar > ?', 'bar_val')       // bind 'bar_val' to the ? placeholder
+    ->orHaving('baz < :baz')             // OR HAVING these conditions
+    ->orderBy(array('baz'))              // ORDER BY these columns
+    ->limit(10)                          // LIMIT 10
+    ->offset(40)                         // OFFSET 40
+    ->forUpdate()                        // FOR UPDATE
+    ->union()                            // UNION with a followup SELECT
+    ->unionAll()                         // UNION ALL with a followup SELECT
+    ->bindValue('foo', 'foo_val')        // bind one value to a placeholder
+    ->bindValues(array(                  // bind these values to named placeholders
         'bar' => 'bar_val',
         'baz' => 'baz_val',
     ));
