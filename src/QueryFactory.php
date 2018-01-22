@@ -17,10 +17,11 @@ namespace Aura\SqlQuery;
  */
 class QueryFactory
 {
-    /**
-     * Use the 'common' driver instead of a database-specific one.
-     */
     const COMMON = 'common';
+    const MYSQL = 'Mysql';
+    const PGSQL = 'Pgsql';
+    const SQLITE = 'Sqlite';
+    const SQLSRV = 'Sqlsrv';
 
     /**
      *
@@ -64,14 +65,13 @@ class QueryFactory
      *
      * @param string $db The database type.
      *
-     * @param string $common Pass the constant self::COMMON to force common
-     * query objects instead of db-specific ones.
+     * @param bool $common Force common query objects instead of db-specific ones?
      *
      */
-    public function __construct($db, $common = null)
+    public function __construct($db, $common = false)
     {
         $this->db = ucfirst(strtolower($db));
-        $this->common = ($common === self::COMMON);
+        $this->common = $common;
     }
 
     /**
