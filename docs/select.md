@@ -112,6 +112,10 @@ placholder-to-value array, which will be bound to the query right then.
     // bind 'zim_val' to the :zim placeholder
     ->where('zim = :zim', ['zim' => 'zim_val'])
 
+    // bind values to the :zims placeholder
+    ->where('zims IN (:zims)', ['zims' => ['zim_val', 'zim_val2', 'zim_val3']])
+
+
 ## GROUP BY
 
 ```php
