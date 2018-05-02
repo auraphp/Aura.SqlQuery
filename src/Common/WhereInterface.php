@@ -66,7 +66,7 @@ interface WhereInterface
      * @throws Exception
      *
      */
-    public function whereBoundValue(string $cond, string $placeholder, $value);
+    public function whereBoundValue($cond, $placeholder, $value);
 
     /**
      *
@@ -85,5 +85,5 @@ interface WhereInterface
      * @see whereBoundValue()
      *
      */
-    public function orWhereBoundValue(string $cond, string $placeholder, $value);
+    public function orWhereBoundValue($cond, $placeholder, $value);
 }

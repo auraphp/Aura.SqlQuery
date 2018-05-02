@@ -72,7 +72,7 @@ trait WhereTrait
      * @throws Exception
      *
      */
-    public function whereBoundValue(string $cond, string $placeholder, $value)
+    public function whereBoundValue($cond, $placeholder, $value)
     {
         $name = $this->extractNameOrThrow($placeholder);
         $this->addClauseCondWithBind('where', 'AND', $cond.$placeholder, [ $name => $value ] );
@@ -96,7 +96,7 @@ trait WhereTrait
      * @see whereBoundValue()
      *
      */
-    public function orWhereBoundValue(string $cond, string $placeholder, $value)
+    public function orWhereBoundValue($cond, $placeholder, $value)
     {
         $name = $this->extractNameOrThrow($placeholder);
         $this->addClauseCondWithBind('where', 'OR', $cond.$placeholder, [ $name => $value ] );
@@ -113,7 +113,7 @@ trait WhereTrait
      * @throws Exception
      *
      */
-    protected static function extractNameOrThrow(string $placeholder) {
+    protected static function extractNameOrThrow($placeholder) {
         $name = preg_replace( '/^\(?:([^\)]+)\)?$/', '\1', $placeholder);
         // XXX add type checks
         if (strlen($name)===strlen($placeholder)) {
