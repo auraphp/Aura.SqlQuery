@@ -987,9 +987,9 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      * @return $this
      *
      */
-    public function where($cond)
+    public function where($cond, ...$bind)
     {
-        $this->addWhere('AND', func_get_args());
+        $this->addWhere('AND', $bind);
         return $this;
     }
 
@@ -1007,9 +1007,9 @@ class Select extends AbstractQuery implements SelectInterface, SubselectInterfac
      * @see where()
      *
      */
-    public function orWhere($cond)
+    public function orWhere($cond, ...$bind)
     {
-        $this->addWhere('OR', func_get_args());
+        $this->addWhere('OR', $bind);
         return $this;
     }
 

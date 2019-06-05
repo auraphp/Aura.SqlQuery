@@ -29,7 +29,7 @@ interface WhereInterface
      * @return $this
      *
      */
-    public function where($cond);
+    public function where($cond, ...$params);
 
     /**
      *
@@ -45,5 +45,5 @@ interface WhereInterface
      * @see where()
      *
      */
-    public function orWhere($cond);
+    public function orWhere($cond, ...$params);
 }
