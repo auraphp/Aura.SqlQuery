@@ -37,7 +37,7 @@ All query objects implement the "Common" methods.
 
 The query objects do not execute queries against a database. When you are done
 building the query, you will need to pass it to a database connection of your
-choice. In later example, we will use [PDO](http://php.net/pdo) for the
+choice. In later examples, we will use [PDO](http://php.net/pdo) for the
 database connection, but any database library that uses named placeholders and
 bound values should work just as well (e.g. the [Aura.Sql][] _ExtendedPdo_
 class).
