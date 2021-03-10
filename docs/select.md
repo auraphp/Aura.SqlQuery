@@ -211,7 +211,7 @@ choice as a string, and send the bound values along with it.
 // a PDO connection
 $pdo = new PDO(...);
 
-// prepare the statment
+// prepare the statement
 $sth = $pdo->prepare($select->getStatement());
 
 // bind the values and execute
