@@ -139,7 +139,7 @@ mark placeholder in the condition clause.
 ## ORDER BY
 
 ```php
-    ->orderBy(['baz'])              // ORDER BY these columns
+    ->orderBy(['baz ASC'])          // ORDER BY these columns
 ```
 
 ## LIMIT, OFFSET, and Paging
