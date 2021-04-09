@@ -509,6 +509,39 @@ class SelectTest extends AbstractQueryTest
         $this->assertSame($expect, $actual);
     }
 
+    public function testWhereWithInlineArray()
+    {
+        $this->query->cols(array('*'));
+        $this->query->where('c1 = c2')
+            ->where('c3 = :c3 AND c4 IN (:c4) AND c5 = :c5', ['c3' => 'foo', 'c4' => [3, 2, 1], 'c5' => 'bar'])
+            ->where('c6 = ? AND c7 IN (?)', ['foo1', [6, 5, 4]]);
+        $expect = '
+            SELECT
+                *
+            WHERE
+                c1 = c2
+                AND c3 = :c3 AND c4 IN (:__1__, :__2__, :__3__) AND c5 = :c5
+                AND c6 = ? AND c7 IN (:__4__, :__5__, :__6__)
+        ';
+
+        $actual = $this->query->__toString();
+        $this->assertSameSql($expect, $actual);
+
+        $actual = $this->query->getBindValues();
+        $expect = [
+            'c3' => 'foo',
+            '__1__' => 3,
+            '__2__' => 2,
+            '__3__' => 1,
+            'c5' => 'bar',
+            0 => 'foo1',
+            '__4__' => 6,
+            '__5__' => 5,
+            '__6__' => 4
+        ];
+        $this->assertSame($expect, $actual);
+    }
+
     public function testOrWhere()
     {
         $this->query->cols(array('*'));
@@ -712,7 +745,7 @@ class SelectTest extends AbstractQueryTest
     public function testAutobind()
     {
         // do these out of order
-        $this->query->having('baz IN (:baz)', ['baz' => ['dib', 'zim', 'gir']]);
+        $this->query->having('baz IN (?, ?, ?)', ['dib', 'zim', 'gir']);
         $this->query->where('foo = :foo', ['foo' => 'bar']);
         $this->query->cols(array('*'));
 
@@ -722,13 +755,15 @@ class SelectTest extends AbstractQueryTest
             WHERE
                 foo = :foo
             HAVING
-                baz IN (:baz)
+                baz IN (?, ?, ?)
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
 
         $expect = array(
-            'baz' => array('dib', 'zim', 'gir'),
+            0 => 'dib',
+            1 => 'zim',
+            2 => 'gir',
             'foo' => 'bar',
         );
         $actual = $this->query->getBindValues();
