@@ -49,7 +49,7 @@ class Select extends Common\Select
         $name = $this->quoter->quoteName($name);
         $cond = $this->fixJoinCondition($cond, $bind);
 
-        $text = rtrim("$join ($spec        ) AS $name $cond");
+        $text = rtrim("$join ($spec        ) $name $cond");
         return $this->addJoin('        ' . $text);
     }
 }
