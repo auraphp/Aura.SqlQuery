@@ -10,8 +10,8 @@ class DeleteTest extends Common\DeleteTest
     public function testOrderLimit()
     {
         $this->query->from('t1')
-                    ->where('foo = :foo', ['foo' => 'bar'])
-                    ->where('baz = :baz', ['baz' => 'dib'])
+                    ->where('foo = ', 'bar')
+                    ->where('baz = ', 'dib')
                     ->orWhere('zim = gir')
                     ->orderBy(array('zim DESC'))
                     ->limit(5)
@@ -21,8 +21,8 @@ class DeleteTest extends Common\DeleteTest
         $expect = "
             DELETE FROM <<t1>>
             WHERE
-                foo = :foo
-                AND baz = :baz
+                foo = :_1_
+                AND baz = :_2_
                 OR zim = gir
             ORDER BY
                 zim DESC
@@ -32,8 +32,8 @@ class DeleteTest extends Common\DeleteTest
 
         $actual = $this->query->getBindValues();
         $expect = array(
-            'foo' => 'bar',
-            'baz' => 'dib',
+            '_1_' => 'bar',
+            '_2_' => 'dib',
         );
         $this->assertSame($expect, $actual);
     }

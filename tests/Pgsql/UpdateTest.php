@@ -13,8 +13,8 @@ class UpdateTest extends Common\UpdateTest
                     ->cols(array('c1', 'c2', 'c3'))
                     ->set('c4', null)
                     ->set('c5', 'NOW()')
-                    ->where('foo = :foo', ['foo' => 'bar'])
-                    ->where('baz = :baz', ['baz' => 'dib'])
+                    ->where('foo = ', 'bar')
+                    ->where('baz = ', 'dib')
                     ->orWhere('zim = gir')
                     ->returning(array('c1', 'c2'))
                     ->returning(array('c3'));
@@ -29,8 +29,8 @@ class UpdateTest extends Common\UpdateTest
                 <<c4>> = NULL,
                 <<c5>> = NOW()
             WHERE
-                foo = :foo
-                AND baz = :baz
+                foo = :_1_
+                AND baz = :_2_
                 OR zim = gir
             RETURNING
                 c1,
@@ -41,8 +41,8 @@ class UpdateTest extends Common\UpdateTest
 
         $actual = $this->query->getBindValues();
         $expect = array(
-            'foo' => 'bar',
-            'baz' => 'dib',
+            '_1_' => 'bar',
+            '_2_' => 'dib',
         );
         $this->assertSame($expect, $actual);
     }

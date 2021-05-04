@@ -483,13 +483,13 @@ class Select extends AbstractQuery implements SelectInterface
      * @throws Exception
      *
      */
-    public function join($join, $spec, $cond = null, array $bind = array())
+    public function join($join, $spec, ...$cond)
     {
         $join = strtoupper(ltrim("$join JOIN"));
         $this->addTableRef($join, $spec);
 
         $spec = $this->quoter->quoteName($spec);
-        $cond = $this->fixJoinCondition($cond, $bind);
+        $cond = $this->fixJoinConditions($cond);
         return $this->addJoin(rtrim("$join $spec $cond"));
     }
 
@@ -505,14 +505,13 @@ class Select extends AbstractQuery implements SelectInterface
      * @return string
      *
      */
-    protected function fixJoinCondition($cond, array $bind)
+    protected function fixJoinConditions(array $cond)
     {
-        if (! $cond) {
+        if (empty($cond)) {
             return '';
         }
 
-        $cond = $this->quoter->quoteNamesIn($cond);
-        $cond = $this->rebuildCondAndBindValues($cond, $bind);
+        $cond = $this->fixConditions($cond);
 
         if (strtoupper(substr(ltrim($cond), 0, 3)) == 'ON ') {
             return $cond;
@@ -540,9 +539,9 @@ class Select extends AbstractQuery implements SelectInterface
      * @throws Exception
      *
      */
-    public function innerJoin($spec, $cond = null, array $bind = array())
+    public function innerJoin($spec, ...$conditions)
     {
-        return $this->join('INNER', $spec, $cond, $bind);
+        return $this->join('INNER', $spec, ...$conditions);
     }
 
     /**
@@ -560,9 +559,9 @@ class Select extends AbstractQuery implements SelectInterface
      * @throws Exception
      *
      */
-    public function leftJoin($spec, $cond = null, array $bind = array())
+    public function leftJoin($spec, ...$conditions)
     {
-        return $this->join('LEFT', $spec, $cond, $bind);
+        return $this->join('LEFT', $spec, ...$conditions);
     }
 
     /**
@@ -586,14 +585,14 @@ class Select extends AbstractQuery implements SelectInterface
      * @throws Exception
      *
      */
-    public function joinSubSelect($join, $spec, $name, $cond = null, array $bind = array())
+    public function joinSubSelect($join, $spec, $name, ...$conditions)
     {
         $join = strtoupper(ltrim("$join JOIN"));
         $this->addTableRef("$join (SELECT ...) AS", $name);
 
         $spec = $this->subSelect($spec, '            ');
         $name = $this->quoter->quoteName($name);
-        $cond = $this->fixJoinCondition($cond, $bind);
+        $cond = $this->fixJoinConditions($conditions);
 
         $text = rtrim("$join ($spec        ) AS $name $cond");
         return $this->addJoin('        ' . $text);
@@ -637,16 +636,12 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * Adds a HAVING condition to the query by AND.
      *
-     * @param string $cond The HAVING condition.
-     *
-     * @param array $bind arguments to bind to placeholders
-     *
      * @return $this
      *
      */
-    public function having($cond, array $bind = [])
+    public function having(...$conditions)
     {
-        $this->addClauseCondWithBind('having', 'AND', $cond, $bind);
+        $this->addClauseConditions('having', 'AND', $conditions);
         return $this;
     }
 
@@ -663,9 +658,9 @@ class Select extends AbstractQuery implements SelectInterface
      * @see having()
      *
      */
-    public function orHaving($cond, array $bind = [])
+    public function orHaving(...$conditions)
     {
-        $this->addClauseCondWithBind('having', 'OR', $cond, $bind);
+        $this->addClauseConditions('having', 'OR', $conditions);
         return $this;
     }
 

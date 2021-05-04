@@ -176,7 +176,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function join($join, $spec, $cond = null);
+    public function join($join, $spec, ...$conditions);
 
     /**
      *
@@ -193,7 +193,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @throws \Exception
      *
      */
-    public function innerJoin($spec, $cond = null, array $bind = array());
+    public function innerJoin($spec, ...$conditions);
 
     /**
      *
@@ -210,7 +210,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @throws \Exception
      *
      */
-    public function leftJoin($spec, $cond = null, array $bind = array());
+    public function leftJoin($spec, ...$conditions);
 
     /**
      *
@@ -229,7 +229,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function joinSubSelect($join, $spec, $name, $cond = null);
+    public function joinSubSelect($join, $spec, $name, ...$conditions);
 
     /**
      *
@@ -246,29 +246,21 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * Adds a HAVING condition to the query by AND.
      *
-     * @param string $cond The HAVING condition.
-     *
-     * @param array $bind Values to be bound to placeholders.
-     *
      * @return $this
      *
      */
-    public function having($cond, array $bind = []);
+    public function having(...$conditions);
 
     /**
      *
      * Adds a HAVING condition to the query by OR.
-     *
-     * @param string $cond The HAVING condition.
-     *
-     * @param array $bind Values to be bound to placeholders.
      *
      * @return $this
      *
      * @see having()
      *
      */
-    public function orHaving($cond, array $bind = []);
+    public function orHaving(...$conditions);
 
     /**
      *

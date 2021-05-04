@@ -30,7 +30,7 @@ interface WhereInterface
      * @return $this
      *
      */
-    public function where($cond, array $bind = []);
+    public function where(...$conditions);
 
     /**
      *
@@ -47,5 +47,5 @@ interface WhereInterface
      * @see where()
      *
      */
-    public function orWhere($cond, array $bind = []);
+    public function orWhere(...$conditions);
 }
