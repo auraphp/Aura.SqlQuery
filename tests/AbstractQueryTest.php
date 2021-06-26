@@ -11,7 +11,7 @@ abstract class AbstractQueryTest extends TestCase
 
     protected $query;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
         $this->query_factory = new QueryFactory($this->db_type);

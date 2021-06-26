@@ -7,7 +7,7 @@ class QuoterTest extends TestCase
 {
     protected $quoter;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->quoter = new Quoter();
     }
