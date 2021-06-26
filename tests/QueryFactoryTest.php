@@ -1,7 +1,7 @@
 <?php
 namespace Aura\SqlQuery;
 
-class QueryFactoryTest extends \PHPUnit_Framework_TestCase
+class QueryFactoryTest extends TestCase
 {
     /**
      * @dataProvider provider

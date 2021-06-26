@@ -1,7 +1,7 @@
 <?php
 namespace Aura\SqlQuery;
 
-abstract class AbstractQueryTest extends \PHPUnit_Framework_TestCase
+abstract class AbstractQueryTest extends TestCase
 {
     protected $query_factory;
 
@@ -11,7 +11,7 @@ abstract class AbstractQueryTest extends \PHPUnit_Framework_TestCase
 
     protected $query;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
         $this->query_factory = new QueryFactory($this->db_type);
@@ -52,11 +52,6 @@ abstract class AbstractQueryTest extends \PHPUnit_Framework_TestCase
         $string = str_replace('<<', $this->query->getQuoteNamePrefix(), $string);
         $string = str_replace('>>', $this->query->getQuoteNameSuffix(), $string);
         return $string;
-    }
-
-    protected function tearDown()
-    {
-        parent::tearDown();
     }
 
     public function testBindValues()
