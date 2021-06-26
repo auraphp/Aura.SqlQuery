@@ -1,8 +1,6 @@
 <?php
 namespace Aura\SqlQuery;
 
-use PHPUnit\Framework\TestCase;
-
 abstract class AbstractQueryTest extends TestCase
 {
     protected $query_factory;

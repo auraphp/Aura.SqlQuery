@@ -1,8 +1,6 @@
 <?php
 namespace Aura\SqlQuery;
 
-use PHPUnit\Framework\TestCase;
-
 class QueryFactoryTest extends TestCase
 {
     /**

@@ -1,7 +1,7 @@
 <?php
 namespace Aura\SqlQuery\Common;
 
-use PHPUnit\Framework\TestCase;
+use Aura\SqlQuery\TestCase;
 
 class QuoterTest extends TestCase
 {
