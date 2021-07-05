@@ -8,6 +8,9 @@ php:
   - 7.2
   - 7.3
   - 7.4
+env:
+  global:
+    - XDEBUG_MODE=coverage
 script:
   - composer install
   - ./vendor/bin/phpunit --coverage-clover=coverage.clover
