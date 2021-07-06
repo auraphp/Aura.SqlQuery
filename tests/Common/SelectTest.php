@@ -531,6 +531,30 @@ class SelectTest extends AbstractQueryTest
         $this->assertSame($expect, $actual);
     }
 
+
+    public function testWhereBoundValue()
+    {
+        $this->query->cols(array('*'));
+        $this->query->where('c1 = c2')
+                     ->whereBoundValue('c2 IN ', '(:c2)', ['foo'])
+                     ->whereBoundValue('c3 = ', ':c3', 'foo');
+        $expect = '
+            SELECT
+                *
+            WHERE
+                c1 = c2
+                AND c2 IN (:c2)
+                AND c3 = :c3
+        ';
+
+        $actual = $this->query->__toString();
+        $this->assertSameSql($expect, $actual);
+
+        $actual = $this->query->getBindValues();
+        $expect = ['c2' => ['foo'], 'c3' => 'foo'];
+        $this->assertSame($expect, $actual);
+    }
+
     public function testGroupBy()
     {
         $this->query->cols(array('*'));
