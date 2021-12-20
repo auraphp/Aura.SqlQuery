@@ -1,7 +1,9 @@
 <?php
 namespace Aura\SqlQuery;
 
-abstract class AbstractQueryTest extends \PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+abstract class AbstractQueryTest extends TestCase
 {
     protected $query_factory;
 
@@ -11,7 +13,7 @@ abstract class AbstractQueryTest extends \PHPUnit_Framework_TestCase
 
     protected $query;
 
-    protected function setUp()
+    protected function setUp() : void
     {
         parent::setUp();
         $this->query_factory = new QueryFactory($this->db_type);
@@ -54,7 +56,7 @@ abstract class AbstractQueryTest extends \PHPUnit_Framework_TestCase
         return $string;
     }
 
-    protected function tearDown()
+    protected function tearDown() : void
     {
         parent::tearDown();
     }

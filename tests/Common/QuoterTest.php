@@ -1,9 +1,11 @@
 <?php
 namespace Aura\SqlQuery\Common;
 
-class QuoterTest extends \PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+class QuoterTest extends TestCase
 {
-    public function setUp()
+    public function setUp() : void
     {
         $this->quoter = new Quoter();
     }
