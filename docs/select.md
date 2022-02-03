@@ -107,7 +107,7 @@ will OR the condition.
 ```
 
 The `*where()` and `*having()` methods take a trailing trailing argument of a
-placholder-to-value array, which will be bound to the query right then.
+placeholder-to-value array, which will be bound to the query right then.
 
     // bind 'zim_val' to the :zim placeholder
     ->where('zim = :zim', ['zim' => 'zim_val'])
