@@ -34,14 +34,14 @@ class Delete extends AbstractDmlQuery implements DeleteInterface
      *
      * Sets the table to delete from.
      *
-     * @param string $table The table to delete from.
+     * @param string $from The table to delete from.
      *
      * @return $this
      *
      */
-    public function from($table)
+    public function from($from)
     {
-        $this->from = $this->quoter->quoteName($table);
+        $this->from = $this->quoter->quoteName($from);
         return $this;
     }
 
