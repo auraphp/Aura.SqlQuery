@@ -1,6 +1,6 @@
 # MySQL Additions
 
-These 'mysql' query objects have additional MySQL-specific behvaiors.
+These 'mysql' query objects have additional MySQL-specific behaviors.
 
 ## SELECT
 

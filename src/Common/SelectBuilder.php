@@ -56,11 +56,11 @@ class SelectBuilder extends AbstractBuilder
         }
 
         $refs = array();
-        foreach ($from as $from_key => $from) {
+        foreach ($from as $from_key => $from_val) {
             if (isset($join[$from_key])) {
-                $from = array_merge($from, $join[$from_key]);
+                $from_val = array_merge($from_val, $join[$from_key]);
             }
-            $refs[] = implode(PHP_EOL, $from);
+            $refs[] = implode(PHP_EOL, $from_val);
         }
         return PHP_EOL . 'FROM' . $this->indentCsv($refs);
     }

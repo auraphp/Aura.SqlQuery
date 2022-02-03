@@ -107,10 +107,16 @@ will OR the condition.
 ```
 
 The `*where()` and `*having()` methods take a trailing trailing argument of a
-placholder-to-value array, which will be bound to the query right then.
+placeholder-to-value array, which will be bound to the query right then.
 
     // bind 'zim_val' to the :zim placeholder
     ->where('zim = :zim', ['zim' => 'zim_val'])
+    
+You can also use `IN` conditions by binding an array to the placeholder.
+
+```php
+    ->where('bar IN (:bar)', ['bar' => [1, 2, 3]])
+```
 
 ## GROUP BY
 
@@ -133,7 +139,7 @@ mark placeholder in the condition clause.
 ## ORDER BY
 
 ```php
-    ->orderBy(['baz'])              // ORDER BY these columns
+    ->orderBy(['baz ASC'])          // ORDER BY these columns
 ```
 
 ## LIMIT, OFFSET, and Paging
@@ -205,7 +211,7 @@ choice as a string, and send the bound values along with it.
 // a PDO connection
 $pdo = new PDO(...);
 
-// prepare the statment
+// prepare the statement
 $sth = $pdo->prepare($select->getStatement());
 
 // bind the values and execute
