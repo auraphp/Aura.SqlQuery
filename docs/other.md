@@ -22,7 +22,7 @@ echo $select->getStatement();
 ```
 
 If you discover that a partially-qualified identifier has not been auto-quoted
-for you, change it to a fully-qualified identifer (e.g., from `col_name` to
+for you, change it to a fully-qualified identifier (e.g., from `col_name` to
 `table_name.col_name`).
 
 ## Table Prefixes
