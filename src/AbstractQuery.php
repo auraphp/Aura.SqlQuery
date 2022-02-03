@@ -61,7 +61,7 @@ abstract class AbstractQuery
      *
      * A helper for quoting identifier names.
      *
-     * @var Quoter
+     * @var Common\Quoter
      *
      */
     protected $quoter;
@@ -70,7 +70,7 @@ abstract class AbstractQuery
      *
      * A builder for the query.
      *
-     * @var AbstractBuilder
+     * @var Common\AbstractBuilder
      *
      */
     protected $builder;
@@ -79,9 +79,9 @@ abstract class AbstractQuery
      *
      * Constructor.
      *
-     * @param Quoter $quoter A helper for quoting identifier names.
+     * @param Common\Quoter $quoter A helper for quoting identifier names.
      *
-     * @param AbstractBuilder $builder A builder for the query.
+     * @param Common\AbstractBuilder $builder A builder for the query.
      *
      */
     public function __construct(QuoterInterface $quoter, $builder)
