@@ -1,7 +1,9 @@
 <?php
 namespace Aura\SqlQuery;
 
-abstract class AbstractQueryTest extends \PHPUnit_Framework_TestCase
+use Yoast\PHPUnitPolyfills\TestCases\TestCase;
+
+abstract class AbstractQueryTest extends TestCase
 {
     protected $query_factory;
 
@@ -11,9 +13,9 @@ abstract class AbstractQueryTest extends \PHPUnit_Framework_TestCase
 
     protected $query;
 
-    protected function setUp()
+    protected function set_up()
     {
-        parent::setUp();
+        parent::set_up();
         $this->query_factory = new QueryFactory($this->db_type);
         $this->query = $this->newQuery();
     }
@@ -54,9 +56,9 @@ abstract class AbstractQueryTest extends \PHPUnit_Framework_TestCase
         return $string;
     }
 
-    protected function tearDown()
+    protected function tear_down()
     {
-        parent::tearDown();
+        parent::tear_down();
     }
 
     public function testBindValues()
