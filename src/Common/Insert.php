@@ -277,6 +277,21 @@ class Insert extends AbstractDmlQuery implements InsertInterface
 
     /**
      *
+     * Adds IGNORE flag depending on DB syntax.
+     *
+     * @param bool $enable Set or unset flag (default true).
+     * @throws Exception
+     * @return \Aura\SqlQuery\Sqlite\Insert
+     *
+     */
+    public function ignore($enable = true)
+    {
+        // override in child classes
+        throw new Exception(get_class($this) . " doesn't support IGNORE flag");
+    }
+
+    /**
+     *
      * Finishes off the current row in a bulk insert, collecting the bulk
      * values and resetting for the next row.
      *

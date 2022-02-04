@@ -47,4 +47,13 @@ class InsertTest extends Common\InsertTest
         $expect = 'table_col_seq';
         $this->assertSame($expect, $actual);
     }
+
+    public function testIgnore()
+    {
+        $this->setExpectedException(
+            'Aura\SqlQuery\Exception',
+            "Aura\SqlQuery\Pgsql\Insert doesn't support IGNORE flag"
+        );
+        $this->query->ignore();
+    }
 }
