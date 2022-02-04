@@ -58,6 +58,8 @@ class QueryFactory
      */
     protected $quoter;
 
+    protected $instance_count = 0;
+
     /**
      *
      * Constructor.
@@ -160,10 +162,22 @@ class QueryFactory
             $builderClass = "Aura\SqlQuery\Common\\{$query}Builder";
         }
 
+
         return new $queryClass(
             $this->getQuoter(),
-            $this->newBuilder($query)
+            $this->newBuilder($query),
+            $this->getSeqBindPrefix()
         );
+    }
+
+    protected function getSeqBindPrefix()
+    {
+        $seq_bind_prefix = '';
+        if ($this->instance_count > 0) {
+            $seq_bind_prefix = '_' . $this->instance_count;
+        }
+        $this->instance_count ++;
+        return $seq_bind_prefix;
     }
 
     /**
