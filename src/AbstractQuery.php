@@ -369,14 +369,8 @@ abstract class AbstractQuery
         foreach ($bind_values as $key => $val) {
             if ($val instanceof SelectInterface) {
                 $selects[":{$key}"] = $val;
-            } elseif (is_array($val) === true) {
-                if (is_int($key) === true) {
-                    if (preg_match_all('/\?/', $cond, $matches, PREG_OFFSET_CAPTURE) !== false) {
-                        $cond = substr_replace($cond, $this->inlineArray($val), $matches[0][$index][1], 1);
-                    }
-                } else {
-                    $cond = str_replace(':' . $key, $this->inlineArray($val), $cond);
-                }
+            } elseif (is_array($val)) {
+                $cond = $this->getCond($key, $cond, $val, $index);
             } else {
                 $this->bindValue($key, $val);
             }
@@ -422,5 +416,27 @@ abstract class AbstractQuery
             $this->order_by[] = $this->quoter->quoteNamesIn($col);
         }
         return $this;
+    }
+
+    /**
+     * @param int|string $key
+     * @param string     $cond
+     * @param array      $val
+     * @param int        $index
+     *
+     * @return string
+     */
+    private function getCond($key, $cond, array $val, $index)
+    {
+        if (is_string($key)) {
+            return str_replace(':' . $key, $this->inlineArray($val), $cond);
+        }
+        assert(is_int($key));
+
+        if (preg_match_all('/\?/', $cond, $matches, PREG_OFFSET_CAPTURE) !== false) {
+            return substr_replace($cond, $this->inlineArray($val), $matches[0][$index][1], 1);
+        }
+
+        return $cond;
     }
 }
