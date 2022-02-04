@@ -118,6 +118,10 @@ You can also use `IN` conditions by binding an array to the placeholder.
     ->where('bar IN (:bar)', ['bar' => [1, 2, 3]])
 ```
 
+    // bind values to the :zims placeholder
+    ->where('zims IN (:zims)', ['zims' => ['zim_val', 'zim_val2', 'zim_val3']])
+
+
 ## GROUP BY
 
 ```php

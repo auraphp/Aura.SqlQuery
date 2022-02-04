@@ -76,6 +76,11 @@ abstract class AbstractQuery
     protected $builder;
 
     /**
+     * @var int
+     */
+    protected $inlineCount = 0;
+
+    /**
      *
      * Constructor.
      *
@@ -358,14 +363,24 @@ abstract class AbstractQuery
      */
     protected function rebuildCondAndBindValues($cond, array $bind_values)
     {
+        $index = 0;
         $selects = [];
 
         foreach ($bind_values as $key => $val) {
             if ($val instanceof SelectInterface) {
                 $selects[":{$key}"] = $val;
+            } elseif (is_array($val) === true) {
+                if (is_int($key) === true) {
+                    if (preg_match_all('/\?/', $cond, $matches, PREG_OFFSET_CAPTURE) !== false) {
+                        $cond = substr_replace($cond, $this->inlineArray($val), $matches[0][$index][1], 1);
+                    }
+                } else {
+                    $cond = str_replace(':' . $key, $this->inlineArray($val), $cond);
+                }
             } else {
                 $this->bindValue($key, $val);
             }
+            $index++;
         }
 
         foreach ($selects as $key => $select) {
@@ -378,6 +393,18 @@ abstract class AbstractQuery
 
         $cond = strtr($cond, $selects);
         return $cond;
+    }
+
+    protected function inlineArray(array $array)
+    {
+        $keys = [];
+        foreach ($array as $val) {
+            $this->inlineCount++;
+            $key = "__{$this->inlineCount}__";
+            $this->bindValue($key, $val);
+            $keys[] = ":{$key}";
+        }
+        return implode(', ', $keys);
     }
 
     /**
