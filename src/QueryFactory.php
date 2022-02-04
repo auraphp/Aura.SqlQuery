@@ -172,7 +172,7 @@ class QueryFactory
      *
      * @param string $query The query type.
      *
-     * @return AbstractBuilder
+     * @return Common\AbstractBuilder
      *
      */
     protected function newBuilder($query)
@@ -188,7 +188,7 @@ class QueryFactory
      *
      * Returns the Quoter object for queries; creates one if needed.
      *
-     * @return Quoter
+     * @return Common\Quoter
      *
      */
     protected function getQuoter()
@@ -203,7 +203,7 @@ class QueryFactory
      *
      * Returns a new Quoter for the database driver.
      *
-     * @return QuoterInerface
+     * @return Common\QuoterInterface
      *
      */
     protected function newQuoter()
