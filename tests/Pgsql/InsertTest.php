@@ -50,7 +50,7 @@ class InsertTest extends Common\InsertTest
 
     public function testIgnore()
     {
-        $this->setExpectedException(
+        $this->expectException(
             'Aura\SqlQuery\Exception',
             "Aura\SqlQuery\Pgsql\Insert doesn't support IGNORE flag"
         );
