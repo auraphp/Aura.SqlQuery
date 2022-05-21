@@ -16,9 +16,9 @@ Alternatively, [download a release](https://github.com/auraphp/Aura.SqlQuery/rel
 
 ### Quality
 
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/auraphp/Aura.SqlQuery/badges/quality-score.png?b=2.x)](https://scrutinizer-ci.com/g/auraphp/Aura.SqlQuery/?branch=2.x)
-[![Code Coverage](https://scrutinizer-ci.com/g/auraphp/Aura.SqlQuery/badges/coverage.png?b=2.x)](https://scrutinizer-ci.com/g/auraphp/Aura.SqlQuery/?branch=2.x)
-[![Build Status](https://travis-ci.org/auraphp/Aura.SqlQuery.png?branch=2.x)](https://travis-ci.org/auraphp/Aura.SqlQuery)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/auraphp/Aura.SqlQuery/badges/quality-score.png?b=2.x)](https://scrutinizer-ci.com/g/auraphp/Aura.SqlQuery/)
+[![codecov](https://codecov.io/gh/auraphp/Aura.SqlQuery/branch/2.x/graph/badge.svg?token=UASDouLxyc)](https://codecov.io/gh/auraphp/Aura.SqlQuery)
+[![Continuous Integration](https://github.com/auraphp/Aura.SqlQuery/actions/workflows/continuous-integration.yml/badge.svg?branch=2.x)](https://github.com/auraphp/Aura.SqlQuery/actions/workflows/continuous-integration.yml)
 
 To run the [PHPUnit](http://phpunit.de/manual/) unit tests at the command line, issue `composer install` and then `vendor/bin/phpunit` at the package root. (This requires [Composer](http://getcomposer.org/) to be available as `composer`.)
 
