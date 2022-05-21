@@ -10,6 +10,9 @@ although [PDO](http://php.net/PDO) in general is recommended.
 
 This library requires PHP 5.3.9 or later; we recommend using the latest available version of PHP as a matter of principle. It has no userland dependencies.
 
+> CI ( From year 2022 ) is only testing from 5.4 onwards.
+> Because of the dependency on yoast/phpunit-polyfills which require php >=5.4.
+
 It is installable and autoloadable via Composer as [aura/sqlquery](https://packagist.org/packages/aura/sqlquery).
 
 Alternatively, [download a release](https://github.com/auraphp/Aura.SqlQuery/releases) or clone this repository, then require or include its _autoload.php_ file.
