@@ -138,11 +138,8 @@ class InsertTest extends AbstractQueryTest
         $this->query->cols(array('c2' => 'v2-1', 'c1' => 'v1-1'));
 
         // failed to add c3, should blow up
+        $this->expectException('Aura\SqlQuery\Exception');
 
-        $this->setExpectedException(
-            'Aura\SqlQuery\Exception',
-            $this->requoteIdentifiers("Column <<c3>> missing from row 1.")
-        );
         $this->query->addRow();
     }
 

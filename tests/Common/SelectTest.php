@@ -10,7 +10,7 @@ class SelectTest extends AbstractQueryTest
     public function testExceptionWithNoCols()
     {
         $this->query->from('t1');
-        $this->setExpectedException('Aura\SqlQuery\Exception');
+        $this->expectException('Aura\SqlQuery\Exception');
         $this->query->__toString();
 
     }
@@ -143,10 +143,9 @@ class SelectTest extends AbstractQueryTest
         $this->query->cols(array('*'));
         $this->query->from('t1');
 
-        $this->setExpectedException(
-            'Aura\SqlQuery\Exception',
-            "Cannot reference 'FROM t1' after 'FROM t1'"
-        );
+        // "Cannot reference 'FROM t1' after 'FROM t1'"
+        $this->expectException('Aura\SqlQuery\Exception');
+
         $this->query->from('t1');
     }
 
@@ -156,10 +155,9 @@ class SelectTest extends AbstractQueryTest
         $this->query->cols(array('*'));
         $this->query->from('t1');
 
-        $this->setExpectedException(
-            'Aura\SqlQuery\Exception',
-            "Cannot reference 'FROM t2 AS t1' after 'FROM t1'"
-        );
+        // "Cannot reference 'FROM t2 AS t1' after 'FROM t1'"
+        $this->expectException('Aura\SqlQuery\Exception');
+
         $this->query->from('t2 AS t1');
     }
 
@@ -184,10 +182,8 @@ class SelectTest extends AbstractQueryTest
         $this->query->cols(array('*'));
         $this->query->from('t1');
 
-        $this->setExpectedException(
-            'Aura\SqlQuery\Exception',
-            "Cannot reference 'FROM (SELECT ...) AS t1' after 'FROM t1'"
-        );
+        // "Cannot reference 'FROM (SELECT ...) AS t1' after 'FROM t1'"
+        $this->expectException('Aura\SqlQuery\Exception');
 
         $sub = 'SELECT * FROM t2';
         $this->query->fromSubSelect($sub, 't1');
@@ -273,10 +269,8 @@ class SelectTest extends AbstractQueryTest
         $this->query->cols(array('*'));
         $this->query->from('t1');
 
-        $this->setExpectedException(
-            'Aura\SqlQuery\Exception',
-            "Cannot reference 'NATURAL JOIN t1' after 'FROM t1'"
-        );
+        // "Cannot reference 'NATURAL JOIN t1' after 'FROM t1'"
+        $this->expectException('Aura\SqlQuery\Exception');
         $this->query->join('natural', 't1');
     }
 
@@ -401,10 +395,8 @@ class SelectTest extends AbstractQueryTest
         $this->query->cols(array('*'));
         $this->query->from('t1');
 
-        $this->setExpectedException(
-            'Aura\SqlQuery\Exception',
-            "Cannot reference 'NATURAL JOIN (SELECT ...) AS t1' after 'FROM t1'"
-        );
+        // "Cannot reference 'NATURAL JOIN (SELECT ...) AS t1' after 'FROM t1'"
+        $this->expectException('Aura\SqlQuery\Exception');
 
         $sub2 = 'SELECT * FROM t3';
         $this->query->joinSubSelect('natural', $sub2, 't1');
