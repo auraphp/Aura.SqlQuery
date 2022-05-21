@@ -32,12 +32,17 @@
     "require": {
         "php": ">=5.3.9"
     },
-    "require-dev": {
-        "phpunit/phpunit": "~5.7 || ~4.8"
-    },
     "autoload": {
         "psr-4": {
             "Aura\\SqlQuery\\": "src/"
+        }
+    },
+    "require-dev": {
+        "yoast/phpunit-polyfills": "~1.0"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Aura\\SqlQuery\\": "tests/"
         }
     },
     "extra": {
