@@ -706,16 +706,18 @@ class SelectTest extends AbstractQueryTest
             SELECT
                 *
             WHERE
-                foo = :_2_
+                foo = :_4_
             HAVING
-                baz IN (:_1_)
+                baz IN (:_1_, :_2_, :_3_)
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
 
         $expect = array(
-            '_1_' => array('dib', 'zim', 'gir'),
-            '_2_' => 'bar',
+            '_1_' => 'dib',
+            '_2_' => 'zim',
+            '_3_' => 'gir',
+            '_4_' => 'bar',
         );
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);

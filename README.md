@@ -8,7 +8,7 @@ although [PDO](http://php.net/PDO) in general is recommended.
 
 ### Installation
 
-This library requires PHP 5.3 or later; we recommend using the latest available version of PHP as a matter of principle. It has no userland dependencies.
+This library requires PHP 5.3.9 or later; we recommend using the latest available version of PHP as a matter of principle. It has no userland dependencies.
 
 It is installable and autoloadable via Composer as [aura/sqlquery](https://packagist.org/packages/aura/sqlquery).
 
@@ -16,13 +16,12 @@ Alternatively, [download a release](https://github.com/auraphp/Aura.SqlQuery/rel
 
 ### Quality
 
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/auraphp/Aura.SqlQuery/badges/quality-score.png?b=develop-2)](https://scrutinizer-ci.com/g/auraphp/Aura.SqlQuery/)
-[![Code Coverage](https://scrutinizer-ci.com/g/auraphp/Aura.SqlQuery/badges/coverage.png?b=develop-2)](https://scrutinizer-ci.com/g/auraphp/Aura.SqlQuery/)
-[![Build Status](https://travis-ci.org/auraphp/Aura.SqlQuery.png?branch=develop-2)](https://travis-ci.org/auraphp/Aura.SqlQuery)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/auraphp/Aura.SqlQuery/badges/quality-score.png?b=2.x)](https://scrutinizer-ci.com/g/auraphp/Aura.SqlQuery/?branch=2.x)
+[![Code Coverage](https://scrutinizer-ci.com/g/auraphp/Aura.SqlQuery/badges/coverage.png?b=2.x)](https://scrutinizer-ci.com/g/auraphp/Aura.SqlQuery/?branch=2.x)
+[![Build Status](https://travis-ci.org/auraphp/Aura.SqlQuery.png?branch=2.x)](https://travis-ci.org/auraphp/Aura.SqlQuery)
 
-To run the unit tests at the command line, issue `phpunit` at the package root. (This requires [PHPUnit][] to be available as `phpunit`.)
+To run the [PHPUnit](http://phpunit.de/manual/) unit tests at the command line, issue `composer install` and then `vendor/bin/phpunit` at the package root. (This requires [Composer](http://getcomposer.org/) to be available as `composer`.)
 
-[PHPUnit]: http://phpunit.de/manual/
 
 This library attempts to comply with [PSR-1][], [PSR-2][], and [PSR-4][]. If
 you notice compliance oversights, please send a patch via pull request.
@@ -121,6 +120,8 @@ All query objects implement the "Common" methods.
 
 ### SELECT
 
+#### Building A Query
+
 Build a _Select_ query using the following methods. They do not need to
 be called in any particular order, and may be called multiple times.
 
@@ -129,44 +130,45 @@ be called in any particular order, and may be called multiple times.
 $select = $query_factory->newSelect();
 
 $select
-    ->distinct()                    // SELECT DISTINCT
-    ->cols(array(                   // select these columns
-        'id',                       // column name
-        'name AS namecol',          // one way of aliasing
-        'col_name' => 'col_alias',  // another way of aliasing
-        'COUNT(foo) AS foo_count'   // embed calculations directly
+    ->distinct()                         // SELECT DISTINCT
+    ->cols(array(                        // select these columns
+        'id',                            // column name
+        'name AS namecol',               // one way of aliasing
+        'col_name' => 'col_alias',       // another way of aliasing
+        'COUNT(foo) AS foo_count'        // embed calculations directly
     ))
-    ->from('foo AS f')              // FROM these tables
-    ->fromSubSelect(                // FROM sub-select AS my_sub
+    ->from('foo AS f')                   // FROM these tables
+    ->fromSubSelect(                     // FROM sub-select AS my_sub
         'SELECT ...',
         'my_sub'
     )
-    ->join(                         // JOIN ...
-        'LEFT',                     // left/inner/natural/etc
-        'doom AS d'                 // this table name
-        'foo.id = d.foo_id'         // ON these conditions
+    ->join(                              // JOIN ...
+        'LEFT',                          // left/inner/natural/etc
+        'doom AS d',                     // this table name
+        'foo.id = d.foo_id'              // ON these conditions
     )
-    ->joinSubSelect(                // JOIN to a sub-select
-        'INNER',                    // left/inner/natural/etc
-        'SELECT ...',               // the subselect to join on
-        'subjoin'                   // AS this name
-        'sub.id = foo.id'           // ON these conditions
+    ->joinSubSelect(                     // JOIN to a sub-select
+        'INNER',                         // left/inner/natural/etc
+        'SELECT ...',                    // the subselect to join on
+        'subjoin',                       // AS this name
+        'sub.id = foo.id'                // ON these conditions
     )
-    ->where('bar > :bar')           // AND WHERE these conditions
-    ->where('zim = ?', 'zim_val')   // bind 'zim_val' to the ? placeholder
-    ->orWhere('baz < :baz')         // OR WHERE these conditions
-    ->groupBy(array('dib'))         // GROUP BY these columns
-    ->having('foo = :foo')          // AND HAVING these conditions
-    ->having('bar > ?', 'bar_val')  // bind 'bar_val' to the ? placeholder
-    ->orHaving('baz < :baz')        // OR HAVING these conditions
-    ->orderBy(array('baz'))         // ORDER BY these columns
-    ->limit(10)                     // LIMIT 10
-    ->offset(40)                    // OFFSET 40
-    ->forUpdate()                   // FOR UPDATE
-    ->union()                       // UNION with a followup SELECT
-    ->unionAll()                    // UNION ALL with a followup SELECT
-    ->bindValue('foo', 'foo_val')   // bind one value to a placeholder
-    ->bindValues(array(             // bind these values to named placeholders
+    ->where('bar > :bar')                // AND WHERE these conditions
+    ->where('zim = ?', 'zim_val')        // bind 'zim_val' to the ? placeholder
+    ->where('id IN (?, ?, ?)', 1, 2, 3)  // WHERE id IN(1, 2, 3)
+    ->orWhere('baz < :baz')              // OR WHERE these conditions
+    ->groupBy(array('dib'))              // GROUP BY these columns
+    ->having('foo = :foo')               // AND HAVING these conditions
+    ->having('bar > ?', 'bar_val')       // bind 'bar_val' to the ? placeholder
+    ->orHaving('baz < :baz')             // OR HAVING these conditions
+    ->orderBy(array('baz'))              // ORDER BY these columns
+    ->limit(10)                          // LIMIT 10
+    ->offset(40)                         // OFFSET 40
+    ->forUpdate()                        // FOR UPDATE
+    ->union()                            // UNION with a followup SELECT
+    ->unionAll()                         // UNION ALL with a followup SELECT
+    ->bindValue('foo', 'foo_val')        // bind one value to a placeholder
+    ->bindValues(array(                  // bind these values to named placeholders
         'bar' => 'bar_val',
         'baz' => 'baz_val',
     ));
@@ -180,6 +182,23 @@ mark placeholder in the condition clause.
 > Similarly, the `*join*()` methods take an optional final argument, a
 sequential array of values to bind to sequential question-mark placeholders in
 the condition clause.
+
+#### Resetting Query Elements
+
+The _Select_ class comes with the following methods to "reset" various clauses
+a blank state. This can be useful when reusing the same query in different
+variations (e.g., to re-issue a query to get a `COUNT(*)` without a `LIMIT`, to
+find the total number of rows to be paginated over).
+
+- `resetCols()` removes all columns
+- `resetTable()` removes all `FROM` and `JOIN` clauses
+- `resetWhere()`, `resetGroupBy()`, `resetHaving()`, and `resetOrderBy()`
+  remove the respective clauses
+- `resetUnions()` removes all `UNION` and `UNION ALL` clauses
+- `resetFlags()` removes all database-engine-specific flags
+- `resetBindValues()` removes all values bound to named placeholders
+
+#### Issuing The Query
 
 Once you have built the query, pass it to the database connection of your
 choice as a string, and send the bound values along with it.

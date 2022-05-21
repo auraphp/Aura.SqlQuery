@@ -260,6 +260,19 @@ abstract class AbstractQuery
 
     /**
      *
+     * Reset all values bound to named placeholders.
+     *
+     * @return $this
+     *
+     */
+    public function resetBindValues()
+    {
+        $this->bind_values = array();
+        return $this;
+    }
+
+    /**
+     *
      * Builds the flags as a space-separated string.
      *
      * @return string
@@ -298,12 +311,13 @@ abstract class AbstractQuery
      *
      * Reset all query flags.
      *
-     * @return null
+     * @return $this
      *
      */
-    protected function resetFlags()
+    public function resetFlags()
     {
         $this->flags = array();
+        return $this;
     }
 
     /**
@@ -377,7 +391,7 @@ abstract class AbstractQuery
         // bind values against ?-mark placeholders, but because PDO is finicky
         // about the numbering of sequential placeholders, convert each ?-mark
         // to a named placeholder
-        $parts = preg_split('/(\?)/', $cond, null, PREG_SPLIT_DELIM_CAPTURE);
+        $parts = preg_split('/(\?)/', $cond, -1, PREG_SPLIT_DELIM_CAPTURE);
         foreach ($parts as $key => $val) {
             if ($val != '?') {
                 continue;
@@ -390,6 +404,21 @@ abstract class AbstractQuery
                     $this->bind_values,
                     $bind_value->getBindValues()
                 );
+                continue;
+            }
+
+            if (is_array($bind_value) && !empty($bind_value)) {
+                $part = '';
+                $ind = 0;
+                $subCount = count($bind_value);
+                foreach ($bind_value as $subValue) {
+                    $seqPlaceholder = $this->getSeqPlaceholder();
+                    $part .= ':' . $seqPlaceholder;
+                    if ($subCount > $ind + 1) $part .= ', ';
+                    $this->bind_values[$seqPlaceholder] = $subValue;
+                    $ind++;
+                }
+                $parts[$key] = $part;
                 continue;
             }
 
