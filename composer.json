@@ -41,7 +41,6 @@
         }
     },
     "require-dev": {
-        "guzzlehttp/psr7": "^1.0 || ^2.0",
         "yoast/phpunit-polyfills": "~1.0"
     },
     "autoload-dev": {
