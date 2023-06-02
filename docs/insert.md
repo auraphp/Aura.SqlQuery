@@ -128,7 +128,7 @@ $rows = [
     [
         'bar' => 'bar-0',
         'baz' => 'baz-0'
-    ),
+    ],
     [
         'bar' => 'bar-1',
         'baz' => 'baz-1'
