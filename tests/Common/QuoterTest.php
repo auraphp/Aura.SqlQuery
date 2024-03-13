@@ -5,7 +5,7 @@ use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 class QuoterTest extends TestCase
 {
-    protected ?\Aura\SqlQuery\Common\Quoter $quoter = null;
+    protected $quoter = null;
 
     public function set_up()
     {
