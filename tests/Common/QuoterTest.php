@@ -5,6 +5,8 @@ use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 class QuoterTest extends TestCase
 {
+    protected $quoter = null;
+
     public function set_up()
     {
         $this->quoter = new Quoter();
