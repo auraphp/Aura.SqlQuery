@@ -15,7 +15,7 @@ the `Aura\SqlQuery\` namespace to the package `src/` directory.
 
 ## Dependencies
 
-This package requires PHP 5.6 or later; it has been tested on PHP 5.6-8.1. We recommend using the latest available version of PHP as a matter of principle.
+This package requires PHP 5.6 or later; it has been tested on PHP 5.6-8.5. We recommend using the latest available version of PHP as a matter of principle.
 
 Aura library packages may sometimes depend on external interfaces, but never on
 external implementations. This allows compliance with community standards
