@@ -8,6 +8,8 @@
  */
 namespace Aura\SqlQuery\Common;
 
+use Aura\SqlQuery\Exception;
+
 /**
  *
  * An interface for WHERE clauses.
@@ -48,4 +50,40 @@ interface WhereInterface
      *
      */
     public function orWhere($cond, array $bind = []);
+
+    /**
+     *
+     * Adds a WHERE condition with a prepared statement placeholder and value to the query by AND.
+     *
+     * @param string $cond the first part of the WHERE condition without the placeholder. e.g. "name = " or "name IN"
+     *
+     * @param string $placeholder the placeholder as a string. e.g. ":NAME" or "(:NAMES)"
+     *
+     * @param (string|int|float|array) $value the value to be bound to the placeholder. e.g. "John" or ["John", "Eric", "Michael", "Terry"]
+     *
+     * @return $this
+     *
+     * @throws Exception
+     *
+     */
+    public function whereBoundValue($cond, $placeholder, $value);
+
+    /**
+     *
+     * Adds a WHERE condition with a prepared statement placeholder and value to the query by OR.
+     *
+     * @param string $cond the first part of the WHERE condition without the placeholder. e.g. "name = " or "name IN"
+     *
+     * @param string $placeholder the placeholder as a string. e.g. ":NAME" or "(:NAMES)"
+     *
+     * @param (string|int|float|array) $value the value to be bound to the placeholder. e.g. "John" or ["John", "Eric", "Michael", "Terry"]
+     *
+     * @return $this
+     *
+     * @throws Exception
+     *
+     * @see whereBoundValue()
+     *
+     */
+    public function orWhereBoundValue($cond, $placeholder, $value);
 }
