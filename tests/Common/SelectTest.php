@@ -110,6 +110,22 @@ class SelectTest extends AbstractQueryTest
         $this->assertSameSql($expect, $actual);
     }
 
+    public function testColsWithFunctionExpression()
+    {
+        $this->query->cols(array(
+            'id',
+            "CONCAT(first_name, ' ', last_name) AS full_name",
+        ));
+
+        $actual = $this->query->__toString();
+        $expect = "
+            SELECT
+                id,
+                CONCAT(first_name, ' ', last_name) AS <<full_name>>
+        ";
+        $this->assertSameSql($expect, $actual);
+    }
+
     public function testFrom()
     {
         $this->query->cols(array('*'));
