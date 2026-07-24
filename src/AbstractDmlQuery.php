@@ -25,7 +25,7 @@ abstract class AbstractDmlQuery extends AbstractQuery
      * @param array
      *
      */
-    protected $col_values;
+    protected $col_values = array();
 
     /**
      *

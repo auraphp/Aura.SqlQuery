@@ -21,6 +21,26 @@ class InsertBuilder extends Common\InsertBuilder
 {
     /**
      *
+     * Builds the inserted columns and values of the statement; MySQL does
+     * not support `DEFAULT VALUES`, so an insert with no columns uses the
+     * empty-list form instead.
+     *
+     * @param array $col_values The column names and values.
+     *
+     * @return string
+     *
+     */
+    public function buildValuesForInsert(array $col_values)
+    {
+        if (empty($col_values)) {
+            return ' () VALUES ()';
+        }
+
+        return parent::buildValuesForInsert($col_values);
+    }
+
+    /**
+     *
      * Builds the UPDATE ON DUPLICATE KEY part of the statement.
      *
      * @param array $col_on_update_values Columns and values to use for

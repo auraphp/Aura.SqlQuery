@@ -7,6 +7,13 @@ class UpdateTest extends AbstractQueryTest
 {
     protected $query_type = 'update';
 
+    public function testExceptionWithNoCols()
+    {
+        $this->query->table('t1')->where('foo = :foo', ['foo' => 'bar']);
+        $this->expectException('Aura\SqlQuery\Exception');
+        $this->query->__toString();
+    }
+
     public function testCommon()
     {
         $this->query->table('t1')

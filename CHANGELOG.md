@@ -1,5 +1,23 @@
 # CHANGELOG 
 
+## 6.0.0 (unreleased)
+
+- [BRK] Bumped the minimum version to PHP 8.4; the CI matrix now covers
+  PHP 8.4 and 8.5.
+
+- [CHG] Migrated the test suite to PHPUnit 12 (replacing
+  yoast/phpunit-polyfills).
+
+- [FIX] An Insert with no columns no longer throws a TypeError; it now
+  renders `INSERT INTO t DEFAULT VALUES` (or `INSERT INTO t () VALUES ()`
+  on MySQL, which does not support DEFAULT VALUES), letting the database
+  apply column defaults. Fixes #149.
+
+- [CHG] An Update with no columns now throws Aura\SqlQuery\Exception with
+  a clear message, instead of a TypeError; an UPDATE with an empty SET
+  clause has no meaning. This matches the existing Select behavior of
+  throwing when no columns are given.
+
 ## 2.7.1
 
 Hygiene release: update README.

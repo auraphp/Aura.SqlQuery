@@ -43,6 +43,10 @@ class InsertBuilder extends AbstractBuilder
      */
     public function buildValuesForInsert(array $col_values)
     {
+        if (empty($col_values)) {
+            return ' DEFAULT VALUES';
+        }
+
         return ' ('
             . $this->indentCsv(array_keys($col_values))
             . PHP_EOL . ') VALUES ('

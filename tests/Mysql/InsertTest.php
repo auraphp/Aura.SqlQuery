@@ -7,6 +7,10 @@ class InsertTest extends Common\InsertTest
 {
     protected $db_type = 'mysql';
 
+    protected $expected_sql_no_cols = "
+        INSERT INTO <<t1>> () VALUES ()
+    ";
+
     protected $expected_sql_with_flag = "
         INSERT %s INTO <<t1>> (
             <<c1>>,
