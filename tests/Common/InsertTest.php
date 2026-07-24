@@ -15,6 +15,17 @@ class InsertTest extends AbstractQueryTest
         return parent::newQuery();
     }
 
+    protected $expected_sql_no_cols = "
+        INSERT INTO <<t1>> DEFAULT VALUES
+    ";
+
+    public function testNoCols()
+    {
+        $this->query->into('t1');
+        $actual = $this->query->__toString();
+        $this->assertSameSql($this->expected_sql_no_cols, $actual);
+    }
+
     public function testCommon()
     {
         $this->query->into('t1')
