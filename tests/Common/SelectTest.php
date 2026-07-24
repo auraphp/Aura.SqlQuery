@@ -898,6 +898,35 @@ class SelectTest extends AbstractQueryTest
         $this->assertSameSql($expect, $actual);
     }
 
+    public function testWhereExistsSubSelect()
+    {
+        $sub = $this->newQuery()
+            ->cols(array('*'))
+            ->from('orders')
+            ->where('orders.user_id = users.id');
+
+        $select = $this->newQuery()
+            ->cols(array('*'))
+            ->from('users')
+            ->where('EXISTS (:sub)', ['sub' => $sub]);
+
+        $expect = '
+            SELECT
+                *
+            FROM
+                <<users>>
+            WHERE
+                EXISTS (SELECT
+                *
+            FROM
+                <<orders>>
+            WHERE
+                <<orders>>.<<user_id>> = <<users>>.<<id>>)
+        ';
+        $actual = $select->__toString();
+        $this->assertSameSql($expect, $actual);
+    }
+
     public function testIssue49()
     {
         $this->assertSame(0, $this->query->getPage());
