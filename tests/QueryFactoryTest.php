@@ -1,13 +1,12 @@
 <?php
 namespace Aura\SqlQuery;
 
-use Yoast\PHPUnitPolyfills\TestCases\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
 
 class QueryFactoryTest extends TestCase
 {
-    /**
-     * @dataProvider provider
-     */
+    #[DataProvider('provider')]
     public function test($db_type, $common, $query_type, $expect)
     {
         $query_factory = new QueryFactory($db_type, $common);
@@ -16,7 +15,7 @@ class QueryFactoryTest extends TestCase
         $this->assertInstanceOf($expect, $actual);
     }
 
-    public function provider()
+    public static function provider()
     {
         return array(
             // db-specific
