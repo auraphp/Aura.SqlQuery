@@ -207,8 +207,12 @@ class Quoter implements QuoterInterface
         $quoted = $this->replaceNamesIn($val);
         $pos = strripos($quoted, ' AS ');
         if ($pos !== false) {
-            $alias = $this->replaceName(substr($quoted, $pos + 4));
-            $quoted = substr($quoted, 0, $pos) . " AS $alias";
+            $alias = trim(substr($quoted, $pos + 4));
+            // quote only when the remainder is a word-only alias; an 'AS'
+            // inside an expression, e.g. cast(col as varchar), is not an alias
+            if (preg_match('/^[a-z_][a-z0-9_ ]*$/i', $alias)) {
+                $quoted = substr($quoted, 0, $pos) . ' AS ' . $this->replaceName($alias);
+            }
         }
         return $quoted;
     }
