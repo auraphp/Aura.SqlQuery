@@ -38,12 +38,13 @@
   SQL. Fixes #157.
 
 - [ADD] Insert-ignore is now spelled `ignore()` on every dialect that
-  supports it: Pgsql\Insert gains `ignore()`, rendering the Postgres
-  equivalent `ON CONFLICT DO NOTHING` (before any RETURNING clause), and
-  Sqlite\Update gains `ignore()` matching Mysql\Update; the Sqlite
-  `orIgnore()` methods remain as deprecated aliases. Sqlsrv, which has
-  no equivalent, keeps throwing Exception\BadMethodCallException.
-  Fixes #172; related to #158.
+  supports it: Mysql\Insert renders `INSERT IGNORE` and Sqlite\Insert
+  renders `INSERT OR IGNORE` (both as before); Pgsql\Insert gains
+  `ignore()`, rendering the Postgres equivalent `ON CONFLICT DO NOTHING`
+  (before any RETURNING clause); and Sqlite\Update gains `ignore()`
+  matching Mysql\Update. The Sqlite `orIgnore()` methods remain as
+  deprecated aliases. Sqlsrv, which has no equivalent, keeps throwing
+  Exception\BadMethodCallException. Fixes #172; related to #158.
 
 - [FIX] The quoter now recognizes `#` as an identifier character (legal
   on DB2 / IBM i, in any position), so `table.col#` quotes as

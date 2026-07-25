@@ -282,7 +282,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      *
      * @param bool $enable Set or unset flag (default true).
      * @throws BadMethodCallException
-     * @return \Aura\SqlQuery\Sqlite\Insert
+     * @return static
      *
      */
     public function ignore($enable = true)
