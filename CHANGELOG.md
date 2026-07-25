@@ -8,6 +8,13 @@
 - [CHG] Migrated the test suite to PHPUnit 12 (replacing
   yoast/phpunit-polyfills).
 
+- [CHG] Added an `integration` test suite that executes the generated SQL
+  against real MySQL and PostgreSQL servers (in addition to SQLite), so
+  dialect output is proven to run and not merely to match a string. CI
+  runs it against MySQL 8.4/8.0 and Postgres 17/15 service containers.
+  Locally the MySQL and Postgres cases skip unless `DB_MYSQL_DSN` /
+  `DB_PGSQL_DSN` are set; see CONTRIBUTING.md.
+
 - [FIX] An Insert with no columns no longer throws a TypeError; it now
   renders `INSERT INTO t DEFAULT VALUES` (or `INSERT INTO t () VALUES ()`
   on MySQL, which does not support DEFAULT VALUES), letting the database
@@ -37,6 +44,10 @@
   `orIgnore()` methods remain as deprecated aliases. Sqlsrv, which has
   no equivalent, keeps throwing Exception\BadMethodCallException.
   Fixes #172; related to #158.
+
+- [FIX] The quoter now recognizes `#` as an identifier character (legal
+  on DB2 / IBM i, in any position), so `table.col#` quotes as
+  `"table"."col#"` instead of the broken `"table"."col"#`. Fixes #177.
 
 - [CHG] An Update with no columns now throws
   Aura\SqlQuery\Exception\LogicException with

@@ -86,6 +86,25 @@ class QuoterTest extends TestCase
         $this->assertSame('"t"."foo" AS "foo$bar"', $actual);
     }
 
+    public function testQuoteNamesInWithHash()
+    {
+        // issue #177: DB2 / IBM i allow # in identifiers, in any position
+        $actual = $this->quoter->quoteNamesIn('a.g01gl# ASC');
+        $this->assertSame('"a"."g01gl#" ASC', $actual);
+
+        $actual = $this->quoter->quoteNamesIn('lib.#col');
+        $this->assertSame('"lib"."#col"', $actual);
+
+        $actual = $this->quoter->quoteNamesIn('lib#.tab = :v');
+        $this->assertSame('"lib#"."tab" = :v', $actual);
+
+        $actual = $this->quoter->quoteNamesIn('#lib.tab');
+        $this->assertSame('"#lib"."tab"', $actual);
+
+        $actual = $this->quoter->quoteNamesIn('t.foo#bar');
+        $this->assertSame('"t"."foo#bar"', $actual);
+    }
+
     public function testQuoteNamesInWithMultiWordAlias()
     {
         // legacy behavior: a multi-word alias is still quoted as a whole
