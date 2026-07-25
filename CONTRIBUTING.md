@@ -8,7 +8,7 @@ Thanks!
 
 ## Running the tests
 
-```
+```sh
 composer install
 ./vendor/bin/phpunit
 ```
@@ -20,7 +20,7 @@ The integration suite always runs its SQLite cases, using an in-memory
 database. The MySQL and PostgreSQL cases are skipped unless you point them at
 a server with an existing, throwaway database:
 
-```
+```sh
 DB_MYSQL_DSN='mysql:host=127.0.0.1;port=3306;dbname=aura_sqlquery_test' \
 DB_MYSQL_USER=root DB_MYSQL_PASS=root \
 DB_PGSQL_DSN='pgsql:host=127.0.0.1;port=5432;dbname=aura_sqlquery_test' \
