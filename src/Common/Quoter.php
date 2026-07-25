@@ -284,19 +284,20 @@ class Quoter implements QuoterInterface
             return $text;
         }
 
-        $word = "[a-z_][a-z0-9_]*";
+        // issue #177: '#' is a legal identifier character on DB2 / IBM i,
+        // in any position; lookarounds instead of \b, because there is no
+        // word boundary next to a '#'
+        $word = "[a-z_#][a-z0-9_#]*";
 
-        $find = "/(\\b)($word)\\.($word)(\\b)/i";
+        $find = "/(?<![\\w#])($word)\\.($word)(?![\\w#])/i";
 
-        $repl = '$1'
-              . $this->quote_name_prefix
-              . '$2'
+        $repl = $this->quote_name_prefix
+              . '$1'
               . $this->quote_name_suffix
               . '.'
               . $this->quote_name_prefix
-              . '$3'
+              . '$2'
               . $this->quote_name_suffix
-              . '$4'
               ;
 
         $text = preg_replace($find, $repl, $text);
