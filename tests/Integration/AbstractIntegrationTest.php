@@ -230,6 +230,28 @@ abstract class AbstractIntegrationTest extends TestCase
         $this->assertSame([2, 2], array_map('intval', array_column($actual, 'employee_count')));
     }
 
+    public function testSelectWhereGroupedConditions()
+    {
+        // issue #183: closure grouping must emit real parentheses, so that
+        // (a OR b) AND (c OR d) binds tighter than the flat a OR b AND c OR d
+        $select = $this->query_factory->newSelect()
+            ->cols(['name'])
+            ->from('test_employee')
+            ->where(function ($select) {
+                $select->where('dept_id = :dept_id', ['dept_id' => 1])
+                    ->orWhere('salary = :salary', ['salary' => 400]);
+            })
+            ->where(function ($select) {
+                $select->where('name = :first', ['first' => 'Anna'])
+                    ->orWhere('name = :second', ['second' => 'Donna']);
+            })
+            ->orderBy(['seq']);
+
+        // without the parentheses this would also match Betty
+        $actual = $this->fetchAll($select);
+        $this->assertSame(['Anna', 'Donna'], array_column($actual, 'name'));
+    }
+
     public function testSelectSubSelectInWhere()
     {
         $sub = $this->query_factory->newSelect()
