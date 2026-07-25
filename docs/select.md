@@ -182,6 +182,21 @@ $select
 // WHERE tests."compound.group" = :compound_group
 ```
 
+A name introduced by `@` is a variable rather than an identifier, and the dot
+in one separates scope from name, so the quoter leaves the whole of it alone.
+Column references beside it are still quoted (MySQL again, for `convert_tz()`
+and the session variable):
+
+```php
+$select
+    ->from('customer')
+    ->cols(['convert_tz(open_from, customer.time_zone, @@session.time_zone) open_now']);
+// SELECT
+//     convert_tz(open_from, `customer`.`time_zone`, @@session.time_zone) open_now
+// FROM
+//     `customer`
+```
+
 ### EXISTS and Subquery Conditions
 
 To build a `WHERE EXISTS` (or `NOT EXISTS`, `IN (...)`, etc.) condition against

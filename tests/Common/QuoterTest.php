@@ -188,6 +188,81 @@ class QuoterTest extends TestCase
                 'legacy invalid as alias still works',
                 'legacy invalid AS {p}alias still works{s}',
             ],
+            // issue #226: the dot in a variable is a scope separator, not a
+            // table/column separator
+            'session variable' => ['@@session.time_zone', '@@session.time_zone'],
+            'global variable' => [
+                '@@global.max_connections',
+                '@@global.max_connections',
+            ],
+            // a MySQL user variable name may itself contain dots, '$' and
+            // '_', so the whole token is left alone, not just the part
+            // right after the '@'
+            'user variable' => ['@var.name', '@var.name'],
+            'user variable with two dots' => ['@a.b.c', '@a.b.c'],
+            'user variable with a dollar sign' => ['@my$var.name', '@my$var.name'],
+            'variable then a real name' => [
+                '@x.y = t.a',
+                '@x.y = {p}t{s}.{p}a{s}',
+            ],
+            'real name then a variable' => [
+                't.a = @x.y',
+                '{p}t{s}.{p}a{s} = @x.y',
+            ],
+            'variable beside a real name' => [
+                'convert_tz(t.open_from, t.time_zone, @@session.time_zone)',
+                'convert_tz({p}t{s}.{p}open_from{s}, {p}t{s}.{p}time_zone{s}, @@session.time_zone)',
+            ],
+            'variable with an alias' => [
+                '@@session.time_zone AS tz',
+                '@@session.time_zone AS {p}tz{s}',
+            ],
+            'variable with no dot' => ['@@ROWCOUNT', '@@ROWCOUNT'],
+            'variable inside a string literal' => [
+                "t.c = '@a.b'",
+                "{p}t{s}.{p}c{s} = '@a.b'",
+            ],
+            // PostgreSQL spells its text-search match and its JSONPath
+            // predicate check '@@'. The variable pattern stops at the space,
+            // so a bare '@@' is passed through as the operator it is and the
+            // name after it is still quoted.
+            'pgsql text search operator' => [
+                't.doc @@ q.tsq',
+                '{p}t{s}.{p}doc{s} @@ {p}q{s}.{p}tsq{s}',
+            ],
+            'pgsql jsonpath predicate operator' => [
+                't.payload @@ p.expr',
+                '{p}t{s}.{p}payload{s} @@ {p}p{s}.{p}expr{s}',
+            ],
+            'pgsql operator before a function call' => [
+                't.doc @@ to_tsquery(u.cfg, :q)',
+                '{p}t{s}.{p}doc{s} @@ to_tsquery({p}u{s}.{p}cfg{s}, :q)',
+            ],
+            'pgsql containment operator' => [
+                't.payload @> u.filter',
+                '{p}t{s}.{p}payload{s} @> {p}u{s}.{p}filter{s}',
+            ],
+            // known limitation: with no space, '@@x.y' is indistinguishable
+            // from a variable named '@@x.y', so the name is left alone. Write
+            // the operator with spaces around it.
+            'pgsql operator with no space after it' => [
+                't.doc @@x.y',
+                '{p}t{s}.{p}doc{s} @@x.y',
+            ],
+            // the #183 and #226 rules meet: one name quoted by hand, one
+            // variable, and a plain reference to quote between them
+            'pre-quoted name and a variable' => [
+                't.{p}a.b{s} = @v.x AND u.c = :p',
+                't.{p}a.b{s} = @v.x AND {p}u{s}.{p}c{s} = :p',
+            ],
+            'pre-quoted name containing an at sign' => [
+                '{p}@weird.col{s} = t.a',
+                '{p}@weird.col{s} = {p}t{s}.{p}a{s}',
+            ],
+            'count distinct' => [
+                'COUNT(DISTINCT t.x)',
+                'COUNT(DISTINCT {p}t{s}.{p}x{s})',
+            ],
             'empty string' => ['', ''],
             'only a space' => [' ', ' '],
             // issue #183: a name the caller quoted by hand, because the name

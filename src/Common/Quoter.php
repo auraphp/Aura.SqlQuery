@@ -326,20 +326,28 @@ class Quoter implements QuoterInterface
         // word boundary next to a '#'
         $word = "[a-z_#][a-z0-9_#]*";
 
-        $find = "/(?<![\\w#])($word)\\.($word)(?![\\w#])/i";
+        // issue #226: '@' introduces a variable, not an identifier, and any
+        // dots in one belong to its name: '@@session.time_zone' names the
+        // session time_zone variable, not a time_zone column on a session
+        // table, and '@a.b' is a single user variable. A variable is matched
+        // first, and returned as it was written, so that the identifier
+        // branch never sees inside one.
+        $variable = '@@?[a-z0-9_$.#]*';
 
-        $repl = $this->quote_name_prefix
-              . '$1'
-              . $this->quote_name_suffix
-              . '.'
-              . $this->quote_name_prefix
-              . '$2'
-              . $this->quote_name_suffix
-              ;
+        $find = "/({$variable})|(?<![\\w#])($word)\\.($word)(?![\\w#])/i";
 
-        $text = preg_replace($find, $repl, $text);
-
-        return $text;
+        return preg_replace_callback($find, function ($matches) {
+            if ($matches[1] !== '') {
+                return $matches[1];
+            }
+            return $this->quote_name_prefix
+                 . $matches[2]
+                 . $this->quote_name_suffix
+                 . '.'
+                 . $this->quote_name_prefix
+                 . $matches[3]
+                 . $this->quote_name_suffix;
+        }, $text);
     }
 
 }
