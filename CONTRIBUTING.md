@@ -30,9 +30,22 @@ DB_SQLSRV_USER=sa DB_SQLSRV_PASS='Aura!Passw0rd' \
 ./vendor/bin/phpunit --testsuite integration
 ```
 
-The SQL Server cases need the `pdo_sqlsrv` extension, which is not packaged
-for every platform; on a machine without it they skip like any other missing
-server, and CI is the reference environment for that dialect.
+The SQL Server cases need two pieces, not one: the `pdo_sqlsrv` extension, and
+Microsoft's ODBC Driver 18 for SQL Server, which the extension talks through.
+Neither is packaged for every platform, and installing the extension alone is
+not enough — connecting without the driver fails with
+`SQLSTATE[IMSSP]: This extension requires the Microsoft ODBC Driver for SQL
+Server`. See Microsoft's [install instructions][odbc]; CI installs
+`msodbcsql18` from `packages.microsoft.com` and is the reference environment
+for this dialect.
+
+[odbc]: https://learn.microsoft.com/sql/connect/odbc/download-odbc-driver-for-sql-server
+
+A test class skips only when its `DB_*_DSN` is unset. Once a DSN is set, the
+tests try to connect for real, and anything wrong from there on — a missing
+extension, a missing ODBC driver, an unreachable server, a bad password —
+surfaces as an error, not a skip. That is deliberate: a configured dialect
+that quietly skipped would look like a passing run while testing nothing.
 
 The database itself must already exist; the tests create their own `test_*`
 tables in it once per test class and drop them again afterwards, so the

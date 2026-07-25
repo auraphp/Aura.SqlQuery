@@ -6,9 +6,17 @@ use PDO;
 /**
  *
  * Runs against a real SQL Server. Set DB_SQLSRV_DSN (plus DB_SQLSRV_USER and
- * DB_SQLSRV_PASS as needed) to enable; the test is skipped when they are
- * absent. CI runs it against a mssql/server service container; there is no
- * SQL Server build for every developer platform, so locally it usually skips.
+ * DB_SQLSRV_PASS as needed) to enable; the tests skip when DB_SQLSRV_DSN is
+ * unset, and only then.
+ *
+ * Connecting needs both the pdo_sqlsrv extension and Microsoft's ODBC Driver
+ * 18 for SQL Server behind it. With the DSN set but either piece missing,
+ * newPdo() does not skip: new PDO() throws, and every test in the class
+ * errors — SQLSTATE[IMSSP] names the missing ODBC driver specifically. That
+ * is on purpose, so a configured dialect cannot silently test nothing.
+ *
+ * CI runs this against a mssql/server service container and installs the
+ * driver itself; see CONTRIBUTING.md for a local setup.
  *
  */
 class SqlsrvIntegrationTest extends AbstractIntegrationTest
