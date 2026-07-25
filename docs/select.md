@@ -121,6 +121,71 @@ You can also use `IN` conditions by binding an array to the placeholder.
     // bind values to the :zims placeholder
     ->where('zims IN (:zims)', ['zims' => ['zim_val', 'zim_val2', 'zim_val3']])
 
+### Grouping Conditions With Parentheses
+
+To group a set of conditions inside parentheses, pass a closure to `where()`
+(or `orWhere()`). The closure receives the query object; any conditions you add
+to it are wrapped in a single parenthesized group, and the group as a whole is
+joined to the rest of the WHERE clause with `AND` (for `where()`) or `OR`
+(for `orWhere()`).
+
+```php
+$select
+    ->where(function ($select) {
+        $select->where('foo > :foo_min')
+            ->where('foo < :foo_max');
+    })
+    ->orWhere(function ($select) {
+        $select->where('bar = :bar')
+            ->orWhere('baz = :baz');
+    });
+// WHERE (
+//     foo > :foo_min
+//     AND foo < :foo_max
+// )
+// OR (
+//     bar = :bar
+//     OR baz = :baz
+// )
+```
+
+The same closure grouping works for `having()` and `orHaving()`.
+
+### EXISTS and Subquery Conditions
+
+To build a `WHERE EXISTS` (or `NOT EXISTS`, `IN (...)`, etc.) condition against
+a subquery, pass a _Select_ object as a bind value. It is inlined as a subquery
+at the matching placeholder, and any values bound to the subquery are merged
+into the outer query's bind values automatically.
+
+```php
+$sub = $queryFactory->newSelect()
+    ->cols(['*'])
+    ->from('orders')
+    ->where('orders.user_id = users.id');
+
+$select = $queryFactory->newSelect()
+    ->cols(['*'])
+    ->from('users')
+    ->where('EXISTS (:sub)', ['sub' => $sub]);
+// SELECT * FROM "users" WHERE EXISTS (SELECT * FROM "orders" WHERE "orders"."user_id" = "users"."id")
+```
+
+The same technique builds `IN`/`NOT IN` conditions against a subquery:
+
+```php
+$sub = $queryFactory->newSelect()
+    ->cols(['id'])
+    ->from('orders')
+    ->where('orders.total > :min_total', ['min_total' => 100]);
+
+$select = $queryFactory->newSelect()
+    ->cols(['*'])
+    ->from('users')
+    ->where('id IN (:sub)', ['sub' => $sub]);
+// the :min_total value bound to the subquery is available on the outer query too
+```
+
 
 ## GROUP BY
 

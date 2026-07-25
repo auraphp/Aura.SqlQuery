@@ -1124,6 +1124,40 @@ class SelectTest extends AbstractQueryTest
         $this->assertSameSql($expect, $actual);
     }
 
+    public function testIssue183WhereWithParentheses()
+    {
+        // two OR-groups combined with AND, e.g. (a OR b) AND (c OR d)
+        $select = $this->query
+            ->cols(['*'])
+            ->from('tests')
+            ->where(function ($select) {
+                $select->where('compound_group IN (:groups)')
+                    ->orWhere('compound_name IN (:names)');
+            })
+            ->where(function ($select) {
+                $select->where('species_genus IN (:genera)')
+                    ->orWhere('species_name IN (:species_names)');
+            });
+
+        $expect = '
+            SELECT
+                *
+            FROM
+                <<tests>>
+            WHERE
+                (
+                    compound_group IN (:groups)
+                    OR compound_name IN (:names)
+                )
+                AND (
+                    species_genus IN (:genera)
+                    OR species_name IN (:species_names)
+                )
+            ';
+        $actual = (string) $select->getStatement();
+        $this->assertSameSql($expect, $actual);
+    }
+
     public function testHavingClosure()
     {
         $select = $this->query
