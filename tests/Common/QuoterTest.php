@@ -222,6 +222,33 @@ class QuoterTest extends TestCase
                 "t.c = '@a.b'",
                 "{p}t{s}.{p}c{s} = '@a.b'",
             ],
+            // PostgreSQL spells its text-search match and its JSONPath
+            // predicate check '@@'. The variable pattern stops at the space,
+            // so a bare '@@' is passed through as the operator it is and the
+            // name after it is still quoted.
+            'pgsql text search operator' => [
+                't.doc @@ q.tsq',
+                '{p}t{s}.{p}doc{s} @@ {p}q{s}.{p}tsq{s}',
+            ],
+            'pgsql jsonpath predicate operator' => [
+                't.payload @@ p.expr',
+                '{p}t{s}.{p}payload{s} @@ {p}p{s}.{p}expr{s}',
+            ],
+            'pgsql operator before a function call' => [
+                't.doc @@ to_tsquery(u.cfg, :q)',
+                '{p}t{s}.{p}doc{s} @@ to_tsquery({p}u{s}.{p}cfg{s}, :q)',
+            ],
+            'pgsql containment operator' => [
+                't.payload @> u.filter',
+                '{p}t{s}.{p}payload{s} @> {p}u{s}.{p}filter{s}',
+            ],
+            // known limitation: with no space, '@@x.y' is indistinguishable
+            // from a variable named '@@x.y', so the name is left alone. Write
+            // the operator with spaces around it.
+            'pgsql operator with no space after it' => [
+                't.doc @@x.y',
+                '{p}t{s}.{p}doc{s} @@x.y',
+            ],
             // the #183 and #226 rules meet: one name quoted by hand, one
             // variable, and a plain reference to quote between them
             'pre-quoted name and a variable' => [
