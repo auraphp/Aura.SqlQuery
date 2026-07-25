@@ -30,6 +30,10 @@
   `cast(col as varchar)`) as a column alias, which produced misquoted
   SQL. Fixes #157.
 
+- [FIX] The quoter now recognizes `#` as an identifier character (legal
+  on DB2 / IBM i, in any position), so `table.col#` quotes as
+  `"table"."col#"` instead of the broken `"table"."col"#`. Fixes #177.
+
 - [CHG] An Update with no columns now throws
   Aura\SqlQuery\Exception\LogicException with
   a clear message, instead of a TypeError; an UPDATE with an empty SET
