@@ -26,7 +26,12 @@
   or subclassed Aura\SqlQuery\Exception directly must switch to one of
   the concrete classes. Fixes #151.
 
-- [CHG] An Update with no columns now throws Aura\SqlQuery\Exception with
+- [FIX] The quoter no longer treats an `AS` inside an expression (e.g.
+  `cast(col as varchar)`) as a column alias, which produced misquoted
+  SQL. Fixes #157.
+
+- [CHG] An Update with no columns now throws
+  Aura\SqlQuery\Exception\LogicException with
   a clear message, instead of a TypeError; an UPDATE with an empty SET
   clause has no meaning. This matches the existing Select behavior of
   throwing when no columns are given.
@@ -185,4 +190,3 @@ Initial 2.0 stable release.
 ## 2.0.0-beta1
 
 Initial 2.0 beta release.
-

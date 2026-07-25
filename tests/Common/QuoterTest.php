@@ -54,4 +54,44 @@ class QuoterTest extends TestCase
         $expect = "*, *.*, \"f\".\"bar\", \"foo\".\"bar\", CONCAT('foo.bar', \"baz.dib\") AS \"zim\"";
         $this->assertSame($expect, $actual);
     }
+
+    public function testQuoteNamesInWithCast()
+    {
+        // issue #157: the 'as' inside cast() must not be treated as an alias
+        $sql = "cast(street_number as varchar) like :sn";
+        $actual = $this->quoter->quoteNamesIn($sql);
+        $this->assertSame($sql, $actual);
+    }
+
+    public function testQuoteNamesInWithCastAndAlias()
+    {
+        $sql = "cast(t.street_number as varchar) AS street";
+        $actual = $this->quoter->quoteNamesIn($sql);
+        $expect = "cast(\"t\".\"street_number\" as varchar) AS \"street\"";
+        $this->assertSame($expect, $actual);
+    }
+
+    public function testQuoteNamesInWithNonWordAlias()
+    {
+        // aliases with non-word characters must still be quoted
+        $actual = $this->quoter->quoteNamesIn('t.foo AS foo-bar');
+        $this->assertSame('"t"."foo" AS "foo-bar"', $actual);
+
+        // an alias beginning with a digit
+        $actual = $this->quoter->quoteNamesIn('t.foo AS 2col');
+        $this->assertSame('"t"."foo" AS "2col"', $actual);
+
+        // a dollar-sign identifier
+        $actual = $this->quoter->quoteNamesIn('t.foo AS foo$bar');
+        $this->assertSame('"t"."foo" AS "foo$bar"', $actual);
+    }
+
+    public function testQuoteNamesInWithMultiWordAlias()
+    {
+        // legacy behavior: a multi-word alias is still quoted as a whole
+        $sql = "legacy invalid as alias still works";
+        $actual = $this->quoter->quoteNamesIn($sql);
+        $expect = "legacy invalid AS \"alias still works\"";
+        $this->assertSame($expect, $actual);
+    }
 }
