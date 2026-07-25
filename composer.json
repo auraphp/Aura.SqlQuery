@@ -34,7 +34,8 @@
     },
     "require-dev": {
         "ext-pdo_sqlite": "*",
-        "phpunit/phpunit": "^12.0"
+        "phpunit/phpunit": "^12.0",
+        "phpstan/phpstan": "^2"
     },
     "autoload": {
         "psr-4": {
@@ -51,6 +52,7 @@
     },
     "scripts": {
         "test": "phpunit",
-        "test-coverage": "php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-clover=coverage.xml"
+        "test-coverage": "php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-clover=coverage.xml",
+        "analyse": "phpstan analyse"
     }
 }
