@@ -208,9 +208,10 @@ class Quoter implements QuoterInterface
         $pos = strripos($quoted, ' AS ');
         if ($pos !== false) {
             $alias = trim(substr($quoted, $pos + 4));
-            // quote only when the remainder is a word-only alias; an 'AS'
-            // inside an expression, e.g. cast(col as varchar), is not an alias
-            if (preg_match('/^[a-z_][a-z0-9_ ]*$/i', $alias)) {
+            // quote only when the remainder is NOT part of an expression;
+            // an 'AS' inside an expression, e.g. cast(col as varchar),
+            // will have a closing paren without a matching opening paren
+            if (substr_count($alias, '(') === substr_count($alias, ')')) {
                 $quoted = substr($quoted, 0, $pos) . ' AS ' . $this->replaceName($alias);
             }
         }
