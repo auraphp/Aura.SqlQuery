@@ -13,6 +13,12 @@
   on MySQL, which does not support DEFAULT VALUES), letting the database
   apply column defaults. Fixes #149.
 
+- [CHG] Aura\SqlQuery\Exception now extends \LogicException instead of
+  \Exception, since every exception thrown by this package is a developer
+  error; existing `catch` blocks keep working, and top-level handlers can
+  now treat these as unchecked. Added the Aura\SqlQuery\ExceptionInterface
+  marker interface, which all package exceptions implement. Fixes #151.
+
 - [CHG] An Update with no columns now throws Aura\SqlQuery\Exception with
   a clear message, instead of a TypeError; an UPDATE with an empty SET
   clause has no meaning. This matches the existing Select behavior of

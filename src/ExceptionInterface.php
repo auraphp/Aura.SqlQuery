@@ -10,12 +10,12 @@ namespace Aura\SqlQuery;
 
 /**
  *
- * Generic package-level exception for developer errors, e.g. misuse of
- * a query builder.
+ * Marker interface for all package-level exceptions; catch this to catch
+ * any exception thrown by this package, regardless of its SPL base class.
  *
  * @package Aura.SqlQuery
  *
  */
-class Exception extends \LogicException implements ExceptionInterface
+interface ExceptionInterface extends \Throwable
 {
 }
