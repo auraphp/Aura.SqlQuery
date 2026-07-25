@@ -9,7 +9,7 @@
 namespace Aura\SqlQuery\Common;
 
 use Aura\SqlQuery\AbstractQuery;
-use Aura\SqlQuery\Exception;
+use Aura\SqlQuery\Exception\LogicException;
 
 /**
  *
@@ -356,7 +356,7 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @return null
      *
-     * @throws Exception when the reference has already been used.
+     * @throws LogicException when the reference has already been used.
      *
      */
     protected function addTableRef($type, $spec)
@@ -370,7 +370,7 @@ class Select extends AbstractQuery implements SelectInterface
 
         if (isset($this->table_refs[$name])) {
             $used = $this->table_refs[$name];
-            throw new Exception("Cannot reference '$type $spec' after '$used'");
+            throw new LogicException("Cannot reference '$type $spec' after '$used'");
         }
 
         $this->table_refs[$name] = "$type $spec";
@@ -480,7 +480,7 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @return $this
      *
-     * @throws Exception
+     * @throws LogicException
      *
      */
     public function join($join, $spec, $cond = null, array $bind = array())
@@ -537,7 +537,7 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @return $this
      *
-     * @throws Exception
+     * @throws LogicException
      *
      */
     public function innerJoin($spec, $cond = null, array $bind = array())
@@ -557,7 +557,7 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @return $this
      *
-     * @throws Exception
+     * @throws LogicException
      *
      */
     public function leftJoin($spec, $cond = null, array $bind = array())
@@ -583,7 +583,7 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @return $this
      *
-     * @throws Exception
+     * @throws LogicException
      *
      */
     public function joinSubSelect($join, $spec, $name, $cond = null, array $bind = array())

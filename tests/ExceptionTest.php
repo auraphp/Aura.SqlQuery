@@ -5,26 +5,37 @@ use PHPUnit\Framework\TestCase;
 
 class ExceptionTest extends TestCase
 {
-    public function testIsLogicException()
+    /**
+     * issue #151: package exceptions are developer errors, so they
+     * should be catchable (or ignorable) as \LogicException
+     */
+    public function testAllAreLogicExceptions()
     {
-        // issue #151: package exceptions are developer errors, so they
-        // should be catchable (or ignorable) as \LogicException
-        $e = new Exception('message');
-        $this->assertInstanceOf(\LogicException::class, $e);
+        $exceptions = array(
+            new Exception\LogicException('message'),
+            new Exception\BadMethodCallException('message'),
+            new Exception\InvalidArgumentException('message'),
+        );
+        foreach ($exceptions as $e) {
+            $this->assertInstanceOf(\LogicException::class, $e);
+        }
     }
 
-    public function testImplementsExceptionInterface()
+    /**
+     * catch (Aura\SqlQuery\ExceptionInterface $e) catches every exception
+     * thrown by this package, regardless of its SPL base class; the
+     * deprecated Aura\SqlQuery\Exception must keep working until 7.x
+     */
+    public function testAllImplementMarkerInterface()
     {
-        $e = new Exception('message');
-        $this->assertInstanceOf(ExceptionInterface::class, $e);
-    }
-
-    public function testLegacyCatchesStillWork()
-    {
-        // BC: catch (\Exception) and catch (Aura\SqlQuery\Exception)
-        // must both keep working
-        $e = new Exception('message');
-        $this->assertInstanceOf(\Exception::class, $e);
-        $this->assertInstanceOf(Exception::class, $e);
+        $exceptions = array(
+            new Exception\LogicException('message'),
+            new Exception\BadMethodCallException('message'),
+            new Exception\InvalidArgumentException('message'),
+        );
+        foreach ($exceptions as $e) {
+            $this->assertInstanceOf(ExceptionInterface::class, $e);
+            $this->assertInstanceOf(Exception::class, $e);
+        }
     }
 }

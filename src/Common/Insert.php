@@ -9,7 +9,8 @@
 namespace Aura\SqlQuery\Common;
 
 use Aura\SqlQuery\AbstractDmlQuery;
-use Aura\SqlQuery\Exception;
+use Aura\SqlQuery\Exception\BadMethodCallException;
+use Aura\SqlQuery\Exception\InvalidArgumentException;
 
 /**
  *
@@ -280,14 +281,14 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * Adds IGNORE flag depending on DB syntax.
      *
      * @param bool $enable Set or unset flag (default true).
-     * @throws Exception
+     * @throws BadMethodCallException
      * @return \Aura\SqlQuery\Sqlite\Insert
      *
      */
     public function ignore($enable = true)
     {
         // override in child classes
-        throw new Exception(get_class($this) . " doesn't support IGNORE flag");
+        throw new BadMethodCallException(get_class($this) . " doesn't support IGNORE flag");
     }
 
     /**
@@ -320,13 +321,13 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      *
      * @return null
      *
-     * @throws Exception on named column missing from row.
+     * @throws InvalidArgumentException on named column missing from row.
      *
      */
     protected function finishCol($col)
     {
         if (! array_key_exists($col, $this->col_values)) {
-            throw new Exception("Column $col missing from row {$this->row}.");
+            throw new InvalidArgumentException("Column $col missing from row {$this->row}.");
         }
 
         // get the current col_value

@@ -8,7 +8,7 @@
  */
 namespace Aura\SqlQuery\Common;
 
-use Aura\SqlQuery\Exception;
+use Aura\SqlQuery\Exception\LogicException;
 
 /**
  *
@@ -27,13 +27,13 @@ class SelectBuilder extends AbstractBuilder
      *
      * @return string
      *
-     * @throws Exception when there are no columns in the SELECT.
+     * @throws LogicException when there are no columns in the SELECT.
      *
      */
     public function buildCols(array $cols)
     {
         if (empty($cols)) {
-            throw new Exception('No columns in the SELECT.');
+            throw new LogicException('No columns in the SELECT.');
         }
         return $this->indentCsv($cols);
     }

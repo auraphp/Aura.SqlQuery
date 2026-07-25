@@ -8,7 +8,6 @@
  */
 namespace Aura\SqlQuery\Common;
 
-use Aura\SqlQuery\Exception;
 
 /**
  *

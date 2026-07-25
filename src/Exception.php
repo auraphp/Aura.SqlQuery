@@ -10,12 +10,14 @@ namespace Aura\SqlQuery;
 
 /**
  *
- * Generic package-level exception for developer errors, e.g. misuse of
- * a query builder.
+ * Retained so that pre-6.x `catch (Aura\SqlQuery\Exception $e)` blocks
+ * keep catching all package exceptions; to be removed in 7.x.
  *
  * @package Aura.SqlQuery
  *
+ * @deprecated catch Aura\SqlQuery\ExceptionInterface instead.
+ *
  */
-class Exception extends \LogicException implements ExceptionInterface
+interface Exception extends ExceptionInterface
 {
 }
