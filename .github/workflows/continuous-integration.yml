@@ -121,6 +121,96 @@ jobs:
           DB_PGSQL_PASS: postgres
         run: ./vendor/bin/phpunit --testsuite integration
 
+  integration-sqlsrv:
+    name: Integration (SQL Server ${{ matrix.mssql }})
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        mssql: ['2022-latest', '2019-latest']
+
+    services:
+      mssql:
+        image: mcr.microsoft.com/mssql/server:${{ matrix.mssql }}
+        env:
+          ACCEPT_EULA: 'Y'
+          MSSQL_SA_PASSWORD: 'Aura!Passw0rd'
+          SA_PASSWORD: 'Aura!Passw0rd'
+        ports:
+          - 1433:1433
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_sqlsrv, pdo_sqlite
+          coverage: none
+          tools: composer:v2
+
+      # setup-php installs the pdo_sqlsrv extension but not the ODBC driver it
+      # talks to, and the runner image does not ship one; without this the
+      # first connection fails with SQLSTATE[IMSSP]
+      - name: Install the Microsoft ODBC driver
+        run: |
+          # the repo's own package, so that the keyring lands where the
+          # generated sources list expects it (/usr/share/keyrings)
+          curl -fsSL -O "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
+          sudo dpkg -i packages-microsoft-prod.deb
+          rm packages-microsoft-prod.deb
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc
+          # fail loudly here rather than at the first connection
+          odbcinst -q -d | grep -q 'ODBC Driver 18 for SQL Server'
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      # the mssql image ships no health-check command that is stable across
+      # versions, so poll the port from PHP instead of using --health-cmd
+      - name: Wait for SQL Server and create the database
+        env:
+          DB_SQLSRV_PASS: 'Aura!Passw0rd'
+        run: |
+          cat > /tmp/wait-for-sqlsrv.php <<'PHP'
+          <?php
+          $dsn = 'sqlsrv:Server=127.0.0.1,1433;TrustServerCertificate=1';
+          $last = 'no attempt made';
+          for ($i = 1; $i <= 90; $i++) {
+              try {
+                  $pdo = new PDO($dsn, 'sa', getenv('DB_SQLSRV_PASS'));
+                  $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                  $pdo->exec("IF DB_ID('aura_sqlquery_test') IS NULL CREATE DATABASE aura_sqlquery_test");
+                  echo "SQL Server ready after {$i} attempt(s)\n";
+                  exit(0);
+              } catch (Exception $e) {
+                  $last = $e->getMessage();
+                  sleep(2);
+              }
+          }
+          fwrite(STDERR, "SQL Server never became ready: {$last}\n");
+          exit(1);
+          PHP
+          php /tmp/wait-for-sqlsrv.php
+
+      # --fail-on-skipped, so that a missing driver or an unreachable server
+      # fails the job instead of quietly skipping every test in it
+      - name: Run SQL Server integration tests
+        env:
+          DB_SQLSRV_DSN: 'sqlsrv:Server=127.0.0.1,1433;Database=aura_sqlquery_test;TrustServerCertificate=1'
+          DB_SQLSRV_USER: sa
+          DB_SQLSRV_PASS: 'Aura!Passw0rd'
+        run: ./vendor/bin/phpunit tests/Integration/SqlsrvIntegrationTest.php --fail-on-skipped
+
   phpstan:
     name: Static Analysis
     runs-on: ubuntu-latest
