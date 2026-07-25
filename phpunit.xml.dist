@@ -3,10 +3,16 @@
          bootstrap="./phpunit.php"
          xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/12.0/phpunit.xsd">
     <testsuites>
-        <testsuite name="Aura.SqlQuery test suite">
+        <testsuite name="unit">
             <directory>./tests</directory>
             <!-- abstract base class, not a runnable test -->
             <exclude>./tests/AbstractQueryTest.php</exclude>
+            <exclude>./tests/Integration</exclude>
+        </testsuite>
+        <testsuite name="integration">
+            <directory>./tests/Integration</directory>
+            <!-- abstract base class, not a runnable test -->
+            <exclude>./tests/Integration/AbstractIntegrationTest.php</exclude>
         </testsuite>
     </testsuites>
     <source>
