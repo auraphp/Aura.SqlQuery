@@ -33,12 +33,29 @@ class SqliteIntegrationTest extends AbstractIntegrationTest
                 id   INTEGER PRIMARY KEY AUTOINCREMENT,
                 name VARCHAR(50) NOT NULL DEFAULT 'anon'
             )",
+            'CREATE TABLE test_isolate (
+                id               INTEGER PRIMARY KEY,
+                "species.genus"  VARCHAR(50) NOT NULL,
+                "species.name"   VARCHAR(50) NOT NULL
+            )',
+            'CREATE TABLE test_compound (
+                id                INTEGER PRIMARY KEY,
+                isolate_id        INTEGER NOT NULL,
+                "compound.group"  VARCHAR(50) NOT NULL,
+                "compound.name"   VARCHAR(50) NOT NULL
+            )',
         ];
     }
 
     protected function castToChar(string $expr): string
     {
         return "CAST({$expr} AS TEXT)";
+    }
+
+    protected function inCsv(string $col, string $param): string
+    {
+        // SQLite has no find_in_set()
+        return "instr(',' || {$param} || ',', ',' || {$col} || ',') > 0";
     }
 
     public function testInsertIgnore()

@@ -45,12 +45,29 @@ class PgsqlIntegrationTest extends AbstractIntegrationTest
                 id   SERIAL PRIMARY KEY,
                 name VARCHAR(50) NOT NULL DEFAULT 'anon'
             )",
+            'CREATE TABLE test_isolate (
+                id               INTEGER PRIMARY KEY,
+                "species.genus"  VARCHAR(50) NOT NULL,
+                "species.name"   VARCHAR(50) NOT NULL
+            )',
+            'CREATE TABLE test_compound (
+                id                INTEGER PRIMARY KEY,
+                isolate_id        INTEGER NOT NULL,
+                "compound.group"  VARCHAR(50) NOT NULL,
+                "compound.name"   VARCHAR(50) NOT NULL
+            )',
         ];
     }
 
     protected function castToChar(string $expr): string
     {
         return "CAST({$expr} AS VARCHAR)";
+    }
+
+    protected function inCsv(string $col, string $param): string
+    {
+        // PostgreSQL has no find_in_set()
+        return "{$col} = ANY(string_to_array({$param}, ','))";
     }
 
     public function testInsertReturning()
