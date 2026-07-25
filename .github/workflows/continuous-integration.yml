@@ -51,6 +51,71 @@ jobs:
         with:
           fail_ci_if_error: false
 
+  integration:
+    name: Integration (MySQL ${{ matrix.mysql }} / Postgres ${{ matrix.postgres }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - mysql: '8.4'
+            postgres: '17'
+          - mysql: '8.0'
+            postgres: '15'
+
+    services:
+      mysql:
+        image: mysql:${{ matrix.mysql }}
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: aura_sqlquery_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+      postgres:
+        image: postgres:${{ matrix.postgres }}
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: aura_sqlquery_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd=pg_isready
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_mysql, pdo_pgsql, pdo_sqlite
+          coverage: none
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Run integration test suite
+        env:
+          DB_MYSQL_DSN: 'mysql:host=127.0.0.1;port=3306;dbname=aura_sqlquery_test'
+          DB_MYSQL_USER: root
+          DB_MYSQL_PASS: root
+          DB_PGSQL_DSN: 'pgsql:host=127.0.0.1;port=5432;dbname=aura_sqlquery_test'
+          DB_PGSQL_USER: postgres
+          DB_PGSQL_PASS: postgres
+        run: ./vendor/bin/phpunit --testsuite integration
+
   phpstan:
     name: Static Analysis
     runs-on: ubuntu-latest
