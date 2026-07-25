@@ -45,12 +45,28 @@ class MysqlIntegrationTest extends AbstractIntegrationTest
                 id   INT AUTO_INCREMENT PRIMARY KEY,
                 name VARCHAR(50) NOT NULL DEFAULT 'anon'
             )",
+            'CREATE TABLE test_isolate (
+                id               INT PRIMARY KEY,
+                `species.genus`  VARCHAR(50) NOT NULL,
+                `species.name`   VARCHAR(50) NOT NULL
+            )',
+            'CREATE TABLE test_compound (
+                id                INT PRIMARY KEY,
+                isolate_id        INT NOT NULL,
+                `compound.group`  VARCHAR(50) NOT NULL,
+                `compound.name`   VARCHAR(50) NOT NULL
+            )',
         ];
     }
 
     protected function castToChar(string $expr): string
     {
         return "CAST({$expr} AS CHAR)";
+    }
+
+    protected function inCsv(string $col, string $param): string
+    {
+        return "find_in_set({$col}, {$param})";
     }
 
     public function testInsertIgnore()

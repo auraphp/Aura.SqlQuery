@@ -50,6 +50,14 @@
   on DB2 / IBM i, in any position), so `table.col#` quotes as
   `"table"."col#"` instead of the broken `"table"."col"#`. Fixes #177.
 
+- [FIX] The quoter now leaves an identifier the caller already quoted as
+  written, instead of splitting it on the dot inside it. A MySQL column
+  named `compound.group` has to be written with backticks by hand, and
+  the quoter turned that into nested backticks the server could not
+  parse. String literals were already exempt, so PostgreSQL and SQLite
+  (double quotes) were unaffected; MySQL (backticks) and SQL Server
+  (brackets) were not. Reported in #183.
+
 - [CHG] An Update with no columns now throws
   Aura\SqlQuery\Exception\LogicException with
   a clear message, instead of a TypeError; an UPDATE with an empty SET

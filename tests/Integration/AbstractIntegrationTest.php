@@ -47,6 +47,13 @@ abstract class AbstractIntegrationTest extends TestCase
      */
     abstract protected function castToChar(string $expr): string;
 
+    /**
+     * Returns an expression that is true when $col is one of the values in
+     * the comma-separated string bound to $param; MySQL spells this
+     * find_in_set(), the others have no such function.
+     */
+    abstract protected function inCsv(string $col, string $param): string;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -109,7 +116,13 @@ abstract class AbstractIntegrationTest extends TestCase
      */
     protected static function getTableNames(): array
     {
-        return ['test_employee', 'test_dept', 'test_defaults'];
+        return [
+            'test_employee',
+            'test_dept',
+            'test_defaults',
+            'test_compound',
+            'test_isolate',
+        ];
     }
 
     protected static function dropTables(PDO $pdo): void
@@ -144,6 +157,53 @@ abstract class AbstractIntegrationTest extends TestCase
         foreach ($employees as $employee) {
             $stm->execute($employee);
         }
+
+        $this->seedIssue183();
+    }
+
+    /**
+     * Seeds the two tables from issue #183, whose column names contain dots.
+     */
+    protected function seedIssue183(): void
+    {
+        $isolates = [
+            [1, 'Candida', 'albicans'],
+            [2, 'Aspergillus', 'niger'],
+        ];
+        $stm = $this->pdo->prepare(
+            'INSERT INTO test_isolate (id, ' . $this->quoteName('species.genus')
+            . ', ' . $this->quoteName('species.name') . ') VALUES (?, ?, ?)'
+        );
+        foreach ($isolates as $isolate) {
+            $stm->execute($isolate);
+        }
+
+        $compounds = [
+            // matches: an azole, on a Candida isolate
+            [1, 1, 'azole', 'fluconazole'],
+            // the compound half matches, the isolate half does not
+            [2, 2, 'echinocandin', 'caspofungin'],
+            // matches only if the parentheses are missing
+            [3, 2, 'azole', 'fluconazole'],
+        ];
+        $stm = $this->pdo->prepare(
+            'INSERT INTO test_compound (id, isolate_id, '
+            . $this->quoteName('compound.group') . ', '
+            . $this->quoteName('compound.name') . ') VALUES (?, ?, ?, ?)'
+        );
+        foreach ($compounds as $compound) {
+            $stm->execute($compound);
+        }
+    }
+
+    /**
+     * Quotes a single identifier the way this dialect does, for the raw SQL
+     * in the seeds; the query objects do their own quoting.
+     */
+    protected function quoteName(string $name): string
+    {
+        $query = $this->query_factory->newSelect();
+        return $query->getQuoteNamePrefix() . $name . $query->getQuoteNameSuffix();
     }
 
     /**
@@ -250,6 +310,37 @@ abstract class AbstractIntegrationTest extends TestCase
         // without the parentheses this would also match Betty
         $actual = $this->fetchAll($select);
         $this->assertSame(['Anna', 'Donna'], array_column($actual, 'name'));
+    }
+
+    public function testSelectIssue183ReportedQuery()
+    {
+        // issue #183, as reported: two OR-groups combined with AND, over
+        // column names that contain a dot and so are quoted by hand
+        $group = 'test_compound.' . $this->quoteName('compound.group');
+        $name = 'test_compound.' . $this->quoteName('compound.name');
+        $genus = 'test_isolate.' . $this->quoteName('species.genus');
+        $species = 'test_isolate.' . $this->quoteName('species.name');
+
+        $select = $this->query_factory->newSelect()
+            ->cols(['test_compound.id'])
+            ->from('test_compound')
+            ->innerJoin('test_isolate', 'test_isolate.id = test_compound.isolate_id')
+            ->where(function ($select) use ($group, $name) {
+                $select
+                    ->where($this->inCsv($group, ':compound_groups'), ['compound_groups' => 'azole'])
+                    ->orWhere($this->inCsv($name, ':compound_names'), ['compound_names' => 'caspofungin']);
+            })
+            ->where(function ($select) use ($genus, $species) {
+                $select
+                    ->where($this->inCsv($genus, ':species_genera'), ['species_genera' => 'Candida'])
+                    ->orWhere($this->inCsv($species, ':species_names'), ['species_names' => 'albicans']);
+            })
+            ->orderBy(['test_compound.id']);
+
+        // row 3 satisfies the first group only, so it comes back too if the
+        // parentheses are lost to AND binding tighter than OR
+        $actual = $this->fetchAll($select);
+        $this->assertSame([1], array_map('intval', array_column($actual, 'id')));
     }
 
     public function testSelectSubSelectInWhere()

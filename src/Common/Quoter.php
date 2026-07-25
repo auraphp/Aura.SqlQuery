@@ -166,8 +166,19 @@ class Quoter implements QuoterInterface
         // match closing quotes against the same number of opening quotes.
         $apos = "'";
         $quot = '"';
+
+        // issue #183: an identifier the caller quoted by hand, because the
+        // name itself contains a dot (`compound.group`), is a candidate too;
+        // it is passed through verbatim rather than split on that dot.
+        $prefix = preg_quote($this->quote_name_prefix, '/');
+        $suffix = preg_quote($this->quote_name_suffix, '/');
+        $quoted_name = "{$prefix}[^{$suffix}]*{$suffix}";
+
+        // branch reset, so that either alternative captures the same two
+        // group numbers; quoteNamesIn() skips every third element on that
+        // basis
         return preg_split(
-            "/(($apos+|$quot+|\\$apos+|\\$quot+).*?\\2)/",
+            "/(?|(($apos+|$quot+|\\$apos+|\\$quot+).*?\\2)|(($quoted_name)))/",
             $text,
             -1,
             PREG_SPLIT_DELIM_CAPTURE
@@ -266,6 +277,23 @@ class Quoter implements QuoterInterface
 
     /**
      *
+     * Is this text a single identifier that the caller already quoted?
+     *
+     * @param string $text The text to test.
+     *
+     * @return bool
+     *
+     */
+    protected function isQuotedName($text)
+    {
+        $len = strlen($this->quote_name_prefix) + strlen($this->quote_name_suffix);
+        return strlen($text) >= $len
+            && str_starts_with($text, $this->quote_name_prefix)
+            && str_ends_with($text, $this->quote_name_suffix);
+    }
+
+    /**
+     *
      * Quotes all fully-qualified identifier names ("table.col") in a string.
      *
      * @param string $text The string in which to quote fully-qualified
@@ -281,6 +309,15 @@ class Quoter implements QuoterInterface
         $is_string_literal = strpos($text, "'") !== false
                         || strpos($text, '"') !== false;
         if ($is_string_literal) {
+            return $text;
+        }
+
+        // issue #183: leave an already-quoted identifier as the caller wrote
+        // it. getListForQuoteNamesIn() splits those out on their own, so the
+        // test is that this element *is* one, not merely that it contains a
+        // quote character: an unbalanced quote is not an identifier, and is
+        // quoted the way it always was.
+        if ($this->isQuotedName($text)) {
             return $text;
         }
 

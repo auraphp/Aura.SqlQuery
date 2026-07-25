@@ -1158,6 +1158,52 @@ class SelectTest extends AbstractQueryTest
         $this->assertSameSql($expect, $actual);
     }
 
+    public function testIssue183ReportedQuery()
+    {
+        // the query as reported on issue #183, joining two tables and
+        // filtering on column names that contain a dot ('compound.group'),
+        // which the caller has to quote by hand
+        $q1 = $this->query->getQuoteNamePrefix();
+        $q2 = $this->query->getQuoteNameSuffix();
+
+        $select = $this->query
+            ->cols(['tests.id'])
+            ->from('tests')
+            ->innerJoin('isolates', 'isolates.id = tests.isolate_id')
+            ->where(function ($select) use ($q1, $q2) {
+                $select
+                    ->where("find_in_set(tests.{$q1}compound.group{$q2}, :compound_groups)")
+                    ->orWhere("find_in_set(tests.{$q1}compound.name{$q2}, :compound_names)");
+            })
+            ->where(function ($select) use ($q1, $q2) {
+                $select
+                    ->where("find_in_set(isolates.{$q1}species.genus{$q2}, :species_genera)")
+                    ->orWhere("find_in_set(isolates.{$q1}species.name{$q2}, :species_names)");
+            });
+
+        // the hand-quoted names survive as written; as with a string
+        // literal, the table prefix beside them is left alone rather than
+        // quoted
+        $expect = '
+            SELECT
+                <<tests>>.<<id>>
+            FROM
+                <<tests>>
+            INNER JOIN <<isolates>> ON <<isolates>>.<<id>> = <<tests>>.<<isolate_id>>
+            WHERE
+                (
+                    find_in_set(tests.<<compound.group>>, :compound_groups)
+                    OR find_in_set(tests.<<compound.name>>, :compound_names)
+                )
+                AND (
+                    find_in_set(isolates.<<species.genus>>, :species_genera)
+                    OR find_in_set(isolates.<<species.name>>, :species_names)
+                )
+            ';
+        $actual = (string) $select->getStatement();
+        $this->assertSameSql($expect, $actual);
+    }
+
     public function testHavingClosure()
     {
         $select = $this->query

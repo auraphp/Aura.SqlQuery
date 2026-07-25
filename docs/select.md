@@ -151,6 +151,37 @@ $select
 
 The same closure grouping works for `having()` and `orHaving()`.
 
+If a column name itself contains a dot, quote it yourself and the quoter will
+leave it alone, rather than reading the dot as a table/column separator. Use
+the identifier delimiters of the dialect you are building for: backticks on
+MySQL, double quotes on PostgreSQL and SQLite, square brackets on SQL Server.
+
+The example below is MySQL — both the backticks and `find_in_set()` are MySQL
+syntax:
+
+```php
+$select
+    ->from('tests')
+    ->where(function ($select) {
+        $select->where('find_in_set(tests.`compound.group`, :compound_groups)')
+            ->orWhere('find_in_set(tests.`compound.name`, :compound_names)');
+    });
+// WHERE (
+//     find_in_set(tests.`compound.group`, :compound_groups)
+//     OR find_in_set(tests.`compound.name`, :compound_names)
+// )
+```
+
+The same column on PostgreSQL or SQLite, which quote identifiers with double
+quotes:
+
+```php
+$select
+    ->from('tests')
+    ->where('tests."compound.group" = :compound_group');
+// WHERE tests."compound.group" = :compound_group
+```
+
 ### EXISTS and Subquery Conditions
 
 To build a `WHERE EXISTS` (or `NOT EXISTS`, `IN (...)`, etc.) condition against
