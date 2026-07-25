@@ -30,6 +30,14 @@
   `cast(col as varchar)`) as a column alias, which produced misquoted
   SQL. Fixes #157.
 
+- [ADD] Insert-ignore is now spelled `ignore()` on every dialect that
+  supports it: Pgsql\Insert gains `ignore()`, rendering the Postgres
+  equivalent `ON CONFLICT DO NOTHING` (before any RETURNING clause), and
+  Sqlite\Update gains `ignore()` matching Mysql\Update; the Sqlite
+  `orIgnore()` methods remain as deprecated aliases. Sqlsrv, which has
+  no equivalent, keeps throwing Exception\BadMethodCallException.
+  Fixes #172; related to #158.
+
 - [CHG] An Update with no columns now throws
   Aura\SqlQuery\Exception\LogicException with
   a clear message, instead of a TypeError; an UPDATE with an empty SET

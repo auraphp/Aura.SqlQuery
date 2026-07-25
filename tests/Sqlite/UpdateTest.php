@@ -112,6 +112,30 @@ class UpdateTest extends Common\UpdateTest
         $this->assertSame($expect, $actual);
     }
 
+    public function testIgnore()
+    {
+        $this->query->ignore()
+                    ->table('t1')
+                    ->cols(array('c1', 'c2', 'c3'))
+                    ->set('c4', null)
+                    ->set('c5', 'NOW()')
+                    ->where('foo = :foo', ['foo' => 'bar'])
+                    ->where('baz = :baz', ['baz' => 'dib'])
+                    ->orWhere('zim = gir')
+                    ->limit(5);
+
+        $actual = $this->query->__toString();
+        $expect = sprintf($this->expected_sql_with_flag, 'OR IGNORE');
+        $this->assertSameSql($expect, $actual);
+
+        $actual = $this->query->getBindValues();
+        $expect = array(
+            'foo' => 'bar',
+            'baz' => 'dib',
+        );
+        $this->assertSame($expect, $actual);
+    }
+
     public function testOrIgnore()
     {
         $this->query->orIgnore()

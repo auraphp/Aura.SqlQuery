@@ -68,12 +68,28 @@ class Update extends Common\Update implements Common\OrderByInterface, Common\Li
      *
      * Adds or removes OR IGNORE flag.
      *
+     * @deprecated use ignore instead
      * @param bool $enable Set or unset flag (default true).
      *
      * @return $this
      *
      */
     public function orIgnore($enable = true)
+    {
+        $this->ignore($enable);
+        return $this;
+    }
+
+    /**
+     *
+     * Adds or removes OR IGNORE flag.
+     *
+     * @param bool $enable Set or unset flag (default true).
+     *
+     * @return $this
+     *
+     */
+    public function ignore($enable = true)
     {
         $this->setFlag('OR IGNORE', $enable);
         return $this;

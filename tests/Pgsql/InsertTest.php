@@ -50,10 +50,44 @@ class InsertTest extends Common\InsertTest
 
     public function testIgnore()
     {
-        $this->expectException(
-            'Aura\SqlQuery\Exception',
-            "Aura\SqlQuery\Pgsql\Insert doesn't support IGNORE flag"
-        );
-        $this->query->ignore();
+        $this->query->into('t1')
+                    ->cols(array('c1', 'c2'))
+                    ->ignore()
+                    ->returning(array('c1'));
+
+        $actual = $this->query->__toString();
+        $expect = "
+            INSERT INTO <<t1>> (
+                <<c1>>,
+                <<c2>>
+            ) VALUES (
+                :c1,
+                :c2
+            )
+            ON CONFLICT DO NOTHING
+            RETURNING
+                c1
+        ";
+
+        $this->assertSameSql($expect, $actual);
+    }
+
+    public function testIgnoreDisable()
+    {
+        $this->query->into('t1')
+                    ->cols(array('c1'))
+                    ->ignore()
+                    ->ignore(false);
+
+        $actual = $this->query->__toString();
+        $expect = "
+            INSERT INTO <<t1>> (
+                <<c1>>
+            ) VALUES (
+                :c1
+            )
+        ";
+
+        $this->assertSameSql($expect, $actual);
     }
 }
