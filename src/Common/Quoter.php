@@ -205,16 +205,39 @@ class Quoter implements QuoterInterface
     protected function replaceNamesAndAliasIn($val)
     {
         $quoted = $this->replaceNamesIn($val);
-        $pos = strripos($quoted, ' AS ');
+        $pos = $this->findAliasSeparator($quoted);
         if ($pos !== false) {
-            $alias = trim(substr($quoted, $pos + 4));
-            // quote only when the remainder is a word-only alias; an 'AS'
-            // inside an expression, e.g. cast(col as varchar), is not an alias
-            if (preg_match('/^[a-z_][a-z0-9_ ]*$/i', $alias)) {
-                $quoted = substr($quoted, 0, $pos) . ' AS ' . $this->replaceName($alias);
-            }
+            $alias = $this->replaceName(substr($quoted, $pos + 4));
+            $quoted = substr($quoted, 0, $pos) . " AS $alias";
         }
         return $quoted;
+    }
+
+    /**
+     *
+     * Finds the position of the last ' AS ' that acts as an alias separator;
+     * an 'AS' inside parentheses, e.g. cast(col as varchar), is part of an
+     * expression, not an alias.
+     *
+     * @param string $text The string to search.
+     *
+     * @return int|false The position of the separator, or false if none.
+     *
+     */
+    protected function findAliasSeparator($text)
+    {
+        $pos = strripos($text, ' AS ');
+        while ($pos !== false) {
+            $before = substr($text, 0, $pos);
+            $after = substr($text, $pos + 4);
+            $inside_parens = substr_count($before, '(') > substr_count($before, ')');
+            $parens_after = strpbrk($after, '()') !== false;
+            if (! $inside_parens && ! $parens_after) {
+                return $pos;
+            }
+            $pos = strripos($before, ' AS ');
+        }
+        return false;
     }
 
     /**

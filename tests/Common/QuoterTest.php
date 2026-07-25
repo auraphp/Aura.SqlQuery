@@ -71,6 +71,21 @@ class QuoterTest extends TestCase
         $this->assertSame($expect, $actual);
     }
 
+    public function testQuoteNamesInWithNonWordAlias()
+    {
+        // aliases with non-word characters must still be quoted
+        $actual = $this->quoter->quoteNamesIn('t.foo AS foo-bar');
+        $this->assertSame('"t"."foo" AS "foo-bar"', $actual);
+
+        // an alias beginning with a digit
+        $actual = $this->quoter->quoteNamesIn('t.foo AS 2col');
+        $this->assertSame('"t"."foo" AS "2col"', $actual);
+
+        // a dollar-sign identifier
+        $actual = $this->quoter->quoteNamesIn('t.foo AS foo$bar');
+        $this->assertSame('"t"."foo" AS "foo$bar"', $actual);
+    }
+
     public function testQuoteNamesInWithMultiWordAlias()
     {
         // legacy behavior: a multi-word alias is still quoted as a whole
