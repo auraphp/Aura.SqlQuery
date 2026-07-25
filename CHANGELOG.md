@@ -13,11 +13,25 @@
   on MySQL, which does not support DEFAULT VALUES), letting the database
   apply column defaults. Fixes #149.
 
+- [BRK] The package now throws concrete exceptions from the new
+  Aura\SqlQuery\Exception namespace — LogicException,
+  BadMethodCallException, and InvalidArgumentException — each extending
+  its SPL counterpart and implementing the new
+  Aura\SqlQuery\ExceptionInterface marker (extends \Throwable), which is
+  the recommended catch-all. Aura\SqlQuery\Exception is now a deprecated
+  interface extending that marker, so existing `catch
+  (Aura\SqlQuery\Exception $e)` blocks keep working until its removal in
+  7.x; since every SPL parent used derives from \LogicException, `catch
+  (\LogicException $e)` also catches everything. Code that instantiated
+  or subclassed Aura\SqlQuery\Exception directly must switch to one of
+  the concrete classes. Fixes #151.
+
 - [FIX] The quoter no longer treats an `AS` inside an expression (e.g.
   `cast(col as varchar)`) as a column alias, which produced misquoted
   SQL. Fixes #157.
 
-- [CHG] An Update with no columns now throws Aura\SqlQuery\Exception with
+- [CHG] An Update with no columns now throws
+  Aura\SqlQuery\Exception\LogicException with
   a clear message, instead of a TypeError; an UPDATE with an empty SET
   clause has no meaning. This matches the existing Select behavior of
   throwing when no columns are given.
@@ -176,4 +190,3 @@ Initial 2.0 stable release.
 ## 2.0.0-beta1
 
 Initial 2.0 beta release.
-

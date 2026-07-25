@@ -9,7 +9,7 @@
 namespace Aura\SqlQuery\Common;
 
 use Aura\SqlQuery\AbstractDmlQuery;
-use Aura\SqlQuery\Exception;
+use Aura\SqlQuery\Exception\LogicException;
 
 /**
  *
@@ -52,13 +52,13 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      *
      * @return string
      *
-     * @throws Exception when there are no columns to update.
+     * @throws LogicException when there are no columns to update.
      *
      */
     protected function build()
     {
         if (! $this->hasCols()) {
-            throw new Exception('No columns to update.');
+            throw new LogicException('No columns to update.');
         }
 
         return 'UPDATE'
