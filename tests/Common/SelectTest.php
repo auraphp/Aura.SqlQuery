@@ -898,6 +898,24 @@ class SelectTest extends AbstractQueryTest
         $this->assertSameSql($expect, $actual);
     }
 
+    public function testIssue157WhereWithCast()
+    {
+        $this->query->cols(array('street_number'))
+            ->from('addresses')
+            ->where('cast(street_number as varchar) like :sn', ['sn' => '10%']);
+
+        $expect = '
+            SELECT
+                street_number
+            FROM
+                <<addresses>>
+            WHERE
+                cast(street_number as varchar) like :sn
+        ';
+        $actual = $this->query->__toString();
+        $this->assertSameSql($expect, $actual);
+    }
+
     public function testWhereExistsSubSelect()
     {
         $sub = $this->newQuery()
