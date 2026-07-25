@@ -28,6 +28,10 @@ DB_PGSQL_USER=postgres DB_PGSQL_PASS=postgres \
 ./vendor/bin/phpunit --testsuite integration
 ```
 
-The tests drop and recreate their own `test_*` tables in that database, so do
-not point them at anything you care about. CI runs the same suite against
-MySQL and Postgres service containers.
+The database itself must already exist; the tests create their own `test_*`
+tables in it once per test class and drop them again afterwards, so the
+database is left as it was found. Each individual test runs inside a
+transaction that is rolled back, so no test data survives either. Even so, do
+not point the suite at a database you care about — it drops any table whose
+name it wants to use. CI runs the same suite against MySQL and Postgres
+service containers.

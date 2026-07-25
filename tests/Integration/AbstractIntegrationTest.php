@@ -22,6 +22,15 @@ abstract class AbstractIntegrationTest extends TestCase
     protected QueryFactory $query_factory;
 
     /**
+     * One connection per test class, keyed by class name so that each dialect
+     * keeps its own. The schema is built once on that connection and every
+     * test runs inside a transaction that is rolled back afterwards.
+     *
+     * @var array<string, PDO>
+     */
+    private static array $connections = [];
+
+    /**
      * Returns a connection, or skips the test when the server is unavailable.
      */
     abstract protected function newPdo(): PDO;
@@ -41,35 +50,72 @@ abstract class AbstractIntegrationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->pdo = $this->newPdo();
-        $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $this->pdo = $this->getConnection();
         $this->query_factory = new QueryFactory($this->db_type);
-        $this->dropTables();
-        foreach ($this->getCreateTables() as $stm) {
-            $this->pdo->exec($stm);
-        }
+
+        // seed inside the transaction, so the rollback in tearDown() undoes
+        // the seed rows along with whatever the test itself wrote
+        $this->pdo->beginTransaction();
         $this->seed();
     }
 
     protected function tearDown(): void
     {
-        $this->dropTables();
+        if (isset($this->pdo) && $this->pdo->inTransaction()) {
+            $this->pdo->rollBack();
+        }
         parent::tearDown();
     }
 
-    protected function getTableNames(): array
+    /**
+     * Drops the tables this class created, leaving the database as it was
+     * found. The schema cannot live inside the per-test transaction: MySQL
+     * implicitly commits DDL, so a rollback would not undo it.
+     */
+    public static function tearDownAfterClass(): void
+    {
+        $pdo = self::$connections[static::class] ?? null;
+        if ($pdo !== null) {
+            static::dropTables($pdo);
+            unset(self::$connections[static::class]);
+        }
+        parent::tearDownAfterClass();
+    }
+
+    /**
+     * Returns this class's connection, building the schema on first use.
+     */
+    protected function getConnection(): PDO
+    {
+        if (isset(self::$connections[static::class])) {
+            return self::$connections[static::class];
+        }
+
+        $pdo = $this->newPdo();
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+        // a previous run may have died before its teardown
+        static::dropTables($pdo);
+        foreach ($this->getCreateTables() as $stm) {
+            $pdo->exec($stm);
+        }
+
+        self::$connections[static::class] = $pdo;
+        return $pdo;
+    }
+
+    /**
+     * @return string[]
+     */
+    protected static function getTableNames(): array
     {
         return ['test_employee', 'test_dept', 'test_defaults'];
     }
 
-    protected function dropTables(): void
+    protected static function dropTables(PDO $pdo): void
     {
-        if (! isset($this->pdo)) {
-            // the connection was skipped, so there is nothing to drop
-            return;
-        }
-        foreach ($this->getTableNames() as $table) {
-            $this->pdo->exec("DROP TABLE IF EXISTS {$table}");
+        foreach (static::getTableNames() as $table) {
+            $pdo->exec("DROP TABLE IF EXISTS {$table}");
         }
     }
 
