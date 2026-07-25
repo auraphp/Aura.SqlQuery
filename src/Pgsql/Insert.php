@@ -23,6 +23,31 @@ class Insert extends Common\Insert implements ReturningInterface
 
     /**
      *
+     * Whether to render the `ON CONFLICT DO NOTHING` clause.
+     *
+     * @var bool
+     *
+     */
+    protected $ignore = false;
+
+    /**
+     *
+     * Adds or removes the `ON CONFLICT DO NOTHING` clause, the Postgres
+     * equivalent of the IGNORE flag on other databases.
+     *
+     * @param bool $enable Set or unset the clause (default true).
+     *
+     * @return $this
+     *
+     */
+    public function ignore($enable = true)
+    {
+        $this->ignore = (bool) $enable;
+        return $this;
+    }
+
+    /**
+     *
      * Builds the statement.
      *
      * @return string
@@ -31,6 +56,7 @@ class Insert extends Common\Insert implements ReturningInterface
     protected function build()
     {
         return parent::build()
+            . $this->builder->buildIgnore($this->ignore)
             . $this->builder->buildReturning($this->returning);
     }
 
