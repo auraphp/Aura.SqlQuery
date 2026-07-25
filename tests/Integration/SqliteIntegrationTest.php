@@ -65,6 +65,8 @@ class SqliteIntegrationTest extends AbstractIntegrationTest
             ->into('test_dept')
             ->cols(['id' => 1, 'name' => 'Duplicate']);
 
+        $this->assertStatementContains('INSERT OR IGNORE INTO <<test_dept>>', $insert);
+
         $this->assertSame(0, $this->exec($insert));
 
         $sth = $this->pdo->query('SELECT name FROM test_dept WHERE id = 1');
@@ -77,6 +79,8 @@ class SqliteIntegrationTest extends AbstractIntegrationTest
             ->orReplace()
             ->into('test_dept')
             ->cols(['id' => 1, 'name' => 'Replaced']);
+
+        $this->assertStatementContains('INSERT OR REPLACE INTO <<test_dept>>', $insert);
 
         $this->exec($insert);
 

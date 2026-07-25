@@ -50,6 +50,14 @@
   on DB2 / IBM i, in any position), so `table.col#` quotes as
   `"table"."col#"` instead of the broken `"table"."col"#`. Fixes #177.
 
+- [FIX] The quoter no longer treats the dot in a variable as a table/column
+  separator. `@@session.time_zone` came out with each half backticked, as
+  if `session` were a table, which no server can run; the same went for
+  `@@global.x` and for user variables such as `@a.b`, whose names may
+  legally contain dots and `$`. A token introduced by `@` is now returned
+  as written, however many dots it has, while real column references beside
+  it are quoted as before. Fixes #226.
+
 - [FIX] The quoter now leaves an identifier the caller already quoted as
   written, instead of splitting it on the dot inside it. A MySQL column
   named `compound.group` has to be written with backticks by hand, and

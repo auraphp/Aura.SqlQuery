@@ -77,6 +77,8 @@ class PgsqlIntegrationTest extends AbstractIntegrationTest
             ->cols(['name' => 'Edna', 'dept_id' => 1, 'salary' => 500, 'seq' => 5])
             ->returning(['id', 'name']);
 
+        $this->assertStatementContains('RETURNING', $insert);
+
         $row = $this->fetchAll($insert)[0];
         $this->assertSame('Edna', $row['name']);
         $this->assertGreaterThan(0, (int) $row['id']);
@@ -90,6 +92,8 @@ class PgsqlIntegrationTest extends AbstractIntegrationTest
             ->where('seq = :seq', ['seq' => 1])
             ->returning(['name', 'salary']);
 
+        $this->assertStatementContains('RETURNING', $update);
+
         $rows = $this->fetchAll($update);
         $this->assertSame('Anna', $rows[0]['name']);
         $this->assertSame(999, (int) $rows[0]['salary']);
@@ -102,6 +106,8 @@ class PgsqlIntegrationTest extends AbstractIntegrationTest
             ->where('salary >= :min', ['min' => 300])
             ->returning(['name']);
 
+        $this->assertStatementContains('RETURNING', $delete);
+
         $rows = $this->fetchAll($delete);
         $names = array_column($rows, 'name');
         sort($names);
@@ -113,6 +119,8 @@ class PgsqlIntegrationTest extends AbstractIntegrationTest
         $insert = $this->query_factory->newInsert()
             ->into('test_employee')
             ->cols(['name' => 'Edna', 'dept_id' => 1, 'salary' => 500, 'seq' => 5]);
+
+        $this->assertStatementContains('INSERT INTO <<test_employee>>', $insert);
 
         $this->exec($insert);
 

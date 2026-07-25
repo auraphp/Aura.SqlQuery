@@ -1204,6 +1204,59 @@ class SelectTest extends AbstractQueryTest
         $this->assertSameSql($expect, $actual);
     }
 
+    public function testIssue226SessionVariableInCols()
+    {
+        // the query as reported on issue #226: the column reference is
+        // quoted, the session variable beside it is not
+        $select = $this->query
+            ->from('customer')
+            ->cols(['convert_tz(open_from, customer.time_zone, @@session.time_zone) open_now'])
+            ->where('customer.id = :id');
+
+        $expect = '
+            SELECT
+                convert_tz(open_from, <<customer>>.<<time_zone>>, @@session.time_zone) open_now
+            FROM
+                <<customer>>
+            WHERE
+                <<customer>>.<<id>> = :id
+            ';
+        $actual = (string) $select->getStatement();
+        $this->assertSameSql($expect, $actual);
+    }
+
+    public function testIssue226VariableInEveryClause()
+    {
+        // GROUP BY, HAVING and ORDER BY quote their text through separate
+        // call sites from cols() and where(); a variable survives all of them
+        $select = $this->query
+            ->cols(['t.a'])
+            ->from('t')
+            ->where('t.a = @v.x')
+            ->groupBy(['@v.x', 't.a'])
+            ->having('COUNT(*) > @v.n')
+            ->orderBy(['@v.x DESC', 't.a']);
+
+        $expect = '
+            SELECT
+                <<t>>.<<a>>
+            FROM
+                <<t>>
+            WHERE
+                <<t>>.<<a>> = @v.x
+            GROUP BY
+                @v.x,
+                <<t>>.<<a>>
+            HAVING
+                COUNT(*) > @v.n
+            ORDER BY
+                @v.x DESC,
+                <<t>>.<<a>>
+            ';
+        $actual = (string) $select->getStatement();
+        $this->assertSameSql($expect, $actual);
+    }
+
     public function testHavingClosure()
     {
         $select = $this->query

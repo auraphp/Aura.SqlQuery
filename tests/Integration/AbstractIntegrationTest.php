@@ -7,10 +7,12 @@ use PHPUnit\Framework\TestCase;
 
 /**
  *
- * Runs the SQL this library generates against a real database server, rather
- * than asserting on the generated string. Subclasses provide the connection
- * and the dialect-specific DDL; the test methods here are shared by all of
- * them, so a dialect that renders valid-looking-but-unexecutable SQL fails.
+ * Runs the SQL this library generates against a real database server, instead
+ * of only asserting on the generated string. Each test pins the shape of the
+ * SQL and then executes it, so that a dialect which renders
+ * valid-looking-but-unexecutable SQL fails, and so does one that runs but
+ * quotes the wrong thing. Subclasses provide the connection and the
+ * dialect-specific DDL; the test methods here are shared by all of them.
  *
  */
 abstract class AbstractIntegrationTest extends TestCase
@@ -233,6 +235,22 @@ abstract class AbstractIntegrationTest extends TestCase
     }
 
     /**
+     * Asserts that the generated SQL contains $expect, in which '<<' and
+     * '>>' stand for this dialect's identifier quotes. Executing a query
+     * proves it runs and returns the right rows; this pins the shape of the
+     * SQL that did so, which the rows alone cannot show.
+     */
+    protected function assertStatementContains(string $expect, $query): void
+    {
+        $expect = str_replace(
+            ['<<', '>>'],
+            [$query->getQuoteNamePrefix(), $query->getQuoteNameSuffix()],
+            $expect
+        );
+        $this->assertStringContainsString($expect, (string) $query->getStatement());
+    }
+
+    /**
      * Executes a query object and returns all rows.
      */
     protected function fetchAll($query): array
@@ -268,6 +286,8 @@ abstract class AbstractIntegrationTest extends TestCase
             ->limit(2)
             ->offset(1);
 
+        $this->assertStatementContains('LIMIT 2 OFFSET 1', $select);
+
         $actual = $this->fetchAll($select);
         $this->assertSame(['Clara', 'Betty'], array_column($actual, 'name'));
     }
@@ -281,6 +301,11 @@ abstract class AbstractIntegrationTest extends TestCase
             ->groupBy(['test_dept.name'])
             ->having('COUNT(*) > :least', ['least' => 1])
             ->orderBy(['test_dept.name']);
+
+        $this->assertStatementContains(
+            'INNER JOIN <<test_employee>> ON <<test_employee>>.<<dept_id>> = <<test_dept>>.<<id>>',
+            $select
+        );
 
         $actual = $this->fetchAll($select);
         $this->assertSame(
@@ -306,6 +331,8 @@ abstract class AbstractIntegrationTest extends TestCase
                     ->orWhere('name = :second', ['second' => 'Donna']);
             })
             ->orderBy(['seq']);
+
+        $this->assertStatementContains('AND (', $select);
 
         // without the parentheses this would also match Betty
         $actual = $this->fetchAll($select);
@@ -337,6 +364,11 @@ abstract class AbstractIntegrationTest extends TestCase
             })
             ->orderBy(['test_compound.id']);
 
+        // the hand-quoted names survive, and the two groups are parenthesized
+        $this->assertStatementContains('<<compound.group>>', $select);
+        $this->assertStatementContains('<<species.genus>>', $select);
+        $this->assertStatementContains('AND (', $select);
+
         // row 3 satisfies the first group only, so it comes back too if the
         // parentheses are lost to AND binding tighter than OR
         $actual = $this->fetchAll($select);
@@ -356,6 +388,8 @@ abstract class AbstractIntegrationTest extends TestCase
             ->where('dept_id IN (' . $sub->getStatement() . ')', $sub->getBindValues())
             ->orderBy(['seq']);
 
+        $this->assertStatementContains('dept_id IN (SELECT', $select);
+
         $actual = $this->fetchAll($select);
         $this->assertSame(['Clara', 'Donna'], array_column($actual, 'name'));
     }
@@ -371,6 +405,8 @@ abstract class AbstractIntegrationTest extends TestCase
             ->cols(['name'])
             ->fromSubSelect($sub, 'well_paid')
             ->orderBy(['name']);
+
+        $this->assertStatementContains(') AS <<well_paid>>', $select);
 
         $actual = $this->fetchAll($select);
         $this->assertSame(['Clara', 'Donna'], array_column($actual, 'name'));
@@ -388,6 +424,9 @@ abstract class AbstractIntegrationTest extends TestCase
             ->from('test_employee')
             ->where('salary > :min', ['min' => 300]);
 
+        $this->assertStatementContains('SELECT DISTINCT', $select);
+        $this->assertStatementContains('UNION', $select);
+
         $actual = $this->fetchAll($select);
         $dept_ids = array_map('intval', array_column($actual, 'dept_id'));
         sort($dept_ids);
@@ -401,6 +440,12 @@ abstract class AbstractIntegrationTest extends TestCase
             ->cols([$this->castToChar('test_employee.salary') . ' AS salary_text'])
             ->from('test_employee')
             ->where('name = :name', ['name' => 'Anna']);
+
+        // the CAST type name must not be quoted as an identifier
+        $this->assertStatementContains(
+            $this->castToChar('<<test_employee>>.<<salary>>') . ' AS <<salary_text>>',
+            $select
+        );
 
         $actual = $this->fetchAll($select);
         $this->assertSame('100', (string) $actual[0]['salary_text']);
@@ -417,6 +462,9 @@ abstract class AbstractIntegrationTest extends TestCase
                 'seq' => 5,
             ]);
 
+        $this->assertStatementContains('INSERT INTO <<test_employee>>', $insert);
+        $this->assertStatementContains('<<name>>', $insert);
+
         $this->assertSame(1, $this->exec($insert));
         $this->assertSame('Edna', $this->fetchNames('seq = 5')[0]);
     }
@@ -429,6 +477,11 @@ abstract class AbstractIntegrationTest extends TestCase
                 ['name' => 'Edna', 'dept_id' => 1, 'salary' => 500, 'seq' => 5],
                 ['name' => 'Fiona', 'dept_id' => 2, 'salary' => 600, 'seq' => 6],
             ]);
+
+        $this->assertStatementContains(
+            '(:name_0, :dept_id_0, :salary_0, :seq_0),',
+            $insert
+        );
 
         $this->assertSame(2, $this->exec($insert));
         $this->assertSame(
@@ -448,6 +501,8 @@ abstract class AbstractIntegrationTest extends TestCase
                 'seq' => 5,
             ]);
 
+        $this->assertStatementContains('<<dept_id>>', $insert);
+
         $this->exec($insert);
 
         $sth = $this->pdo->query('SELECT dept_id FROM test_employee WHERE seq = 5');
@@ -458,6 +513,7 @@ abstract class AbstractIntegrationTest extends TestCase
     {
         // regression for #149: an insert with no columns must still be valid
         $insert = $this->query_factory->newInsert()->into('test_defaults');
+        $this->assertStatementContains('INSERT INTO <<test_defaults>>', $insert);
         $this->assertSame(1, $this->exec($insert));
 
         $sth = $this->pdo->query('SELECT name FROM test_defaults');
@@ -472,6 +528,12 @@ abstract class AbstractIntegrationTest extends TestCase
             ->set('name', 'test_employee.name')
             ->where('seq = :seq', ['seq' => 1]);
 
+        // set() takes a raw expression, so the column reference is quoted
+        $this->assertStatementContains(
+            '<<name>> = <<test_employee>>.<<name>>',
+            $update
+        );
+
         $this->assertSame(1, $this->exec($update));
 
         $sth = $this->pdo->query('SELECT name, salary FROM test_employee WHERE seq = 1');
@@ -485,6 +547,8 @@ abstract class AbstractIntegrationTest extends TestCase
         $delete = $this->query_factory->newDelete()
             ->from('test_employee')
             ->where('salary >= :min', ['min' => 300]);
+
+        $this->assertStatementContains('DELETE FROM <<test_employee>>', $delete);
 
         $this->assertSame(2, $this->exec($delete));
         $this->assertSame(['Anna', 'Betty'], $this->fetchNames());
