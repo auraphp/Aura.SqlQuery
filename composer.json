@@ -53,6 +53,7 @@
     "scripts": {
         "test": "phpunit",
         "test-integration": "phpunit --testsuite integration",
+        "db-create": "@php tests/db-create.php",
         "test-coverage": "php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-clover=coverage.xml",
         "analyse": "phpstan analyse"
     }

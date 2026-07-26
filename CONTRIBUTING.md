@@ -18,7 +18,36 @@ That runs two suites: `unit` (string assertions on the generated SQL) and
 
 The integration suite always runs its SQLite cases, using an in-memory
 database. The MySQL, PostgreSQL and SQL Server cases are skipped unless you
-point them at a server with an existing, throwaway database:
+point them at a server with an existing, throwaway database.
+
+The easiest way is to copy the example file and edit it:
+
+```sh
+cp .env.example .env
+composer db-create
+./vendor/bin/phpunit --testsuite integration
+```
+
+`.env` is git-ignored, and the PHPUnit bootstrap reads it. Delete or blank
+the `DB_*_DSN` of any dialect you do not have a server for, and that dialect
+goes back to skipping.
+
+`composer db-create` creates the database named in each configured DSN, for
+whichever dialects you set up. It only ever creates: an existing database is
+left alone, and nothing is dropped. Run it once, or not at all if you would
+rather create them by hand:
+
+```sh
+mysql -u root -p -e 'CREATE DATABASE IF NOT EXISTS aura_sqlquery_test'
+createdb aura_sqlquery_test
+sqlcmd -S 127.0.0.1 -U sa -Q 'CREATE DATABASE aura_sqlquery_test'
+```
+
+The test suite deliberately does not create databases itself, so that running
+it never needs `CREATE DATABASE` rights — only the one-off script does.
+
+Environment variables work just as well, and win over the file, so a one-off
+run needs no edit:
 
 ```sh
 DB_MYSQL_DSN='mysql:host=127.0.0.1;port=3306;dbname=aura_sqlquery_test' \
@@ -29,6 +58,8 @@ DB_SQLSRV_DSN='sqlsrv:Server=127.0.0.1,1433;Database=aura_sqlquery_test;TrustSer
 DB_SQLSRV_USER=sa DB_SQLSRV_PASS='Aura!Passw0rd' \
 ./vendor/bin/phpunit --testsuite integration
 ```
+
+That is how CI passes them, which is why the environment takes precedence.
 
 The SQL Server cases need two pieces, not one: the `pdo_sqlsrv` extension, and
 Microsoft's ODBC Driver 18 for SQL Server, which the extension talks through.
