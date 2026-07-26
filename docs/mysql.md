@@ -71,10 +71,21 @@ this differs from the PostgreSQL objects, which reject it.
 - `ignore()` to add or remove `IGNORE` flag
 - `delayed()` to add or remove `DELAYED` flag
 
-`ignore()` downgrades the errors a row would raise into warnings and skips it.
-MySQL casts this net wider than the other dialects: duplicate keys, `NOT NULL`,
-`CHECK` and foreign-key violations are all demoted, so check
-`SHOW WARNINGS` rather than assuming every row landed:
+`ignore()` downgrades the errors a row would raise into warnings. MySQL casts
+this net wider than the other dialects, but the outcome is not always a skipped
+row, so it pays to know which half you are in:
+
+- A *constraint* violation discards the row. Duplicate keys, `CHECK` and
+  foreign-key violations all leave the row uninserted.
+- An *invalid value* is adjusted and the row is inserted anyway. `NULL` for a
+  `NOT NULL` column becomes that type's implicit default (`''` for a string,
+  `0` for a number), and an out-of-range number is clamped — `9999` into a
+  `TINYINT` lands as `127`.
+
+So `SHOW WARNINGS` is worth checking either way, but do not read a warning as
+"the row was skipped": it may equally mean the row landed with a value MySQL
+rewrote for you. Where that matters, validate before inserting rather than
+relying on `IGNORE`.
 
 ```php
 $insert = $queryFactory->newInsert();
@@ -151,8 +162,11 @@ value you tried to insert.
 - `orderBy()` to add an ORDER BY clause flag
 - `limit()` to set a LIMIT count
 
-`ignore()` here skips the rows whose update would violate a constraint, leaving
-the rest of the statement to apply:
+`ignore()` here leaves the rest of the statement to apply when one row fails.
+The same split as for INSERT above applies: a row whose update would violate a
+constraint is left unchanged, while an invalid value is adjusted and written —
+setting a `NOT NULL` column to `NULL` stores the implicit default and counts as
+an updated row rather than a skipped one:
 
 ```php
 $update = $queryFactory->newUpdate();
