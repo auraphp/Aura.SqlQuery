@@ -2,6 +2,25 @@
 
 ## 6.0.0 (unreleased)
 
+- [BRK] Two different parts of one query binding different values to the same
+  placeholder name now throws Aura\SqlQuery\Exception\LogicException instead of
+  silently discarding one of the values. The common case is a condition that
+  tests a column the query also sets:
+
+      $update->table('orders')
+          ->cols(['status' => 'shipped'])
+          ->where('status = :status', ['status' => 'pending']);
+
+  which previously rendered `SET "status" = :status WHERE status = :status`
+  with a single bound value, so the UPDATE quietly set the column to the value
+  meant only to select rows. Bind the condition under its own name
+  (`:old_status`) to fix it. Binding by hand with bindValue()/bindValues() is
+  unaffected and may still overwrite any value; one part of the query revising
+  its own placeholder is not a collision either. The same check covers
+  doUpdateCol() and onDuplicateKeyUpdateCol(), whose placeholders are derived
+  by suffix and so only collide when a column is literally named
+  `<col>__on_conflict` or `<col>__on_duplicate_key`. Fixes #238.
+
 - [BRK] Bumped the minimum version to PHP 8.4; the CI matrix now covers
   PHP 8.4 and 8.5.
 

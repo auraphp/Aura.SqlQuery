@@ -38,6 +38,60 @@ $update->table('foo')           // update this table
     ]);
 ```
 
+## Placeholder names
+
+`cols()` names its placeholder after the column, and so does a bind value
+passed to `where()`. When a condition tests a column the query also sets, both
+want the same placeholder, and only one value can survive — so this throws
+`Aura\SqlQuery\Exception\LogicException`:
+
+```php
+$update = $queryFactory->newUpdate();
+
+$update
+    ->table('orders')
+    ->cols(['status' => 'shipped'])                     // binds :status
+    ->where('status = :status', ['status' => 'pending']);   // wants :status too
+```
+
+Bind the condition under a name of its own:
+
+```php
+$update = $queryFactory->newUpdate();
+
+$update
+    ->table('orders')
+    ->cols(['status' => 'shipped'])
+    ->where('status = :old_status', ['old_status' => 'pending']);
+```
+
+```sql
+UPDATE "orders"
+SET
+    "status" = :status
+WHERE
+    status = :old_status
+```
+
+Binding by hand is never blocked, so a value you set yourself may always
+replace an earlier one:
+
+```php
+$update = $queryFactory->newUpdate();
+
+$update->table('orders')->cols(['status' => 'shipped']);
+$update->bindValue('status', 'delivered');   // fine: :status is now 'delivered'
+```
+
+> **Note:** the same rule covers the upsert methods, which build their
+> placeholder by appending a suffix to the column name —
+> `doUpdateCol('status', ...)` binds `:status__on_conflict` on PostgreSQL and
+> SQLite, and `onDuplicateKeyUpdateCol('status', ...)` binds
+> `:status__on_duplicate_key` on MySQL. Because the name is derived, it does
+> not clash with the `:status` bound by `cols()`; the ordinary upsert needs no
+> special handling. It throws only if a column is itself named
+> `status__on_conflict` or `status__on_duplicate_key`.
+
 Once you have built the query, pass it to the database connection of your
 choice as a string, and send the bound values along with it.
 
