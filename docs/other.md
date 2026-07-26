@@ -34,3 +34,63 @@ turns out to be not as great as it seems in theory. This assessment is the
 result of the hard trials of experience. For those of you who want modifiable
 table prefixes, we suggest using constants with your table names prefixed as
 desired; as the prefixes change, you can then change your constants.
+
+## Placeholder Names
+
+Bound values live in one flat array keyed by placeholder name, so two values
+under one name means one of them is lost. When two *different* parts of a query
+do that, it throws `Aura\SqlQuery\Exception\LogicException` — see
+[UPDATE](./update.md) for the case that trips people up, a condition testing a
+column the query also sets.
+
+Two *conditions* sharing a name is not caught, because both come from the same
+part of the query. Watch for it:
+
+```php
+$select = $queryFactory->newSelect();
+
+$select
+    ->cols(['*'])
+    ->from('orders')
+    ->where('status = :val', ['val' => 'pending'])
+    ->orWhere('channel = :val', ['val' => 'web']);
+```
+
+```sql
+SELECT
+    *
+FROM
+    "orders"
+WHERE
+    status = :val
+    OR channel = :val
+```
+
+Only `'web'` stays bound, so this asks for `status = 'web' OR channel = 'web'`.
+Give each condition its own name:
+
+```php
+$select = $queryFactory->newSelect();
+
+$select
+    ->cols(['*'])
+    ->from('orders')
+    ->where('status = :status', ['status' => 'pending'])
+    ->orWhere('channel = :channel', ['channel' => 'web']);
+```
+
+```sql
+SELECT
+    *
+FROM
+    "orders"
+WHERE
+    status = :status
+    OR channel = :channel
+```
+
+The upsert methods need no such care: `doUpdateCol()` and
+`onDuplicateKeyUpdateCol()` derive their placeholder by suffixing the column
+name, so `cols(['name' => 'Alice'])` binds `:name` while
+`onDuplicateKeyUpdateCol('name', 'updated')` binds `:name__on_duplicate_key`,
+and both values survive.

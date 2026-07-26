@@ -73,24 +73,22 @@ WHERE
     status = :old_status
 ```
 
-Binding by hand is never blocked, so a value you set yourself may always
-replace an earlier one:
+Only UPDATE can run into this: INSERT has no `where()`, DELETE has no `cols()`,
+and a SELECT `cols()` binds nothing. Two conditions sharing one placeholder
+name is a separate case that is *not* caught — see
+[Placeholder Names](./other.md#placeholder-names).
+
+Binding a value yourself is never blocked, whatever set it first:
 
 ```php
 $update = $queryFactory->newUpdate();
 
 $update->table('orders')->cols(['status' => 'shipped']);
-$update->bindValue('status', 'delivered');   // fine: :status is now 'delivered'
+$update->bindValue('status', 'delivered');   // :status is now 'delivered'
 ```
 
-> **Note:** the same rule covers the upsert methods, which build their
-> placeholder by appending a suffix to the column name —
-> `doUpdateCol('status', ...)` binds `:status__on_conflict` on PostgreSQL and
-> SQLite, and `onDuplicateKeyUpdateCol('status', ...)` binds
-> `:status__on_duplicate_key` on MySQL. Because the name is derived, it does
-> not clash with the `:status` bound by `cols()`; the ordinary upsert needs no
-> special handling. It throws only if a column is itself named
-> `status__on_conflict` or `status__on_duplicate_key`.
+It does not take ownership of the name, though: the placeholder still belongs
+to `cols()`, so a condition claiming `:status` afterwards still throws.
 
 Once you have built the query, pass it to the database connection of your
 choice as a string, and send the bound values along with it.
