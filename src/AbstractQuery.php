@@ -218,7 +218,9 @@ abstract class AbstractQuery
      * Two different parts of a query claiming the same placeholder name is a
      * mistake: only one value can survive in the flat bind array, so the
      * other is silently discarded and the statement runs with the wrong data.
-     * Throw instead of losing it.
+     * Throw instead of losing it -- even when the two values happen to agree
+     * today, since either part may revise its value afterwards and there is
+     * nothing to re-check it against.
      *
      * A null source means the caller bound the value by hand, which may
      * always overwrite: rebinding before execution, and reusing a query
@@ -234,7 +236,7 @@ abstract class AbstractQuery
      * @return $this
      *
      * @throws Exception\LogicException when two different parts of the query
-     * bind different values to one placeholder name.
+     * claim one placeholder name.
      *
      */
     protected function bindValueFrom($name, $value, $source)
@@ -248,7 +250,6 @@ abstract class AbstractQuery
             && $prior !== null
             && $prior !== $source
             && array_key_exists($name, $this->bind_values)
-            && $this->bind_values[$name] !== $value
         ) {
             $was = isset($this->bind_source_labels[$prior])
                 ? $this->bind_source_labels[$prior]
@@ -258,22 +259,22 @@ abstract class AbstractQuery
                 : $source;
 
             throw new Exception\LogicException(
-                "Cannot bind two different values to the placeholder "
-                . "':{$name}'; it is already in use by {$was}, and {$now} "
-                . "would discard that value. Use a different placeholder "
-                . "name for one of them."
+                "The placeholder ':{$name}' is already in use by {$was}, so "
+                . "{$now} cannot bind it as well: one value would overwrite "
+                . "the other. Use a different placeholder name for one of "
+                . "them."
             );
         }
 
         $this->bind_values[$name] = $value;
 
-        // Ownership stays with whoever claimed the name first. A hand-bound
-        // value overwrites the value without claiming the name, and so does a
-        // second part of the query that happens to bind the same value: the
-        // check above lets that through, but if it took ownership, the
-        // original claimant revising its own placeholder later would look
-        // like a collision with the part that only ever agreed with it.
-        if ($source !== null && ($prior === null || $prior === $source)) {
+        // A hand-bound value overwrites the value but does not claim the
+        // name: otherwise binding by hand between two parts of the query
+        // would erase the record of who claimed it first, and the collision
+        // they would have had goes undetected. Any other source reaching
+        // here either claimed the name already or found it free, since a
+        // second claimant throws above.
+        if ($source !== null) {
             $this->bind_sources[$name] = $source;
         }
 

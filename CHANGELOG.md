@@ -2,10 +2,10 @@
 
 ## 6.0.0 (unreleased)
 
-- [BRK] Two different parts of one query binding different values to the same
-  placeholder name now throws Aura\SqlQuery\Exception\LogicException instead of
-  silently discarding one of the values. The common case is a condition that
-  tests a column the query also sets:
+- [BRK] Two different parts of one query claiming the same placeholder name
+  now throws Aura\SqlQuery\Exception\LogicException instead of silently
+  discarding one of the values. The common case is a condition that tests a
+  column the query also sets:
 
       $update->table('orders')
           ->cols(['status' => 'shipped'])
@@ -14,7 +14,9 @@
   which previously rendered `SET "status" = :status WHERE status = :status`
   with a single bound value, so the UPDATE quietly set the column to the value
   meant only to select rows. Bind the condition under its own name
-  (`:old_status`) to fix it. Binding by hand with bindValue()/bindValues() is
+  (`:old_status`) to fix it. This applies even when the two values happen to
+  agree, since either part may revise its value afterwards and nothing
+  re-checks the pair. Binding by hand with bindValue()/bindValues() is
   unaffected and may still overwrite any value; one part of the query revising
   its own placeholder is not a collision either. The same check covers
   doUpdateCol() and onDuplicateKeyUpdateCol(), whose placeholders are derived

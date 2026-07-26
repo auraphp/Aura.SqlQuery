@@ -43,7 +43,8 @@ $update->table('foo')           // update this table
 `cols()` names its placeholder after the column, and so does a bind value
 passed to `where()`. When a condition tests a column the query also sets, both
 want the same placeholder, and only one value can survive — so this throws
-`Aura\SqlQuery\Exception\LogicException`:
+`Aura\SqlQuery\Exception\LogicException`. It throws even if the two values
+happen to match, since either one may be revised afterwards:
 
 ```php
 $update = $queryFactory->newUpdate();

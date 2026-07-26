@@ -68,15 +68,20 @@ class CollisionTest extends TestCase
         $update->where('id = :id', array('id' => 2));
     }
 
-    public function testSameValueFromTwoSourcesDoesNotCollide()
+    /**
+     *
+     * Agreeing on the value today is not a reason to share the name: either
+     * part may revise its value afterwards, and nothing re-checks the pair.
+     * Sharing is rejected when it appears, not when it starts to hurt.
+     *
+     */
+    public function testSameValueFromTwoSourcesStillCollides()
     {
         $update = $this->query_factory->newUpdate();
-        $update
-            ->table('t1')
-            ->cols(array('id' => 1))
-            ->where('id = :id', array('id' => 1));
+        $update->table('t1')->cols(array('id' => 1));
 
-        $this->assertSame(array('id' => 1), $update->getBindValues());
+        $this->expectException(Exception\LogicException::class);
+        $update->where('id = :id', array('id' => 1));
     }
 
     public function testRebindingByHandIsAllowed()
@@ -148,35 +153,29 @@ class CollisionTest extends TestCase
 
     /**
      *
-     * A second part of the query binding the *same* value is allowed through,
-     * but it must not take ownership of the name. If it did, the original
-     * claimant revising its own placeholder afterwards would look like a
-     * collision with the part that only ever agreed with it.
+     * The sequence that made sharing on an equal value unsafe: the two parts
+     * agree, then one of them revises its value, and the pair silently
+     * disagrees with nothing left to catch it. Rejecting the share up front
+     * removes the sequence entirely.
      *
      */
-    public function testAgreeingOnAValueDoesNotTransferOwnership()
+    public function testAgreeThenDivergeCannotHappen()
     {
         $update = $this->query_factory->newUpdate();
         $update->table('orders')->cols(array('status' => 'first'));
 
-        // same value from a different part: no collision, and cols() keeps
-        // the name
-        $update->where('status = :status', array('status' => 'first'));
-
-        // so cols() may still revise its own placeholder
-        $update->cols(array('status' => 'second'));
-        $this->assertSame(array('status' => 'second'), $update->getBindValues());
-    }
-
-    public function testAgreeingOnAValueStillGuardsTheOriginalOwner()
-    {
-        $update = $this->query_factory->newUpdate();
-        $update->table('orders')->cols(array('status' => 'first'));
-        $update->where('status = :status', array('status' => 'first'));
-
-        // the condition disagreeing later is still a real collision
-        $this->expectException(Exception\LogicException::class);
-        $update->where('status = :status', array('status' => 'third'));
+        try {
+            $update->where('status = :status', array('status' => 'first'));
+            $this->fail('Expected the shared placeholder to be rejected.');
+        } catch (Exception\LogicException $e) {
+            // the condition never took the name, so cols() still owns it and
+            // may revise its own value
+            $update->cols(array('status' => 'second'));
+            $this->assertSame(
+                array('status' => 'second'),
+                $update->getBindValues()
+            );
+        }
     }
 
     public function testBulkInsertDoesNotCollideWithItself()
