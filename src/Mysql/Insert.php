@@ -9,6 +9,7 @@
 namespace Aura\SqlQuery\Mysql;
 
 use Aura\SqlQuery\Common;
+use Aura\SqlQuery\Exception;
 
 /**
  *
@@ -193,6 +194,38 @@ class Insert extends Common\Insert
 
     /**
      *
+     * The flags REPLACE will not accept; the rest of the INSERT flags carry
+     * over unchanged.
+     *
+     * @var string[]
+     *
+     */
+    protected $replace_forbids_flags = ['HIGH_PRIORITY', 'IGNORE'];
+
+    /**
+     *
+     * Throws if a flag was set that REPLACE does not accept; rewriting the
+     * INSERT keyword leaves the flags in place, so the statement would reach
+     * the database as a parse error.
+     *
+     * @return void
+     *
+     * @throws Exception\LogicException
+     *
+     */
+    protected function assertReplaceFlags()
+    {
+        foreach ($this->replace_forbids_flags as $flag) {
+            if ($this->hasFlag($flag)) {
+                throw new Exception\LogicException(
+                    "A REPLACE cannot take the $flag flag."
+                );
+            }
+        }
+    }
+
+    /**
+     *
      * Builds this query object into a string.
      *
      * @return string
@@ -203,6 +236,7 @@ class Insert extends Common\Insert
         $stm = parent::build();
 
         if ($this->use_replace) {
+            $this->assertReplaceFlags();
             // change INSERT to REPLACE
             $stm = 'REPLACE' . substr($stm, 6);
         }

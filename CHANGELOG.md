@@ -63,6 +63,13 @@
   deprecated aliases. Sqlsrv, which has no equivalent, keeps throwing
   Exception\BadMethodCallException. Fixes #172; related to #158.
 
+- [FIX] Mysql\Insert::orReplace() combined with highPriority() or ignore()
+  built `REPLACE HIGH_PRIORITY INTO` / `REPLACE IGNORE INTO`, which MySQL
+  rejects at parse time: rewriting the INSERT keyword left the flags in
+  place, and REPLACE accepts only LOW_PRIORITY and DELAYED. The
+  combination now throws Exception\LogicException when the statement is
+  built, whichever order the two methods were called in.
+
 - [FIX] The quoter now recognizes `#` as an identifier character (legal
   on DB2 / IBM i, in any position), so `table.col#` quotes as
   `"table"."col#"` instead of the broken `"table"."col"#`. Fixes #177.
