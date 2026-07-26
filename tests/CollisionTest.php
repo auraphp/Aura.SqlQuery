@@ -146,6 +146,39 @@ class CollisionTest extends TestCase
         $this->assertSame(array('status' => 'second'), $update->getBindValues());
     }
 
+    /**
+     *
+     * A second part of the query binding the *same* value is allowed through,
+     * but it must not take ownership of the name. If it did, the original
+     * claimant revising its own placeholder afterwards would look like a
+     * collision with the part that only ever agreed with it.
+     *
+     */
+    public function testAgreeingOnAValueDoesNotTransferOwnership()
+    {
+        $update = $this->query_factory->newUpdate();
+        $update->table('orders')->cols(array('status' => 'first'));
+
+        // same value from a different part: no collision, and cols() keeps
+        // the name
+        $update->where('status = :status', array('status' => 'first'));
+
+        // so cols() may still revise its own placeholder
+        $update->cols(array('status' => 'second'));
+        $this->assertSame(array('status' => 'second'), $update->getBindValues());
+    }
+
+    public function testAgreeingOnAValueStillGuardsTheOriginalOwner()
+    {
+        $update = $this->query_factory->newUpdate();
+        $update->table('orders')->cols(array('status' => 'first'));
+        $update->where('status = :status', array('status' => 'first'));
+
+        // the condition disagreeing later is still a real collision
+        $this->expectException(Exception\LogicException::class);
+        $update->where('status = :status', array('status' => 'third'));
+    }
+
     public function testBulkInsertDoesNotCollideWithItself()
     {
         $insert = $this->query_factory->newInsert();

@@ -267,11 +267,13 @@ abstract class AbstractQuery
 
         $this->bind_values[$name] = $value;
 
-        // a hand-bound value overwrites the value but does not take ownership
-        // of the name: otherwise binding by hand between two parts of the
-        // query would erase the record of who claimed it first, and the
-        // collision they would have had goes undetected.
-        if ($source !== null) {
+        // Ownership stays with whoever claimed the name first. A hand-bound
+        // value overwrites the value without claiming the name, and so does a
+        // second part of the query that happens to bind the same value: the
+        // check above lets that through, but if it took ownership, the
+        // original claimant revising its own placeholder later would look
+        // like a collision with the part that only ever agreed with it.
+        if ($source !== null && ($prior === null || $prior === $source)) {
             $this->bind_sources[$name] = $source;
         }
 
