@@ -29,8 +29,8 @@ or another _Select_ object), the alias, an optional condition, and optional bind
 values.
 
 PostgreSQL requires an `ON` clause on every `LATERAL` join except `CROSS` and
-`NATURAL`. When you omit the condition for the other join types, `ON true` is
-added for you, so the example above renders as:
+`NATURAL`, which reject one. When you omit the condition for the other join
+types, `ON true` is added for you, so the example above renders as:
 
 ```sql
 SELECT
@@ -44,6 +44,10 @@ FROM
             ORDER BY salary DESC LIMIT 1
         ) "top" ON true
 ```
+
+Passing a condition to a `CROSS` or `NATURAL` lateral join throws
+`Aura\SqlQuery\Exception\LogicException`, because PostgreSQL rejects an `ON`
+clause on those and the statement could only fail at execute time.
 
 ## INSERT
 

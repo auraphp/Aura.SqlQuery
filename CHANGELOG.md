@@ -43,8 +43,11 @@
   reference columns from the tables to its left. The signature matches
   `joinSubSelect()`. PostgreSQL requires an `ON` clause on every LATERAL
   join except CROSS and NATURAL, so when no condition is given for the
-  other join types, `ON true` is rendered. Thanks to @golgote for the
-  original implementation in #184.
+  other join types, `ON true` is rendered; conversely, passing a condition
+  to a CROSS or NATURAL join now throws
+  Aura\SqlQuery\Exception\LogicException, since PostgreSQL rejects an `ON`
+  clause there and the statement could only fail at execute time. Thanks
+  to @golgote for the original implementation in #184.
 
 - [ADD] Insert-ignore is now spelled `ignore()` on every dialect that
   supports it: Mysql\Insert renders `INSERT IGNORE` and Sqlite\Insert
