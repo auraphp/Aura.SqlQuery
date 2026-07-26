@@ -177,6 +177,56 @@ class InsertTest extends Common\InsertTest
     }
 
     /**
+     * LOW_PRIORITY, HIGH_PRIORITY and DELAYED are alternatives to each
+     * other on INSERT as much as on REPLACE, so two of them is a syntax
+     * error either way. Each pair is given in both orders.
+     */
+    #[DataProvider('providePriorityModifierPair')]
+    public function testTwoPriorityModifiers($first, $second, $message)
+    {
+        $this->query->$first()
+                    ->$second()
+                    ->into('t1')
+                    ->cols(array('c1'));
+
+        $this->expectException('Aura\SqlQuery\Exception\LogicException');
+        $this->expectExceptionMessage($message);
+        $this->query->__toString();
+    }
+
+    public static function providePriorityModifierPair()
+    {
+        $pairs = array(
+            array('lowPriority', 'highPriority', 'LOW_PRIORITY and HIGH_PRIORITY'),
+            array('lowPriority', 'delayed', 'LOW_PRIORITY and DELAYED'),
+            array('highPriority', 'delayed', 'HIGH_PRIORITY and DELAYED'),
+        );
+
+        $both_orders = array();
+        foreach ($pairs as $pair) {
+            $both_orders[] = $pair;
+            $both_orders[] = array($pair[1], $pair[0], $pair[2]);
+        }
+        return $both_orders;
+    }
+
+    /**
+     * REPLACE takes LOW_PRIORITY or DELAYED, but still only one of them.
+     */
+    public function testOrReplaceWithTwoPriorityModifiers()
+    {
+        $this->query->orReplace()
+                    ->lowPriority()
+                    ->delayed()
+                    ->into('t1')
+                    ->cols(array('c1'));
+
+        $this->expectException('Aura\SqlQuery\Exception\LogicException');
+        $this->expectExceptionMessage('LOW_PRIORITY and DELAYED');
+        $this->query->__toString();
+    }
+
+    /**
      * Unsetting the flag again clears the way, and unsetting orReplace()
      * leaves the plain INSERT alone.
      */

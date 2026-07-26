@@ -226,6 +226,43 @@ class Insert extends Common\Insert
 
     /**
      *
+     * The priority modifiers; a statement takes at most one of them. REPLACE
+     * accepts a narrower set than INSERT, which assertReplaceFlags() covers.
+     *
+     * @var string[]
+     *
+     */
+    protected $priority_flags = ['LOW_PRIORITY', 'HIGH_PRIORITY', 'DELAYED'];
+
+    /**
+     *
+     * Throws if more than one priority modifier was set; they are
+     * alternatives to each other, so MySQL rejects a statement carrying two.
+     *
+     * @return void
+     *
+     * @throws Exception\LogicException
+     *
+     */
+    protected function assertOnePriorityFlag()
+    {
+        $set = [];
+        foreach ($this->priority_flags as $flag) {
+            if ($this->hasFlag($flag)) {
+                $set[] = $flag;
+            }
+        }
+
+        if (count($set) > 1) {
+            throw new Exception\LogicException(
+                'A statement takes only one priority modifier; got '
+                . implode(' and ', $set) . '.'
+            );
+        }
+    }
+
+    /**
+     *
      * Builds this query object into a string.
      *
      * @return string
@@ -234,6 +271,8 @@ class Insert extends Common\Insert
     protected function build()
     {
         $stm = parent::build();
+
+        $this->assertOnePriorityFlag();
 
         if ($this->use_replace) {
             $this->assertReplaceFlags();

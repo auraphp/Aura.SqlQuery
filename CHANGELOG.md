@@ -70,6 +70,13 @@
   combination now throws Exception\LogicException when the statement is
   built, whichever order the two methods were called in.
 
+- [FIX] Mysql\Insert accepted two priority modifiers at once, building
+  `INSERT LOW_PRIORITY HIGH_PRIORITY INTO` and the like; MySQL takes at
+  most one of LOW_PRIORITY, HIGH_PRIORITY and DELAYED, on REPLACE as well
+  as INSERT. Setting more than one now throws Exception\LogicException
+  when the statement is built. Mysql\Update and Mysql\Delete are
+  unaffected, having only the one priority modifier between them.
+
 - [FIX] The Sqlite conflict clauses -- `orAbort()`, `orFail()`,
   `ignore()`/`orIgnore()`, `orReplace()` and `orRollback()` -- are
   alternatives to each other, but setting two of them stacked both into the
