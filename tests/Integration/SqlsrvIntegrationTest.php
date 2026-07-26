@@ -79,4 +79,11 @@ class SqlsrvIntegrationTest extends AbstractIntegrationTest
         // and takes the string to split as a parameter
         return "{$col} IN (SELECT value FROM STRING_SPLIT({$param}, ','))";
     }
+
+    protected function getLimitOffsetSql(): string
+    {
+        // SQL Server has no LIMIT; it pages with the ANSI OFFSET/FETCH form,
+        // which is why the shared expectation cannot be used as-is
+        return 'OFFSET 1 ROWS FETCH NEXT 2 ROWS ONLY';
+    }
 }

@@ -270,16 +270,79 @@ class Select extends AbstractQuery implements SelectInterface
     {
         $parts = explode(' ', $spec);
         $count = count($parts);
-        if ($count == 2) {
+        if ($count == 2 && $this->isCompleteExpr($parts[0])) {
             // "col alias"
             $this->cols[$parts[1]] = $parts[0];
-        } elseif ($count == 3 && strtoupper($parts[1]) == 'AS') {
+        } elseif ($count == 3 && strtoupper($parts[1]) == 'AS' && $this->isCompleteExpr($parts[0])) {
             // "col AS alias"
             $this->cols[$parts[2]] = $parts[0];
         } else {
             // no recognized alias
             $this->cols[] = $spec;
         }
+    }
+
+    /**
+     *
+     * Is this a whole column expression, rather than the head of one that a
+     * space inside parentheses has cut in two?
+     *
+     * issue #226: 'COUNT(DISTINCT t.c)' is two space-separated words, but
+     * 'COUNT(DISTINCT' is not a column name and 't.c)' is not an alias.
+     *
+     * Parentheses inside a string literal are data, not syntax, so the scan
+     * skips over literals: "CONCAT('(',t.c) alias" is complete, and its
+     * alias is still an alias.
+     *
+     * @param string $expr The leading word of a column specification.
+     *
+     * @return bool
+     *
+     */
+    protected function isCompleteExpr($expr)
+    {
+        $depth = 0;
+        $quote = null;
+        $len = strlen($expr);
+
+        for ($i = 0; $i < $len; $i ++) {
+            $char = $expr[$i];
+
+            if ($quote !== null) {
+                // a backslash escapes the next character on MySQL; on
+                // PostgreSQL, with standard_conforming_strings on, it does
+                // not. Either way an unterminated literal returns false and
+                // the caller keeps the spec whole, so the cost of guessing
+                // wrong is a missed alias, never malformed SQL.
+                if ($char === '\\' && isset($expr[$i + 1])) {
+                    $i ++;
+                    continue;
+                }
+
+                // a doubled quote inside a literal is an escaped one, not
+                // the end of the literal
+                if ($char === $quote && isset($expr[$i + 1]) && $expr[$i + 1] === $quote) {
+                    $i ++;
+                } elseif ($char === $quote) {
+                    $quote = null;
+                }
+                continue;
+            }
+
+            if ($char === "'" || $char === '"') {
+                $quote = $char;
+            } elseif ($char === '(') {
+                $depth ++;
+            } elseif ($char === ')') {
+                $depth --;
+                // a close with nothing open before it is not a column name
+                if ($depth < 0) {
+                    return false;
+                }
+            }
+        }
+
+        return $depth === 0 && $quote === null;
     }
 
     /**

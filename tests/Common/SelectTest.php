@@ -822,6 +822,111 @@ class SelectTest extends AbstractQueryTest
         $this->assertSameSql($expect, $actual);
     }
 
+    /**
+     * issue #226: a space inside parentheses is not an alias separator.
+     * 'COUNT(DISTINCT t1.c1)' is two space-separated tokens, but the first
+     * is not a column name and the second is not an alias.
+     */
+    public function testAddColWithSpaceInsideParens()
+    {
+        $this->query->cols(array(
+            'COUNT(DISTINCT t1.c1)',
+            'COUNT(DISTINCT c2)',
+            'COUNT(DISTINCT t1.c3) AS c3_count',
+            // an implicit alias on a multi-word expression is passed through
+            // as the caller wrote it: still valid SQL, just not quoted
+            'COUNT(DISTINCT t1.c4) c4_count',
+            'convert_tz(t1.open_from, t1.time_zone, @@session.time_zone) open_now',
+        ));
+
+        $actual = $this->query->__toString();
+        $expect = '
+            SELECT
+                COUNT(DISTINCT <<t1>>.<<c1>>),
+                COUNT(DISTINCT c2),
+                COUNT(DISTINCT <<t1>>.<<c3>>) AS <<c3_count>>,
+                COUNT(DISTINCT <<t1>>.<<c4>>) c4_count,
+                convert_tz(<<t1>>.<<open_from>>, <<t1>>.<<time_zone>>, @@session.time_zone) open_now
+        ';
+        $this->assertSameSql($expect, $actual);
+    }
+
+    /**
+     * A balanced call is still a column name, so the two-token alias form
+     * keeps working for it.
+     */
+    public function testAddColWithAliasAfterBalancedParens()
+    {
+        $this->query->cols(array(
+            'COUNT(*) tally',
+            'COUNT(*) AS total',
+            'MAX(t1.c1) hi',
+        ));
+
+        $actual = $this->query->__toString();
+        $expect = '
+            SELECT
+                COUNT(*) AS <<tally>>,
+                COUNT(*) AS <<total>>,
+                MAX(<<t1>>.<<c1>>) AS <<hi>>
+        ';
+        $this->assertSameSql($expect, $actual);
+    }
+
+    /**
+     * A parenthesis inside a string literal is data, not syntax, so it must
+     * not make the expression look unbalanced: the alias is still an alias.
+     */
+    public function testAddColWithAliasAndParenInsideLiteral()
+    {
+        $this->query->cols(array(
+            "CONCAT('(',t1.c1) opener",
+            "CONCAT(t1.c2,')') closer",
+            "CONCAT('(',t1.c3,')') AS wrapped",
+            // a doubled quote is an escaped one, not the end of the literal
+            "CONCAT('it''s(',t1.c4) escaped",
+            // as is a backslashed one, on the dialects that escape that way.
+            // the quoter's own literal scan does not follow backslash
+            // escapes, so t1.c5 is left unquoted; the alias is still an alias
+            "CONCAT('it\\'s(',t1.c5) backslashed",
+        ));
+
+        $this->assertTrue($this->query->hasCol('opener'));
+        $this->assertTrue($this->query->hasCol('closer'));
+        $this->assertTrue($this->query->hasCol('wrapped'));
+        $this->assertTrue($this->query->hasCol('escaped'));
+        $this->assertTrue($this->query->hasCol('backslashed'));
+
+        $actual = $this->query->__toString();
+        $expect = "
+            SELECT
+                CONCAT('(',<<t1>>.<<c1>>) AS <<opener>>,
+                CONCAT(<<t1>>.<<c2>>,')') AS <<closer>>,
+                CONCAT('(',<<t1>>.<<c3>>,')') AS <<wrapped>>,
+                CONCAT('it''s(',<<t1>>.<<c4>>) AS <<escaped>>,
+                CONCAT('it\\'s(',t1.c5) AS <<backslashed>>
+        ";
+        $this->assertSameSql($expect, $actual);
+    }
+
+    /**
+     * A closing parenthesis with nothing open before it is not a column
+     * name, so the two-word form is not an alias either.
+     */
+    public function testAddColWithUnopenedParen()
+    {
+        $this->query->cols(array('t1.c1) alias'));
+
+        $this->assertFalse($this->query->hasCol('alias'));
+
+        $actual = $this->query->__toString();
+        $expect = '
+            SELECT
+                <<t1>>.<<c1>>) alias
+        ';
+        $this->assertSameSql($expect, $actual);
+    }
+
     public function testGetCols()
     {
         $this->query->cols(array('valueBar' => 'aliasFoo'));
