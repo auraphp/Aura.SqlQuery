@@ -30,10 +30,12 @@ class MysqlIntegrationTest extends AbstractIntegrationTest
     protected function getCreateTables(): array
     {
         return [
+            // InnoDB explicitly: test_dept_ref puts a foreign key on this
+            // table, and both ends have to be InnoDB for that to work
             'CREATE TABLE test_dept (
                 id   INT PRIMARY KEY,
                 name VARCHAR(50) NOT NULL
-            )',
+            ) ENGINE=InnoDB',
             'CREATE TABLE test_employee (
                 id      INT AUTO_INCREMENT PRIMARY KEY,
                 name    VARCHAR(50) NOT NULL,
