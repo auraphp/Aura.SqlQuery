@@ -110,6 +110,75 @@ class SelectTest extends Common\SelectTest
         $this->assertSameSql($expect, $actual);
     }
 
+    /**
+     * Postgres rejects an ON clause on a CROSS join, so supplying a condition
+     * could only ever produce a syntax error at execute time. Fail loudly
+     * while building instead.
+     */
+    public function testLateralJoinSubSelect_crossWithConditionThrows()
+    {
+        $this->query->cols(['*']);
+        $this->query->from('t1');
+
+        $this->expectException(\Aura\SqlQuery\Exception\LogicException::class);
+        $this->expectExceptionMessage('CROSS JOIN LATERAL cannot take a condition');
+
+        $this->query->lateralJoinSubSelect(
+            'cross',
+            'SELECT * FROM t2',
+            'a2',
+            't1.c1 = a2.c1'
+        );
+    }
+
+    /**
+     * @see testLateralJoinSubSelect_crossWithConditionThrows()
+     */
+    public function testLateralJoinSubSelect_naturalWithConditionThrows()
+    {
+        $this->query->cols(['*']);
+        $this->query->from('t1');
+
+        $this->expectException(\Aura\SqlQuery\Exception\LogicException::class);
+        $this->expectExceptionMessage('NATURAL JOIN LATERAL cannot take a condition');
+
+        $this->query->lateralJoinSubSelect(
+            'natural',
+            'SELECT * FROM t2',
+            'a2',
+            't1.c1 = a2.c1'
+        );
+    }
+
+    /**
+     * A rejected join must not leave a table reference behind, or a caught
+     * exception would corrupt the query.
+     */
+    public function testLateralJoinSubSelect_rejectedJoinLeavesNoTableRef()
+    {
+        $this->query->cols(['*']);
+        $this->query->from('t1');
+
+        try {
+            $this->query->lateralJoinSubSelect('cross', 'SELECT * FROM t2', 'a2', 'true');
+            $this->fail('expected a LogicException');
+        } catch (\Aura\SqlQuery\Exception\LogicException $e) {
+            // the alias is still free, so this must not throw
+            $this->query->lateralJoinSubSelect('cross', 'SELECT * FROM t2', 'a2');
+        }
+
+        $expect = '
+            SELECT
+                *
+            FROM
+                <<t1>>
+                    CROSS JOIN LATERAL (
+                        SELECT * FROM t2
+                    ) <<a2>>
+        ';
+        $this->assertSameSql($expect, $this->query->__toString());
+    }
+
     public function testLateralJoinSubSelect_duplicateRef()
     {
         $this->query->cols(['*']);

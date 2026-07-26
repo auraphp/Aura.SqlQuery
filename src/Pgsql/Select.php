@@ -9,6 +9,7 @@
 namespace Aura\SqlQuery\Pgsql;
 
 use Aura\SqlQuery\Common;
+use Aura\SqlQuery\Exception;
 
 /**
  *
@@ -45,6 +46,13 @@ class Select extends Common\Select
     public function lateralJoinSubSelect($join, $spec, $name, $cond = null, array $bind = [])
     {
         $join = strtoupper(ltrim("$join JOIN LATERAL"));
+
+        if ($cond && $this->joinForbidsCondition($join)) {
+            throw new Exception\LogicException(
+                "A $join cannot take a condition."
+            );
+        }
+
         $this->addTableRef("$join (SELECT ...)", $name);
 
         $spec = $this->subSelect($spec, '            ');
@@ -61,7 +69,8 @@ class Select extends Common\Select
 
     /**
      *
-     * Does this join type forbid an ON clause?
+     * Does this join type render without an ON clause when no condition is
+     * given?
      *
      * @param string $join The upper-cased join clause.
      *
@@ -69,6 +78,27 @@ class Select extends Common\Select
      *
      */
     protected function isUnconditionalJoin($join)
+    {
+        return str_starts_with($join, 'CROSS ')
+            || str_starts_with($join, 'NATURAL ');
+    }
+
+    /**
+     *
+     * Does this join type reject an ON clause outright, so that supplying a
+     * condition can only produce a syntax error?
+     *
+     * PostgreSQL rejects ON on both CROSS and NATURAL joins. Other dialects
+     * differ -- MySQL accepts it on CROSS, where CROSS and INNER are
+     * synonyms -- so this is separate from isUnconditionalJoin() and meant to
+     * be overridden.
+     *
+     * @param string $join The upper-cased join clause.
+     *
+     * @return bool
+     *
+     */
+    protected function joinForbidsCondition($join)
     {
         return str_starts_with($join, 'CROSS ')
             || str_starts_with($join, 'NATURAL ');
