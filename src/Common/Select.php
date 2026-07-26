@@ -270,16 +270,34 @@ class Select extends AbstractQuery implements SelectInterface
     {
         $parts = explode(' ', $spec);
         $count = count($parts);
-        if ($count == 2) {
+        if ($count == 2 && $this->isCompleteExpr($parts[0])) {
             // "col alias"
             $this->cols[$parts[1]] = $parts[0];
-        } elseif ($count == 3 && strtoupper($parts[1]) == 'AS') {
+        } elseif ($count == 3 && strtoupper($parts[1]) == 'AS' && $this->isCompleteExpr($parts[0])) {
             // "col AS alias"
             $this->cols[$parts[2]] = $parts[0];
         } else {
             // no recognized alias
             $this->cols[] = $spec;
         }
+    }
+
+    /**
+     *
+     * Is this a whole column expression, rather than the head of one that a
+     * space inside parentheses has cut in two?
+     *
+     * issue #226: 'COUNT(DISTINCT t.c)' is two space-separated words, but
+     * 'COUNT(DISTINCT' is not a column name and 't.c)' is not an alias.
+     *
+     * @param string $expr The leading word of a column specification.
+     *
+     * @return bool
+     *
+     */
+    protected function isCompleteExpr($expr)
+    {
+        return substr_count($expr, '(') === substr_count($expr, ')');
     }
 
     /**

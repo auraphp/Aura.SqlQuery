@@ -822,6 +822,57 @@ class SelectTest extends AbstractQueryTest
         $this->assertSameSql($expect, $actual);
     }
 
+    /**
+     * issue #226: a space inside parentheses is not an alias separator.
+     * 'COUNT(DISTINCT t1.c1)' is two space-separated tokens, but the first
+     * is not a column name and the second is not an alias.
+     */
+    public function testAddColWithSpaceInsideParens()
+    {
+        $this->query->cols(array(
+            'COUNT(DISTINCT t1.c1)',
+            'COUNT(DISTINCT c2)',
+            'COUNT(DISTINCT t1.c3) AS c3_count',
+            // an implicit alias on a multi-word expression is passed through
+            // as the caller wrote it: still valid SQL, just not quoted
+            'COUNT(DISTINCT t1.c4) c4_count',
+            'convert_tz(t1.open_from, t1.time_zone, @@session.time_zone) open_now',
+        ));
+
+        $actual = $this->query->__toString();
+        $expect = '
+            SELECT
+                COUNT(DISTINCT <<t1>>.<<c1>>),
+                COUNT(DISTINCT c2),
+                COUNT(DISTINCT <<t1>>.<<c3>>) AS <<c3_count>>,
+                COUNT(DISTINCT <<t1>>.<<c4>>) c4_count,
+                convert_tz(<<t1>>.<<open_from>>, <<t1>>.<<time_zone>>, @@session.time_zone) open_now
+        ';
+        $this->assertSameSql($expect, $actual);
+    }
+
+    /**
+     * A balanced call is still a column name, so the two-token alias form
+     * keeps working for it.
+     */
+    public function testAddColWithAliasAfterBalancedParens()
+    {
+        $this->query->cols(array(
+            'COUNT(*) tally',
+            'COUNT(*) AS total',
+            'MAX(t1.c1) hi',
+        ));
+
+        $actual = $this->query->__toString();
+        $expect = '
+            SELECT
+                COUNT(*) AS <<tally>>,
+                COUNT(*) AS <<total>>,
+                MAX(<<t1>>.<<c1>>) AS <<hi>>
+        ';
+        $this->assertSameSql($expect, $actual);
+    }
+
     public function testGetCols()
     {
         $this->query->cols(array('valueBar' => 'aliasFoo'));
