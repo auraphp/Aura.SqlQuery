@@ -95,6 +95,9 @@ $insert->onConflict(['tenant_id', 'email']);          // ON CONFLICT ("tenant_id
 $insert->onConflict('ON CONSTRAINT users_email_key'); // ON CONFLICT ON CONSTRAINT "users_email_key"
 ```
 
+The constraint-name form is PostgreSQL-only; SQLite takes a column list and
+nothing else, and rejects it.
+
 PostgreSQL requires a target for `DO UPDATE`; omitting it throws
 `Aura\SqlQuery\Exception\LogicException` rather than failing at execute time.
 Combining `ignore()` with the `doUpdate*()` methods also throws, since a

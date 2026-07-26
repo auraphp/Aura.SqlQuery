@@ -294,4 +294,15 @@ class InsertTest extends Common\InsertTest
         $this->expectExceptionMessage('Cannot combine IGNORE / DO NOTHING with DO UPDATE SET.');
         $this->query->__toString();
     }
+
+    /**
+     * SQLite takes only a column list as the conflict target; the
+     * constraint-name form is Postgres-only and is a syntax error here.
+     */
+    public function testOnConflictConstraintTargetNotSupported()
+    {
+        $this->expectException('Aura\SqlQuery\Exception\BadMethodCallException');
+        $this->expectExceptionMessage("doesn't support a constraint-name conflict target");
+        $this->query->onConflict('ON CONSTRAINT t1_c1_key');
+    }
 }

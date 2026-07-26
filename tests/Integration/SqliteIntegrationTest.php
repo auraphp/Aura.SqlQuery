@@ -177,4 +177,96 @@ class SqliteIntegrationTest extends AbstractIntegrationTest
         $sth = $this->pdo->query('SELECT name FROM test_dept WHERE id = 1');
         $this->assertSame('Engineering', $sth->fetchColumn());
     }
+
+    /**
+     * A bound value and a raw expression alongside the proposed one, all in
+     * the same DO UPDATE SET.
+     */
+    public function testInsertOnConflictDoUpdateColAndExpression()
+    {
+        $insert = $this->query_factory->newInsert()
+            ->into('test_employee')
+            ->cols(['id' => 1, 'name' => 'Anna', 'dept_id' => 1, 'salary' => 999, 'seq' => 1])
+            ->onConflict('id')
+            ->doUpdateCols(['salary'])
+            ->doUpdateCol('name', 'Renamed')
+            ->doUpdate('seq', 'test_employee.seq + 10');
+
+        $this->assertStatementContains('ON CONFLICT ("id") DO UPDATE SET', $insert);
+
+        $this->assertSame(1, $this->exec($insert));
+
+        $sth = $this->pdo->query('SELECT name, salary, seq FROM test_employee WHERE id = 1');
+        $row = $sth->fetch(PDO::FETCH_ASSOC);
+        $this->assertSame('Renamed', $row['name']);
+        $this->assertSame(999, (int) $row['salary']);
+        $this->assertSame(11, (int) $row['seq']);
+    }
+
+    /**
+     * The WHERE decides whether the conflicting row is updated at all; this
+     * one cannot match, so the existing row survives.
+     */
+    public function testInsertOnConflictDoUpdateWhere()
+    {
+        $insert = $this->query_factory->newInsert()
+            ->into('test_dept')
+            ->cols(['id' => 1, 'name' => 'Attempted'])
+            ->onConflict('id')
+            ->doUpdateCols(['name'])
+            ->doUpdateWhere('test_dept.id > :min', ['min' => 100]);
+
+        $this->assertSame(0, $this->exec($insert));
+
+        $sth = $this->pdo->query('SELECT name FROM test_dept WHERE id = 1');
+        $this->assertSame('Engineering', $sth->fetchColumn());
+    }
+
+    /**
+     * SQLite takes only a column list as the conflict target. The
+     * constraint-name form is Postgres-only and is a syntax error here, so
+     * the builder refuses it rather than letting it reach the database.
+     */
+    public function testInsertOnConflictConstraintTargetNotSupported()
+    {
+        $insert = $this->query_factory->newInsert()
+            ->into('test_dept')
+            ->cols(['id' => 1, 'name' => 'Attempted']);
+
+        $this->expectException('Aura\SqlQuery\Exception\BadMethodCallException');
+        $insert->onConflict('ON CONSTRAINT test_dept_pkey');
+    }
+
+    /**
+     * The equivalent column-list target, which SQLite does accept, proving
+     * the refusal above is about the syntax and not the intent.
+     */
+    public function testInsertOnConflictMultiColumnTarget()
+    {
+        $this->pdo->exec(
+            'CREATE UNIQUE INDEX test_employee_dept_seq
+                ON test_employee (dept_id, seq)'
+        );
+
+        // Anna is seeded as dept_id 1, seq 1
+        $insert = $this->query_factory->newInsert()
+            ->into('test_employee')
+            ->cols(['name' => 'Replacement', 'dept_id' => 1, 'salary' => 555, 'seq' => 1])
+            ->onConflict(['dept_id', 'seq'])
+            ->doUpdateCols(['name', 'salary']);
+
+        $this->assertStatementContains(
+            'ON CONFLICT (<<dept_id>>, <<seq>>) DO UPDATE SET',
+            $insert
+        );
+
+        $this->assertSame(1, $this->exec($insert));
+
+        $sth = $this->pdo->query(
+            'SELECT name, salary FROM test_employee WHERE dept_id = 1 AND seq = 1'
+        );
+        $row = $sth->fetch(PDO::FETCH_ASSOC);
+        $this->assertSame('Replacement', $row['name']);
+        $this->assertSame(555, (int) $row['salary']);
+    }
 }

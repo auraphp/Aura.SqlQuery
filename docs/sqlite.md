@@ -42,6 +42,11 @@ ON CONFLICT ("email") DO UPDATE SET
     "name" = excluded."name"
 ```
 
+The target may be one column or an array of them. Unlike PostgreSQL, SQLite has
+no constraint-name form, so `onConflict('ON CONSTRAINT users_email_key')` throws
+`Aura\SqlQuery\Exception\BadMethodCallException` here; name the indexed columns
+instead.
+
 A conflict target is required for `DO UPDATE`, and the `ON CONFLICT` clause
 cannot be combined with the `OR` flags above; either throws
 `Aura\SqlQuery\Exception\LogicException`. Calling `ignore()` together with a

@@ -25,6 +25,19 @@ class Insert extends Common\Insert implements Common\OnConflictUpdateInterface
 
     /**
      *
+     * SQLite's UPSERT takes only a column list as the conflict target; the
+     * `ON CONSTRAINT <name>` form is Postgres-only.
+     *
+     * @return bool
+     *
+     */
+    protected function allowsConstraintTarget()
+    {
+        return false;
+    }
+
+    /**
+     *
      * Builds the statement.
      *
      * @return string

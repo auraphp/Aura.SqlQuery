@@ -8,6 +8,8 @@
  */
 namespace Aura\SqlQuery\Common;
 
+use Aura\SqlQuery\Exception;
+
 /**
  *
  * A trait implementing OnConflictUpdateInterface.
@@ -17,6 +19,19 @@ namespace Aura\SqlQuery\Common;
  */
 trait OnConflictUpdateTrait
 {
+    /**
+     *
+     * Whether this dialect accepts `ON CONSTRAINT <name>` as the conflict
+     * target; SQLite takes only a column list, so it overrides this.
+     *
+     * @return bool
+     *
+     */
+    protected function allowsConstraintTarget()
+    {
+        return true;
+    }
+
     /**
      *
      * The conflict target column(s) or constraint name.
@@ -64,6 +79,12 @@ trait OnConflictUpdateTrait
         } else {
             $target = trim($target);
             if (stripos($target, 'ON CONSTRAINT ') === 0) {
+                if (! $this->allowsConstraintTarget()) {
+                    throw new Exception\BadMethodCallException(
+                        get_class($this)
+                        . " doesn't support a constraint-name conflict target"
+                    );
+                }
                 $constraint = trim(substr($target, 14));
                 $this->conflict_target = 'ON CONSTRAINT ' . $this->quoter->quoteName($constraint);
             } else {

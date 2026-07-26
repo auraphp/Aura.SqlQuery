@@ -78,8 +78,11 @@
   renders `ON CONFLICT (...) DO NOTHING` instead of `INSERT OR IGNORE`.
   Note that a raw `doUpdate()` expression must qualify any column it names
   on Postgres, which reads a bare name as ambiguous between the target
-  table and `excluded`; SQLite accepts either. Addresses the Postgres half
-  of #124.
+  table and `excluded`; SQLite accepts either. The `ON CONSTRAINT <name>`
+  conflict target is Postgres-only -- SQLite accepts a column list and
+  nothing else, and rejects that syntax -- so passing it to Sqlite\Insert
+  throws Exception\BadMethodCallException instead of building SQL the
+  database cannot parse. Addresses the Postgres half of #124.
 
 - [CHG] Calling `ignore()`, `orReplace()` or the upsert methods on a
   dialect that does not support them now throws

@@ -181,6 +181,31 @@ class InsertTest extends Common\InsertTest
         $this->assertSame('bar', $binds['c3_old']);
     }
 
+    /**
+     * The constraint-name conflict target is Postgres-only.
+     */
+    public function testOnConflictConstraintTarget()
+    {
+        $this->query->into('t1')
+                    ->cols(array('c1', 'c2'))
+                    ->onConflict('ON CONSTRAINT t1_c1_key')
+                    ->doUpdateCols(array('c2'));
+
+        $actual = $this->query->__toString();
+        $expect = "
+            INSERT INTO <<t1>> (
+                <<c1>>,
+                <<c2>>
+            ) VALUES (
+                :c1,
+                :c2
+            )
+            ON CONFLICT ON CONSTRAINT <<t1_c1_key>> DO UPDATE SET
+                <<c2>> = excluded.<<c2>>
+        ";
+        $this->assertSameSql($expect, $actual);
+    }
+
     public function testOnConflictThrowsExceptionWhenNoTarget()
     {
         $this->query->into('t1')
