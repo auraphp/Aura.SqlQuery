@@ -290,6 +290,10 @@ class Select extends AbstractQuery implements SelectInterface
      * issue #226: 'COUNT(DISTINCT t.c)' is two space-separated words, but
      * 'COUNT(DISTINCT' is not a column name and 't.c)' is not an alias.
      *
+     * Parentheses inside a string literal are data, not syntax, so the scan
+     * skips over literals: "CONCAT('(',t.c) alias" is complete, and its
+     * alias is still an alias.
+     *
      * @param string $expr The leading word of a column specification.
      *
      * @return bool
@@ -297,7 +301,38 @@ class Select extends AbstractQuery implements SelectInterface
      */
     protected function isCompleteExpr($expr)
     {
-        return substr_count($expr, '(') === substr_count($expr, ')');
+        $depth = 0;
+        $quote = null;
+        $len = strlen($expr);
+
+        for ($i = 0; $i < $len; $i ++) {
+            $char = $expr[$i];
+
+            if ($quote !== null) {
+                // a doubled quote inside a literal is an escaped one, not
+                // the end of the literal
+                if ($char === $quote && isset($expr[$i + 1]) && $expr[$i + 1] === $quote) {
+                    $i ++;
+                } elseif ($char === $quote) {
+                    $quote = null;
+                }
+                continue;
+            }
+
+            if ($char === "'" || $char === '"') {
+                $quote = $char;
+            } elseif ($char === '(') {
+                $depth ++;
+            } elseif ($char === ')') {
+                $depth --;
+                // a close with nothing open before it is not a column name
+                if ($depth < 0) {
+                    return false;
+                }
+            }
+        }
+
+        return $depth === 0 && $quote === null;
     }
 
     /**

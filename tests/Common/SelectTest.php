@@ -873,6 +873,54 @@ class SelectTest extends AbstractQueryTest
         $this->assertSameSql($expect, $actual);
     }
 
+    /**
+     * A parenthesis inside a string literal is data, not syntax, so it must
+     * not make the expression look unbalanced: the alias is still an alias.
+     */
+    public function testAddColWithAliasAndParenInsideLiteral()
+    {
+        $this->query->cols(array(
+            "CONCAT('(',t1.c1) opener",
+            "CONCAT(t1.c2,')') closer",
+            "CONCAT('(',t1.c3,')') AS wrapped",
+            // a doubled quote is an escaped one, not the end of the literal
+            "CONCAT('it''s(',t1.c4) escaped",
+        ));
+
+        $this->assertTrue($this->query->hasCol('opener'));
+        $this->assertTrue($this->query->hasCol('closer'));
+        $this->assertTrue($this->query->hasCol('wrapped'));
+        $this->assertTrue($this->query->hasCol('escaped'));
+
+        $actual = $this->query->__toString();
+        $expect = "
+            SELECT
+                CONCAT('(',<<t1>>.<<c1>>) AS <<opener>>,
+                CONCAT(<<t1>>.<<c2>>,')') AS <<closer>>,
+                CONCAT('(',<<t1>>.<<c3>>,')') AS <<wrapped>>,
+                CONCAT('it''s(',<<t1>>.<<c4>>) AS <<escaped>>
+        ";
+        $this->assertSameSql($expect, $actual);
+    }
+
+    /**
+     * A closing parenthesis with nothing open before it is not a column
+     * name, so the two-word form is not an alias either.
+     */
+    public function testAddColWithUnopenedParen()
+    {
+        $this->query->cols(array('t1.c1) alias'));
+
+        $this->assertFalse($this->query->hasCol('alias'));
+
+        $actual = $this->query->__toString();
+        $expect = '
+            SELECT
+                <<t1>>.<<c1>>) alias
+        ';
+        $this->assertSameSql($expect, $actual);
+    }
+
     public function testGetCols()
     {
         $this->query->cols(array('valueBar' => 'aliasFoo'));
