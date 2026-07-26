@@ -40,7 +40,7 @@ INSERT OR IGNORE INTO "users" (
 ```
 
 Adding `onConflict()` switches it to the newer clause. That narrows the skip
-twice over: to the constraint named, and to uniqueness conflicts alone — a
+twice over: to the conflict target given, and to uniqueness conflicts alone — a
 `NOT NULL` violation that `INSERT OR IGNORE` would have skipped raises here:
 
 ```php
@@ -96,10 +96,10 @@ no constraint-name form, so `onConflict('ON CONSTRAINT users_email_key')` throws
 instead.
 
 A conflict target is required for `DO UPDATE`, and the `ON CONFLICT` clause
-cannot be combined with the `OR` flags above; either throws
-`Aura\SqlQuery\Exception\LogicException`. Calling `ignore()` together with a
-conflict target renders `ON CONFLICT (...) DO NOTHING` rather than
-`INSERT OR IGNORE`.
+cannot be combined with the other `OR` flags above; either throws
+`Aura\SqlQuery\Exception\LogicException`. `ignore()` is the one exception:
+calling it together with a conflict target is handled specially and renders
+`ON CONFLICT (...) DO NOTHING` rather than `INSERT OR IGNORE`.
 
 Unlike PostgreSQL, SQLite accepts an unqualified column name in a raw
 `doUpdate()` expression, so `doUpdate('hits', 'hits + 1')` runs here but is
