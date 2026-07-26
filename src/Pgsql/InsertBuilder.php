@@ -21,22 +21,4 @@ class InsertBuilder extends Common\InsertBuilder
 {
     use BuildReturningTrait;
     use Common\BuildOnConflictTrait;
-
-    /**
-     *
-     * Builds the `ON CONFLICT DO NOTHING` clause of the statement.
-     *
-     * @param bool $ignore Whether the clause is enabled.
-     *
-     * @return string
-     *
-     */
-    public function buildIgnore($ignore)
-    {
-        if (! $ignore) {
-            return ''; // not applicable
-        }
-
-        return PHP_EOL . 'ON CONFLICT DO NOTHING';
-    }
 }
