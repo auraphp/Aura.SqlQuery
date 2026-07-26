@@ -52,6 +52,189 @@ clause on those and the statement could only fail at execute time.
 ## INSERT
 
 - `returning()` to add a `RETURNING` clause
+- `ignore()` to add an `ON CONFLICT DO NOTHING` clause
+- `onConflict()`, `doUpdateCol()`, `doUpdateCols()`, `doUpdate()` and
+  `doUpdateWhere()` to add an `ON CONFLICT ... DO UPDATE SET` clause
+
+### Skipping conflicting rows
+
+`ignore()` renders `ON CONFLICT DO NOTHING`, so a row that would violate a
+unique or exclusion constraint is skipped instead of raising an error. Only
+those two kinds of conflict are covered — a `NOT NULL`, `CHECK` or foreign-key
+violation still raises, with or without the clause:
+
+```php
+$insert = $queryFactory->newInsert();
+$insert
+    ->ignore()
+    ->into('users')
+    ->cols(['email' => 'alice@example.com', 'name' => 'Alice']);
+```
+
+```sql
+INSERT INTO "users" (
+    "email",
+    "name"
+) VALUES (
+    :email,
+    :name
+)
+ON CONFLICT DO NOTHING
+```
+
+On its own it covers a conflict on any unique or exclusion constraint. Adding
+`onConflict()` narrows it to the one named, so a conflict on a different
+constraint still raises:
+
+```php
+$insert = $queryFactory->newInsert();
+$insert
+    ->ignore()
+    ->onConflict('email')
+    ->into('users')
+    ->cols(['email' => 'alice@example.com', 'name' => 'Alice']);
+```
+
+```sql
+INSERT INTO "users" (
+    "email",
+    "name"
+) VALUES (
+    :email,
+    :name
+)
+ON CONFLICT ("email") DO NOTHING
+```
+
+### Upsert with ON CONFLICT
+
+`onConflict()` names the conflict target, and the `doUpdate*()` methods say what
+to change when a row already conflicts:
+
+```php
+$insert = $queryFactory->newInsert();
+$insert
+    ->into('users')
+    ->cols(['email' => 'alice@example.com', 'name' => 'Alice'])
+    ->onConflict('email')
+    ->doUpdateCols(['name']);
+```
+
+```sql
+INSERT INTO "users" (
+    "email",
+    "name"
+) VALUES (
+    :email,
+    :name
+)
+ON CONFLICT ("email") DO UPDATE SET
+    "name" = excluded."name"
+```
+
+Here `email` is both an inserted column and the conflict target: the row is
+inserted if that email is new, and its `name` is overwritten with the proposed
+`'Alice'` if the email is already present.
+
+The target must be covered by a unique index or primary key. It may be one
+column, an array of columns, or a named constraint:
+
+```php
+$insert->onConflict('email');                         // ON CONFLICT ("email")
+$insert->onConflict(['tenant_id', 'email']);          // ON CONFLICT ("tenant_id", "email")
+$insert->onConflict('ON CONSTRAINT users_email_key'); // ON CONFLICT ON CONSTRAINT "users_email_key"
+```
+
+The constraint-name form is PostgreSQL-only; SQLite takes a column list and
+nothing else, and rejects it.
+
+PostgreSQL requires a target for `DO UPDATE`; omitting it throws
+`Aura\SqlQuery\Exception\LogicException` rather than failing at execute time.
+Combining `ignore()` with the `doUpdate*()` methods also throws, since a
+statement cannot both do nothing and update.
+
+#### Setting the updated values
+
+`doUpdateCol()` binds a value of your own rather than reusing the proposed one,
+and `doUpdate()` takes a raw expression, which is not escaped. This statement
+inserts a page row, and on conflict keeps the proposed title, stamps a fixed
+status, and increments the existing hit count:
+
+```php
+$insert = $queryFactory->newInsert();
+$insert
+    ->into('pages')
+    ->cols(['slug' => 'home', 'title' => 'Home', 'hits' => 1])
+    ->onConflict('slug')
+    ->doUpdateCols(['title'])
+    ->doUpdateCol('status', 'revised')
+    ->doUpdate('hits', 'pages.hits + 1');
+```
+
+```sql
+INSERT INTO "pages" (
+    "slug",
+    "title",
+    "hits"
+) VALUES (
+    :slug,
+    :title,
+    :hits
+)
+ON CONFLICT ("slug") DO UPDATE SET
+    "title" = excluded."title",
+    "status" = :status__on_conflict,
+    "hits" = "pages"."hits" + 1
+```
+
+The bind values are `slug`, `title` and `hits` for the insert, plus
+`status__on_conflict` for the update; `doUpdateCol()` suffixes its placeholder so
+it cannot collide with the inserted column of the same name.
+
+`doUpdateWhere()` decides whether the conflicting row is updated at all. Without
+it every conflict updates; with it, a conflict whose row fails the condition is
+left untouched:
+
+```php
+$insert = $queryFactory->newInsert();
+$insert
+    ->into('pages')
+    ->cols(['slug' => 'home', 'title' => 'Home'])
+    ->onConflict('slug')
+    ->doUpdateCols(['title'])
+    ->doUpdateWhere('pages.locked = :locked', ['locked' => false]);
+```
+
+```sql
+INSERT INTO "pages" (
+    "slug",
+    "title"
+) VALUES (
+    :slug,
+    :title
+)
+ON CONFLICT ("slug") DO UPDATE SET
+    "title" = excluded."title"
+WHERE
+    "pages"."locked" = :locked
+```
+
+### Qualify columns in raw doUpdate() expressions
+
+Inside `DO UPDATE SET`, an unqualified column name is ambiguous between the table
+being inserted into and the `excluded` pseudo-table, and PostgreSQL rejects it:
+
+```php
+// ERROR: column reference "hits" is ambiguous
+$insert->onConflict('id')->doUpdate('hits', 'hits + 1');
+
+// correct
+$insert->onConflict('id')->doUpdate('hits', 'pages.hits + 1');
+```
+
+This applies only to raw expressions passed to `doUpdate()`; `doUpdateCols()` and
+`doUpdateCol()` build qualified references for you. Note that SQLite accepts the
+unqualified form, so an expression that works there can still fail here.
 
 ### Last Insert IDs and Table Inheritance
 

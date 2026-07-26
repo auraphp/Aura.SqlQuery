@@ -6,19 +6,18 @@
  * @license http://opensource.org/licenses/mit-license.php MIT
  *
  */
-namespace Aura\SqlQuery\Pgsql;
+namespace Aura\SqlQuery\Sqlite;
 
 use Aura\SqlQuery\Common;
 
 /**
  *
- * INSERT builder for Postgres.
+ * INSERT builder for SQLite.
  *
  * @package Aura.SqlQuery
  *
  */
 class InsertBuilder extends Common\InsertBuilder
 {
-    use BuildReturningTrait;
     use Common\BuildOnConflictTrait;
 }

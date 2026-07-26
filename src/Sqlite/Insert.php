@@ -9,6 +9,7 @@
 namespace Aura\SqlQuery\Sqlite;
 
 use Aura\SqlQuery\Common;
+use Aura\SqlQuery\Exception;
 
 /**
  *
@@ -17,9 +18,23 @@ use Aura\SqlQuery\Common;
  * @package Aura.SqlQuery
  *
  */
-class Insert extends Common\Insert
+class Insert extends Common\Insert implements Common\OnConflictUpdateInterface
 {
     use OrConflictTrait;
+    use Common\OnConflictUpdateTrait;
+
+    /**
+     *
+     * SQLite's UPSERT takes only a column list as the conflict target; the
+     * `ON CONSTRAINT <name>` form is Postgres-only.
+     *
+     * @return bool
+     *
+     */
+    protected function allowsConstraintTarget()
+    {
+        return false;
+    }
 
     /**
      *
@@ -30,8 +45,62 @@ class Insert extends Common\Insert
      */
     protected function build()
     {
+        $ignore = false;
+        $has_or_ignore = $this->hasFlag('OR IGNORE');
+        if (!empty($this->conflict_target)) {
+            $this->assertNoOrConflictFlags();
+        }
+
         $this->assertOneOrConflictFlag();
-        return parent::build();
+
+        if (!empty($this->conflict_target) && $has_or_ignore) {
+            $this->setFlag('OR IGNORE', false);
+            $ignore = true;
+        }
+
+        try {
+            $stm = parent::build();
+        } finally {
+            if ($has_or_ignore && !empty($this->conflict_target)) {
+                $this->setFlag('OR IGNORE', true);
+            }
+        }
+
+        return $stm
+            . $this->builder->buildOnConflict(
+                $this->conflict_target,
+                $this->conflict_update_values,
+                $this->conflict_where,
+                $ignore
+            );
+    }
+
+    /**
+     *
+     * Asserts that no legacy SQLite OR conflict flags are set when using ON CONFLICT.
+     *
+     * @return void
+     * @throws Exception\LogicException
+     *
+     */
+    protected function assertNoOrConflictFlags()
+    {
+        $set = [];
+        foreach ($this->or_conflict_flags as $flag) {
+            if ($flag === 'OR IGNORE') {
+                continue;
+            }
+            if ($this->hasFlag($flag)) {
+                $set[] = $flag;
+            }
+        }
+
+        if (! empty($set)) {
+            throw new Exception\LogicException(
+                'Cannot combine ON CONFLICT clause with SQLite OR conflict flags: '
+                . implode(' and ', $set) . '.'
+            );
+        }
     }
 
     /**

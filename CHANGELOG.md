@@ -63,12 +63,57 @@
   deprecated aliases. Sqlsrv, which has no equivalent, keeps throwing
   Exception\BadMethodCallException. Fixes #172; related to #158.
 
+- [ADD] Pgsql\Insert and Sqlite\Insert gain an upsert API:
+  `onConflict()` sets the conflict target (a column, an array of columns,
+  or `ON CONSTRAINT <name>`), and `doUpdateCol()`, `doUpdateCols()`,
+  `doUpdate()` and `doUpdateWhere()` build the `DO UPDATE SET` clause.
+  `doUpdateCols()` refers to the proposed row through the `excluded`
+  pseudo-table, `doUpdateCol()` binds a separate value, and `doUpdate()`
+  takes a raw expression. The two dialects share Common\OnConflictUpdate
+  Trait and Common\BuildOnConflictTrait, since SQLite adopted the Postgres
+  grammar in 3.24. Both databases require a conflict target for DO UPDATE,
+  and combining `ignore()` with the doUpdate methods is contradictory;
+  either throws Exception\LogicException at build time. On SQLite the
+  clause cannot be mixed with the `OR` flags, and `ignore()` with a target
+  renders `ON CONFLICT (...) DO NOTHING` instead of `INSERT OR IGNORE`.
+  Note that a raw `doUpdate()` expression must qualify any column it names
+  on Postgres, which reads a bare name as ambiguous between the target
+  table and `excluded`; SQLite accepts either. The `ON CONSTRAINT <name>`
+  conflict target is Postgres-only -- SQLite accepts a column list and
+  nothing else, and rejects that syntax -- so passing it to Sqlite\Insert
+  throws Exception\BadMethodCallException instead of building SQL the
+  database cannot parse. An empty target -- `onConflict([])`,
+  `onConflict('')`, a blank column in the array, or the bare keyword
+  `ON CONSTRAINT` -- throws Exception\InvalidArgumentException, rather than
+  rendering `ON CONFLICT ()` for the database to reject. Addresses the
+  Postgres half of #124.
+
+- [CHG] Calling `ignore()`, `orReplace()` or the upsert methods on a
+  dialect that does not support them now throws
+  Exception\BadMethodCallException. Common\Insert::ignore() already did,
+  but there was no counterpart on Common\Update or Common\Delete and none
+  for orReplace(), so most unsupported combinations were a fatal "call to
+  undefined method" instead: `ignore()` on Pgsql Update and Delete, Sqlite
+  Delete, and Sqlsrv Update and Delete (since SQL Server has no DELETE
+  IGNORE equivalent); `orReplace()` on Mysql Update, Pgsql Insert and
+  Update, and Sqlsrv Insert and Update. These are correct refusals rather
+  than gaps to fill -- SQLite's DELETE grammar has no OR clause, and
+  Postgres has no REPLACE. `orReplace()` on a Delete remains undefined on
+  every dialect, since no dialect has such a flag there.
+
 - [FIX] Mysql\Insert::orReplace() combined with highPriority() or ignore()
   built `REPLACE HIGH_PRIORITY INTO` / `REPLACE IGNORE INTO`, which MySQL
   rejects at parse time: rewriting the INSERT keyword left the flags in
   place, and REPLACE accepts only LOW_PRIORITY and DELAYED. The
   combination now throws Exception\LogicException when the statement is
   built, whichever order the two methods were called in.
+
+- [FIX] Mysql\Insert::orReplace() combined with the
+  onDuplicateKeyUpdate*() methods built
+  `REPLACE INTO ... ON DUPLICATE KEY UPDATE`, which MySQL rejects with a
+  1064 syntax error: REPLACE resolves a conflict by deleting the old row,
+  so it has no update clause to take. The combination now throws
+  Exception\LogicException when the statement is built.
 
 - [FIX] Mysql\Insert accepted two priority modifiers at once, building
   `INSERT LOW_PRIORITY HIGH_PRIORITY INTO` and the like; MySQL takes at

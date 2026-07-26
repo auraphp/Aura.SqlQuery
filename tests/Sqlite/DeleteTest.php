@@ -7,6 +7,17 @@ class DeleteTest extends Common\DeleteTest
 {
     protected $db_type = 'sqlite';
 
+    /**
+     * SQLite's DELETE grammar has no OR clause; asking for it has to say so rather than
+     * fatal on an undefined method.
+     */
+    public function testIgnoreNotSupported()
+    {
+        $this->expectException('Aura\SqlQuery\Exception\BadMethodCallException');
+        $this->expectExceptionMessage("doesn't support IGNORE flag");
+        $this->query->ignore();
+    }
+
     public function testOrderLimit()
     {
         $this->query->from('t1')

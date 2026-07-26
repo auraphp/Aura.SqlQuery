@@ -72,6 +72,26 @@ for this dialect.
 
 [odbc]: https://learn.microsoft.com/sql/connect/odbc/download-odbc-driver-for-sql-server
 
+## Checking the documentation examples
+
+Every `php` example in `docs/` that is followed by a `sql` block is checked
+against the SQL the builder really emits, so the two cannot drift apart:
+
+```sh
+php ../scripts/verify-doc-examples.php .
+```
+
+The checker is shared between Aura packages and lives outside this repo, in
+`scripts/verify-doc-examples.php` alongside the package checkouts; adjust the
+path if yours sit elsewhere. What it needs from a package is the adapter at
+`tests/doc-examples.php`, which says where the docs are, which query factory an
+example expects, and how to turn the result into SQL.
+
+It exits non-zero on the first mismatch and names the file and line, so a
+changed clause shows up as a failing example rather than as stale docs. Write
+examples as complete statements — the checker evaluates each `php` block on its
+own, so a snippet that continues an earlier one has nothing to build.
+
 A test class skips only when its `DB_*_DSN` is unset. Once a DSN is set, the
 tests try to connect for real, and anything wrong from there on — a missing
 extension, a missing ODBC driver, an unreachable server, a bad password —

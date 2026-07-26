@@ -9,6 +9,7 @@
 namespace Aura\SqlQuery\Common;
 
 use Aura\SqlQuery\AbstractDmlQuery;
+use Aura\SqlQuery\Exception\BadMethodCallException;
 use Aura\SqlQuery\Exception\LogicException;
 
 /**
@@ -67,6 +68,36 @@ class Update extends AbstractDmlQuery implements UpdateInterface
             . $this->builder->buildValuesForUpdate($this->col_values)
             . $this->builder->buildWhere($this->where)
             . $this->builder->buildOrderBy($this->order_by);
+    }
+
+    /**
+     *
+     * Adds IGNORE flag depending on DB syntax.
+     *
+     * @param bool $enable Set or unset flag (default true).
+     * @throws BadMethodCallException
+     * @return static
+     *
+     */
+    public function ignore($enable = true)
+    {
+        // override in child classes
+        throw new BadMethodCallException(get_class($this) . " doesn't support IGNORE flag");
+    }
+
+    /**
+     *
+     * Adds OR REPLACE flag depending on DB syntax.
+     *
+     * @param bool $enable Set or unset flag (default true).
+     * @throws BadMethodCallException
+     * @return static
+     *
+     */
+    public function orReplace($enable = true)
+    {
+        // override in child classes
+        throw new BadMethodCallException(get_class($this) . " doesn't support OR REPLACE flag");
     }
 
     /**

@@ -9,6 +9,7 @@
 namespace Aura\SqlQuery\Common;
 
 use Aura\SqlQuery\AbstractDmlQuery;
+use Aura\SqlQuery\Exception\BadMethodCallException;
 
 /**
  *
@@ -43,6 +44,21 @@ class Delete extends AbstractDmlQuery implements DeleteInterface
     {
         $this->from = $this->quoter->quoteName($from);
         return $this;
+    }
+
+    /**
+     *
+     * Adds IGNORE flag depending on DB syntax.
+     *
+     * @param bool $enable Set or unset flag (default true).
+     * @throws BadMethodCallException
+     * @return static
+     *
+     */
+    public function ignore($enable = true)
+    {
+        // override in child classes
+        throw new BadMethodCallException(get_class($this) . " doesn't support IGNORE flag");
     }
 
     /**

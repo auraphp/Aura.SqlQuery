@@ -270,6 +270,12 @@ class Insert extends Common\Insert
      */
     protected function build()
     {
+        if ($this->use_replace && ! empty($this->col_on_update_values)) {
+            throw new Exception\LogicException(
+                'A REPLACE statement cannot take an ON DUPLICATE KEY UPDATE clause.'
+            );
+        }
+
         $stm = parent::build();
 
         $this->assertOnePriorityFlag();
