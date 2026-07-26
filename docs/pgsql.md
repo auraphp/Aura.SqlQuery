@@ -52,6 +52,63 @@ clause on those and the statement could only fail at execute time.
 ## INSERT
 
 - `returning()` to add a `RETURNING` clause
+- `ignore()` to add an `ON CONFLICT DO NOTHING` clause
+- `onConflict()`, `doUpdateCol()`, `doUpdateCols()`, `doUpdate()` and
+  `doUpdateWhere()` to add an `ON CONFLICT ... DO UPDATE SET` clause
+
+### Upsert with ON CONFLICT
+
+`onConflict()` names the conflict target, and the `doUpdate*()` methods say what
+to change when a row already conflicts:
+
+```php
+$insert = $queryFactory->newInsert();
+$insert
+    ->into('users')
+    ->cols(['email' => 'alice@example.com', 'name' => 'Alice'])
+    ->onConflict('email')
+    ->doUpdateCols(['name']);
+```
+
+```sql
+INSERT INTO "users" (
+    "email",
+    "name"
+) VALUES (
+    :email,
+    :name
+)
+ON CONFLICT ("email") DO UPDATE SET
+    "name" = excluded."name"
+```
+
+The target may be one column, an array of columns, or a named constraint written
+as `onConflict('ON CONSTRAINT users_email_key')`. PostgreSQL requires a target
+for `DO UPDATE`; omitting it throws `Aura\SqlQuery\Exception\LogicException`
+rather than failing at execute time. Combining `ignore()` with the `doUpdate*()`
+methods also throws, since a statement cannot both do nothing and update.
+
+`doUpdateCols()` refers to the values you tried to insert through the `excluded`
+pseudo-table. `doUpdateCol()` binds a separate value instead, and `doUpdate()`
+takes a raw expression. `doUpdateWhere()` adds a condition that decides whether
+the conflicting row is updated at all.
+
+### Qualify columns in raw doUpdate() expressions
+
+Inside `DO UPDATE SET`, an unqualified column name is ambiguous between the table
+being inserted into and the `excluded` pseudo-table, and PostgreSQL rejects it:
+
+```php
+// ERROR: column reference "hits" is ambiguous
+$insert->onConflict('id')->doUpdate('hits', 'hits + 1');
+
+// correct
+$insert->onConflict('id')->doUpdate('hits', 'pages.hits + 1');
+```
+
+This applies only to raw expressions passed to `doUpdate()`; `doUpdateCols()` and
+`doUpdateCol()` build qualified references for you. Note that SQLite accepts the
+unqualified form, so an expression that works there can still fail here.
 
 ### Last Insert IDs and Table Inheritance
 

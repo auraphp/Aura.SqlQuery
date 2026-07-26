@@ -143,4 +143,38 @@ class SqliteIntegrationTest extends AbstractIntegrationTest
             $sth->fetchAll(PDO::FETCH_ASSOC)
         );
     }
+
+    public function testInsertOnConflictUpdate()
+    {
+        $insert = $this->query_factory->newInsert()
+            ->into('test_dept')
+            ->cols(['id' => 1, 'name' => 'Attempted'])
+            ->onConflict('id')
+            ->doUpdateCols(['name']);
+
+        $this->assertStatementContains('ON CONFLICT ("id") DO UPDATE SET', $insert);
+
+        // id 1 already exists (Engineering). It should be updated to 'Attempted'.
+        $this->exec($insert);
+
+        $sth = $this->pdo->query('SELECT name FROM test_dept WHERE id = 1');
+        $this->assertSame('Attempted', $sth->fetchColumn());
+    }
+
+    public function testInsertOnConflictDoNothing()
+    {
+        $insert = $this->query_factory->newInsert()
+            ->into('test_dept')
+            ->cols(['id' => 1, 'name' => 'Attempted'])
+            ->onConflict('id')
+            ->ignore();
+
+        $this->assertStatementContains('ON CONFLICT ("id") DO NOTHING', $insert);
+
+        // id 1 already exists. It should NOT be updated.
+        $this->exec($insert);
+
+        $sth = $this->pdo->query('SELECT name FROM test_dept WHERE id = 1');
+        $this->assertSame('Engineering', $sth->fetchColumn());
+    }
 }

@@ -7,6 +7,17 @@ class InsertTest extends Common\InsertTest
 {
     protected $db_type = 'pgsql';
 
+    /**
+     * Postgres has no REPLACE; asking for it has to say so rather than
+     * fatal on an undefined method.
+     */
+    public function testOrReplaceNotSupported()
+    {
+        $this->expectException('Aura\SqlQuery\Exception\BadMethodCallException');
+        $this->expectExceptionMessage("doesn't support OR REPLACE flag");
+        $this->query->orReplace();
+    }
+
     public function testReturning()
     {
         $this->query->into('t1')
@@ -89,5 +100,130 @@ class InsertTest extends Common\InsertTest
         ";
 
         $this->assertSameSql($expect, $actual);
+    }
+
+    public function testOnConflictDoNothing()
+    {
+        $this->query->into('t1')
+                    ->cols(array('c1', 'c2'))
+                    ->onConflict('c1')
+                    ->ignore();
+
+        $actual = $this->query->__toString();
+        $expect = "
+            INSERT INTO <<t1>> (
+                <<c1>>,
+                <<c2>>
+            ) VALUES (
+                :c1,
+                :c2
+            )
+            ON CONFLICT (<<c1>>) DO NOTHING
+        ";
+        $this->assertSameSql($expect, $actual);
+    }
+
+    public function testOnConflictDoUpdate()
+    {
+        $this->query->into('t1')
+                    ->cols(array('c1', 'c2', 'c3'))
+                    ->onConflict(array('c1', 'c2'))
+                    ->doUpdateCols(array('c2'))
+                    ->doUpdate('c3', 'excluded.c3');
+
+        $actual = $this->query->__toString();
+        $expect = "
+            INSERT INTO <<t1>> (
+                <<c1>>,
+                <<c2>>,
+                <<c3>>
+            ) VALUES (
+                :c1,
+                :c2,
+                :c3
+            )
+            ON CONFLICT (<<c1>>, <<c2>>) DO UPDATE SET
+                <<c2>> = excluded.<<c2>>,
+                <<c3>> = <<excluded>>.<<c3>>
+        ";
+        $this->assertSameSql($expect, $actual);
+    }
+
+    public function testOnConflictDoUpdateWhere()
+    {
+        $this->query->into('t1')
+                    ->cols(array('c1', 'c2'))
+                    ->onConflict('c1')
+                    ->doUpdateCol('c2', 'c2-updated')
+                    ->doUpdateWhere('t1.c2 != :c2_old', array('c2_old' => 'foo'))
+                    ->doUpdateWhere('t1.c3 = :c3_old', array('c3_old' => 'bar'));
+
+        $actual = $this->query->__toString();
+        $expect = "
+            INSERT INTO <<t1>> (
+                <<c1>>,
+                <<c2>>
+            ) VALUES (
+                :c1,
+                :c2
+            )
+            ON CONFLICT (<<c1>>) DO UPDATE SET
+                <<c2>> = :c2__on_conflict
+            WHERE
+                <<t1>>.<<c2>> != :c2_old
+                AND <<t1>>.<<c3>> = :c3_old
+        ";
+        $this->assertSameSql($expect, $actual);
+
+        $binds = $this->query->getBindValues();
+        $this->assertSame('c2-updated', $binds['c2__on_conflict']);
+        $this->assertSame('foo', $binds['c2_old']);
+        $this->assertSame('bar', $binds['c3_old']);
+    }
+
+    public function testOnConflictThrowsExceptionWhenNoTarget()
+    {
+        $this->query->into('t1')
+                    ->cols(array('c1', 'c2'))
+                    ->doUpdateCols(array('c2'));
+
+        $this->expectException('Aura\SqlQuery\Exception\LogicException');
+        $this->expectExceptionMessage('Database requires a conflict target for DO UPDATE.');
+        $this->query->__toString();
+    }
+
+    public function testOnConflictDoUpdateAmbiguousColumn()
+    {
+        $this->query->into('t1')
+                    ->cols(array('c1', 'hits'))
+                    ->onConflict('c1')
+                    ->doUpdate('hits', 't1.hits + 1');
+
+        $actual = $this->query->__toString();
+        $expect = "
+            INSERT INTO <<t1>> (
+                <<c1>>,
+                <<hits>>
+            ) VALUES (
+                :c1,
+                :hits
+            )
+            ON CONFLICT (<<c1>>) DO UPDATE SET
+                <<hits>> = <<t1>>.<<hits>> + 1
+        ";
+        $this->assertSameSql($expect, $actual);
+    }
+
+    public function testOnConflictThrowsExceptionWhenIgnoreAndUpdate()
+    {
+        $this->query->into('t1')
+                    ->cols(array('c1', 'c2'))
+                    ->onConflict('c1')
+                    ->ignore()
+                    ->doUpdateCols(array('c2'));
+
+        $this->expectException('Aura\SqlQuery\Exception\LogicException');
+        $this->expectExceptionMessage('Cannot combine IGNORE / DO NOTHING with DO UPDATE SET.');
+        $this->query->__toString();
     }
 }

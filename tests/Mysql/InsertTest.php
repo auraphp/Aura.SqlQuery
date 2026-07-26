@@ -313,4 +313,11 @@ class InsertTest extends Common\InsertTest
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);
     }
+
+    public function testOnConflictNotSupported()
+    {
+        $this->expectException('Aura\SqlQuery\Exception\BadMethodCallException');
+        $this->expectExceptionMessage("doesn't support ON CONFLICT clause");
+        $this->query->onConflict('id');
+    }
 }

@@ -17,9 +17,10 @@ use Aura\SqlQuery\Common;
  * @package Aura.SqlQuery
  *
  */
-class Insert extends Common\Insert implements ReturningInterface
+class Insert extends Common\Insert implements ReturningInterface, Common\OnConflictUpdateInterface
 {
     use ReturningTrait;
+    use Common\OnConflictUpdateTrait;
 
     /**
      *
@@ -56,7 +57,12 @@ class Insert extends Common\Insert implements ReturningInterface
     protected function build()
     {
         return parent::build()
-            . $this->builder->buildIgnore($this->ignore)
+            . $this->builder->buildOnConflict(
+                $this->conflict_target,
+                $this->conflict_update_values,
+                $this->conflict_where,
+                $this->ignore
+            )
             . $this->builder->buildReturning($this->returning);
     }
 

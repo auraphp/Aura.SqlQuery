@@ -63,6 +63,34 @@
   deprecated aliases. Sqlsrv, which has no equivalent, keeps throwing
   Exception\BadMethodCallException. Fixes #172; related to #158.
 
+- [ADD] Pgsql\Insert and Sqlite\Insert gain an upsert API:
+  `onConflict()` sets the conflict target (a column, an array of columns,
+  or `ON CONSTRAINT <name>`), and `doUpdateCol()`, `doUpdateCols()`,
+  `doUpdate()` and `doUpdateWhere()` build the `DO UPDATE SET` clause.
+  `doUpdateCols()` refers to the proposed row through the `excluded`
+  pseudo-table, `doUpdateCol()` binds a separate value, and `doUpdate()`
+  takes a raw expression. The two dialects share Common\OnConflictUpdate
+  Trait and Common\BuildOnConflictTrait, since SQLite adopted the Postgres
+  grammar in 3.24. Both databases require a conflict target for DO UPDATE,
+  and combining `ignore()` with the doUpdate methods is contradictory;
+  either throws Exception\LogicException at build time. On SQLite the
+  clause cannot be mixed with the `OR` flags, and `ignore()` with a target
+  renders `ON CONFLICT (...) DO NOTHING` instead of `INSERT OR IGNORE`.
+  Note that a raw `doUpdate()` expression must qualify any column it names
+  on Postgres, which reads a bare name as ambiguous between the target
+  table and `excluded`; SQLite accepts either. Addresses the Postgres half
+  of #124.
+
+- [CHG] Calling `ignore()`, `orReplace()` or the upsert methods on a
+  dialect that does not support them now throws
+  Exception\BadMethodCallException everywhere. Common\Insert::ignore()
+  already did, but there was no counterpart on Common\Update or
+  Common\Delete and none for orReplace(), so most unsupported combinations
+  were a fatal "call to undefined method" instead: ignore() on Pgsql
+  Update/Delete, Sqlsrv Update and Sqlite Delete, and orReplace() on Pgsql
+  and Sqlsrv Insert. These are correct refusals rather than gaps to fill --
+  SQLite's DELETE grammar has no OR clause, and Postgres has no REPLACE.
+
 - [FIX] Mysql\Insert::orReplace() combined with highPriority() or ignore()
   built `REPLACE HIGH_PRIORITY INTO` / `REPLACE IGNORE INTO`, which MySQL
   rejects at parse time: rewriting the INSERT keyword left the flags in

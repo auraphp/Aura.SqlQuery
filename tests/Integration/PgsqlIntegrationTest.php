@@ -216,6 +216,123 @@ class PgsqlIntegrationTest extends AbstractIntegrationTest
         );
     }
 
+    public function testInsertOnConflictUpdate()
+    {
+        $insert = $this->query_factory->newInsert()
+            ->into('test_dept')
+            ->cols(['id' => 1, 'name' => 'Attempted'])
+            ->onConflict('id')
+            ->doUpdateCols(['name']);
+
+        $this->assertStatementContains('ON CONFLICT ("id") DO UPDATE SET', $insert);
+
+        // id 1 already holds Engineering, so the insert turns into an update
+        $this->assertSame(1, $this->exec($insert));
+
+        $sth = $this->pdo->query('SELECT name FROM test_dept WHERE id = 1');
+        $this->assertSame('Attempted', $sth->fetchColumn());
+    }
+
+    public function testInsertOnConflictDoNothing()
+    {
+        $insert = $this->query_factory->newInsert()
+            ->into('test_dept')
+            ->cols(['id' => 1, 'name' => 'Attempted'])
+            ->onConflict('id')
+            ->ignore();
+
+        $this->assertStatementContains('ON CONFLICT ("id") DO NOTHING', $insert);
+
+        $this->assertSame(0, $this->exec($insert));
+
+        $sth = $this->pdo->query('SELECT name FROM test_dept WHERE id = 1');
+        $this->assertSame('Engineering', $sth->fetchColumn());
+    }
+
+    /**
+     * The conflict target may name a constraint instead of its columns.
+     */
+    public function testInsertOnConflictConstraintTarget()
+    {
+        $insert = $this->query_factory->newInsert()
+            ->into('test_dept')
+            ->cols(['id' => 1, 'name' => 'ByConstraint'])
+            ->onConflict('ON CONSTRAINT test_dept_pkey')
+            ->doUpdateCols(['name']);
+
+        $this->assertStatementContains(
+            'ON CONFLICT ON CONSTRAINT <<test_dept_pkey>> DO UPDATE SET',
+            $insert
+        );
+
+        $this->assertSame(1, $this->exec($insert));
+
+        $sth = $this->pdo->query('SELECT name FROM test_dept WHERE id = 1');
+        $this->assertSame('ByConstraint', $sth->fetchColumn());
+    }
+
+    /**
+     * The WHERE decides whether the conflicting row is updated at all; this
+     * one cannot match, so the existing row survives untouched.
+     */
+    public function testInsertOnConflictDoUpdateWhere()
+    {
+        $insert = $this->query_factory->newInsert()
+            ->into('test_dept')
+            ->cols(['id' => 1, 'name' => 'Attempted'])
+            ->onConflict('id')
+            ->doUpdateCols(['name'])
+            ->doUpdateWhere('test_dept.id > :min', ['min' => 100]);
+
+        $this->assertStatementContains('DO UPDATE SET', $insert);
+
+        $this->assertSame(0, $this->exec($insert));
+
+        $sth = $this->pdo->query('SELECT name FROM test_dept WHERE id = 1');
+        $this->assertSame('Engineering', $sth->fetchColumn());
+    }
+
+    /**
+     * A raw expression in doUpdate() has to qualify any column it names.
+     * Inside DO UPDATE SET, a bare column is ambiguous between the target
+     * table and the excluded pseudo-table, and Postgres rejects it -- where
+     * SQLite accepts the same expression. See docs/pgsql.md.
+     */
+    public function testInsertOnConflictRawExpressionMustQualifyColumns()
+    {
+        // test_dept has explicit ids; test_employee's come from a SERIAL, and
+        // sequences are not rolled back with the surrounding transaction, so
+        // its ids differ from run to run
+        $unqualified = $this->query_factory->newInsert()
+            ->into('test_dept')
+            ->cols(['id' => 1, 'name' => 'Attempted'])
+            ->onConflict('id')
+            ->doUpdate('name', "name || '-updated'");
+
+        // Postgres aborts the surrounding transaction on error, so the
+        // failure is isolated behind a savepoint to let the test continue
+        $this->pdo->exec('SAVEPOINT before_ambiguous');
+        try {
+            $this->exec($unqualified);
+            $this->fail('Expected an ambiguous-column error.');
+        } catch (\PDOException $e) {
+            $this->assertStringContainsString('ambiguous', $e->getMessage());
+        }
+        $this->pdo->exec('ROLLBACK TO SAVEPOINT before_ambiguous');
+
+        // qualifying the column resolves it
+        $qualified = $this->query_factory->newInsert()
+            ->into('test_dept')
+            ->cols(['id' => 1, 'name' => 'Attempted'])
+            ->onConflict('id')
+            ->doUpdate('name', "test_dept.name || '-updated'");
+
+        $this->assertSame(1, $this->exec($qualified));
+
+        $sth = $this->pdo->query('SELECT name FROM test_dept WHERE id = 1');
+        $this->assertSame('Engineering-updated', $sth->fetchColumn());
+    }
+
     public function testGetLastInsertIdName()
     {
         $insert = $this->query_factory->newInsert()

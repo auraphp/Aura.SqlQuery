@@ -293,6 +293,99 @@ class Insert extends AbstractDmlQuery implements InsertInterface
 
     /**
      *
+     * Adds OR REPLACE flag depending on DB syntax.
+     *
+     * @param bool $enable Set or unset flag (default true).
+     * @throws BadMethodCallException
+     * @return static
+     *
+     */
+    public function orReplace($enable = true)
+    {
+        // override in child classes
+        throw new BadMethodCallException(get_class($this) . " doesn't support OR REPLACE flag");
+    }
+
+    /**
+     *
+     * Sets the conflict target column(s) or constraint name.
+     *
+     * @param string|array $target
+     * @throws BadMethodCallException
+     * @return static
+     *
+     */
+    public function onConflict($target)
+    {
+        // override in child classes
+        throw new BadMethodCallException(get_class($this) . " doesn't support ON CONFLICT clause");
+    }
+
+    /**
+     *
+     * Sets one column value placeholder for the UPDATE on conflict.
+     *
+     * @param string $col
+     * @param array $value
+     * @throws BadMethodCallException
+     * @return static
+     *
+     */
+    public function doUpdateCol($col, ...$value)
+    {
+        // override in child classes
+        throw new BadMethodCallException(get_class($this) . " doesn't support DO UPDATE SET clause");
+    }
+
+    /**
+     *
+     * Sets multiple column value placeholders for the UPDATE on conflict.
+     *
+     * @param array $cols
+     * @throws BadMethodCallException
+     * @return static
+     *
+     */
+    public function doUpdateCols(array $cols)
+    {
+        // override in child classes
+        throw new BadMethodCallException(get_class($this) . " doesn't support DO UPDATE SET clause");
+    }
+
+    /**
+     *
+     * Sets a column value directly for the UPDATE on conflict.
+     *
+     * @param string $col
+     * @param string $value
+     * @throws BadMethodCallException
+     * @return static
+     *
+     */
+    public function doUpdate($col, $value)
+    {
+        // override in child classes
+        throw new BadMethodCallException(get_class($this) . " doesn't support DO UPDATE SET clause");
+    }
+
+    /**
+     *
+     * Adds a WHERE condition for the UPDATE on conflict.
+     *
+     * @param string $condition
+     * @param array $bind
+     * @throws BadMethodCallException
+     * @return static
+     *
+     */
+    public function doUpdateWhere($condition, ...$bind)
+    {
+        // override in child classes
+        throw new BadMethodCallException(get_class($this) . " doesn't support ON CONFLICT ... WHERE clause");
+    }
+
+    /**
+     *
      * Finishes off the current row in a bulk insert, collecting the bulk
      * values and resetting for the next row.
      *
