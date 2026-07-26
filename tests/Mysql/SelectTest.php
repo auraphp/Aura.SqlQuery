@@ -5,7 +5,37 @@ use Aura\SqlQuery\Common;
 
 class SelectTest extends Common\SelectTest
 {
+    use Common\LateralJoinTestTrait;
+
     protected $db_type = 'mysql';
+
+    /**
+     * Unlike Postgres, MySQL accepts an ON clause on a CROSS join, because
+     * CROSS and INNER are synonyms there. So a condition is rendered rather
+     * than rejected; see Pgsql\SelectTest for the contrast.
+     */
+    public function testLateralJoinSubSelect_crossWithCondition()
+    {
+        $this->query->cols(['*']);
+        $this->query->from('t1');
+        $this->query->lateralJoinSubSelect(
+            'cross',
+            'SELECT * FROM t2',
+            'a2',
+            't1.c1 = a2.c1'
+        );
+        $expect = '
+            SELECT
+                *
+            FROM
+                <<t1>>
+                    CROSS JOIN LATERAL (
+                        SELECT * FROM t2
+                    ) <<a2>> ON <<t1>>.<<c1>> = <<a2>>.<<c1>>
+        ';
+        $actual = $this->query->__toString();
+        $this->assertSameSql($expect, $actual);
+    }
 
     protected $expected_sql_with_flag = '
         SELECT %s

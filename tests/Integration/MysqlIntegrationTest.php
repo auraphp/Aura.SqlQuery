@@ -69,6 +69,132 @@ class MysqlIntegrationTest extends AbstractIntegrationTest
         return "find_in_set({$col}, {$param})";
     }
 
+    /**
+     * LATERAL arrived in MySQL 8.0.14; MariaDB has no equivalent at all, and
+     * shares this 'mysql' db_type.
+     */
+    protected function skipUnlessLateralSupported(): void
+    {
+        $version = $this->pdo->getAttribute(PDO::ATTR_SERVER_VERSION);
+
+        if (stripos($version, 'mariadb') !== false) {
+            $this->markTestSkipped("MariaDB does not support LATERAL ($version).");
+        }
+
+        if (version_compare($version, '8.0.14', '<')) {
+            $this->markTestSkipped("MySQL $version is older than 8.0.14.");
+        }
+    }
+
+    public function testLateralJoinSubSelect()
+    {
+        $this->skipUnlessLateralSupported();
+
+        // the top earner in each department
+        $select = $this->query_factory->newSelect()
+            ->cols(['test_dept.name AS dept_name', 'top.name AS employee_name'])
+            ->from('test_dept')
+            ->lateralJoinSubSelect(
+                'left',
+                'SELECT name, salary FROM test_employee
+                 WHERE test_employee.dept_id = test_dept.id
+                 ORDER BY salary DESC LIMIT 1',
+                'top',
+                'true'
+            )
+            ->orderBy(['test_dept.name']);
+
+        $this->assertStatementContains('LEFT JOIN LATERAL', $select);
+
+        $rows = $this->fetchAll($select);
+        $this->assertSame(
+            ['Betty', 'Donna'],
+            array_column($rows, 'employee_name')
+        );
+    }
+
+    /**
+     * MySQL rejects a LEFT JOIN LATERAL with no ON clause, so "ON true" has to
+     * be supplied.
+     */
+    public function testLateralJoinSubSelect_noCondition()
+    {
+        $this->skipUnlessLateralSupported();
+
+        $select = $this->query_factory->newSelect()
+            ->cols(['test_dept.name AS dept_name', 'top.name AS employee_name'])
+            ->from('test_dept')
+            ->lateralJoinSubSelect(
+                'left',
+                'SELECT name FROM test_employee
+                 WHERE test_employee.dept_id = test_dept.id
+                 ORDER BY salary DESC LIMIT 1',
+                'top'
+            )
+            ->orderBy(['test_dept.name']);
+
+        $this->assertStatementContains('ON true', $select);
+
+        $rows = $this->fetchAll($select);
+        $this->assertSame(
+            ['Betty', 'Donna'],
+            array_column($rows, 'employee_name')
+        );
+    }
+
+    public function testLateralJoinSubSelect_cross()
+    {
+        $this->skipUnlessLateralSupported();
+
+        $select = $this->query_factory->newSelect()
+            ->cols(['test_dept.name AS dept_name', 'top.name AS employee_name'])
+            ->from('test_dept')
+            ->lateralJoinSubSelect(
+                'cross',
+                'SELECT name FROM test_employee
+                 WHERE test_employee.dept_id = test_dept.id
+                 ORDER BY salary DESC LIMIT 1',
+                'top'
+            )
+            ->orderBy(['test_dept.name']);
+
+        $this->assertStatementContains('CROSS JOIN LATERAL', $select);
+        $this->assertStringNotContainsString('ON true', (string) $select);
+
+        $rows = $this->fetchAll($select);
+        $this->assertSame(
+            ['Betty', 'Donna'],
+            array_column($rows, 'employee_name')
+        );
+    }
+
+    /**
+     * MySQL accepts an ON clause on a CROSS join, where Postgres rejects it.
+     * Mysql\Select relaxes joinForbidsCondition() for exactly this, so prove
+     * the relaxed case really runs.
+     */
+    public function testLateralJoinSubSelect_crossWithCondition()
+    {
+        $this->skipUnlessLateralSupported();
+
+        $select = $this->query_factory->newSelect()
+            ->cols(['test_dept.name AS dept_name', 'top.name AS employee_name'])
+            ->from('test_dept')
+            ->lateralJoinSubSelect(
+                'cross',
+                'SELECT name, dept_id FROM test_employee
+                 ORDER BY salary DESC LIMIT 1',
+                'top',
+                'top.dept_id = test_dept.id'
+            )
+            ->orderBy(['test_dept.name']);
+
+        $this->assertStatementContains('CROSS JOIN LATERAL', $select);
+
+        $rows = $this->fetchAll($select);
+        $this->assertSame(['Donna'], array_column($rows, 'employee_name'));
+    }
+
     public function testSelectSessionVariable()
     {
         // issue #226: quoting the parts of @@session.time_zone made this
