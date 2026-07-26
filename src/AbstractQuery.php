@@ -32,6 +32,30 @@ abstract class AbstractQuery
 
     /**
      *
+     * Which part of the query bound each placeholder name; null means it was
+     * bound by hand. Keys match $bind_values.
+     *
+     * @var array
+     *
+     */
+    protected $bind_sources = array();
+
+    /**
+     *
+     * Human-readable names for the $bind_sources values, for error messages.
+     *
+     * @var array
+     *
+     */
+    protected $bind_source_labels = array(
+        'col' => 'cols()',
+        'cond' => 'a condition',
+        'conflict' => 'doUpdateCol()',
+        'duplicate_key' => 'onDuplicateKeyUpdateCol()',
+    );
+
+    /**
+     *
      * The list of WHERE conditions.
      *
      * @var array
@@ -184,7 +208,73 @@ abstract class AbstractQuery
      */
     public function bindValue($name, $value)
     {
+        return $this->bindValueFrom($name, $value, null);
+    }
+
+    /**
+     *
+     * Binds a single value, recording which part of the query asked for it.
+     *
+     * Two different parts of a query claiming the same placeholder name is a
+     * mistake: only one value can survive in the flat bind array, so the
+     * other is silently discarded and the statement runs with the wrong data.
+     * Throw instead of losing it.
+     *
+     * A null source means the caller bound the value by hand, which may
+     * always overwrite: rebinding before execution, and reusing a query
+     * object with fresh values, are both legitimate.
+     *
+     * @param string $name The placeholder name or number.
+     *
+     * @param mixed $value The value to bind to the placeholder.
+     *
+     * @param string $source The part of the query binding the value: 'col',
+     * 'cond', 'conflict', 'duplicate_key', or null when bound by hand.
+     *
+     * @return $this
+     *
+     * @throws Exception\LogicException when two different parts of the query
+     * bind different values to one placeholder name.
+     *
+     */
+    protected function bindValueFrom($name, $value, $source)
+    {
+        $prior = isset($this->bind_sources[$name])
+            ? $this->bind_sources[$name]
+            : null;
+
+        if (
+            $source !== null
+            && $prior !== null
+            && $prior !== $source
+            && array_key_exists($name, $this->bind_values)
+            && $this->bind_values[$name] !== $value
+        ) {
+            $was = isset($this->bind_source_labels[$prior])
+                ? $this->bind_source_labels[$prior]
+                : $prior;
+            $now = isset($this->bind_source_labels[$source])
+                ? $this->bind_source_labels[$source]
+                : $source;
+
+            throw new Exception\LogicException(
+                "Cannot bind two different values to the placeholder "
+                . "':{$name}'; it is already in use by {$was}, and {$now} "
+                . "would discard that value. Use a different placeholder "
+                . "name for one of them."
+            );
+        }
+
         $this->bind_values[$name] = $value;
+
+        // a hand-bound value overwrites the value but does not take ownership
+        // of the name: otherwise binding by hand between two parts of the
+        // query would erase the record of who claimed it first, and the
+        // collision they would have had goes undetected.
+        if ($source !== null) {
+            $this->bind_sources[$name] = $source;
+        }
+
         return $this;
     }
 
@@ -210,6 +300,7 @@ abstract class AbstractQuery
     public function resetBindValues()
     {
         $this->bind_values = array();
+        $this->bind_sources = array();
         return $this;
     }
 
@@ -372,7 +463,7 @@ abstract class AbstractQuery
             } elseif (is_array($val)) {
                 $cond = $this->getCond($key, $cond, $val, $index);
             } else {
-                $this->bindValue($key, $val);
+                $this->bindValueFrom($key, $val, 'cond');
             }
             $index++;
         }
@@ -395,7 +486,7 @@ abstract class AbstractQuery
         foreach ($array as $val) {
             $this->inlineCount++;
             $key = "__{$this->inlineCount}__";
-            $this->bindValue($key, $val);
+            $this->bindValueFrom($key, $val, 'cond');
             $keys[] = ":{$key}";
         }
         return implode(', ', $keys);

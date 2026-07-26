@@ -155,7 +155,7 @@ trait OnConflictUpdateTrait
         if (count($value) > 0) {
             $bind = $col . '__on_conflict';
             $this->conflict_update_values[$key] = ":$bind";
-            $this->bindValue($bind, $value[0]);
+            $this->bindValueFrom($bind, $value[0], 'conflict');
         } else {
             $this->conflict_update_values[$key] = 'excluded.' . $key;
         }

@@ -134,7 +134,7 @@ class Insert extends Common\Insert
         $bind = $col . '__on_duplicate_key';
         $this->col_on_update_values[$key] = ":$bind";
         if (count($value) > 0) {
-            $this->bindValue($bind, $value[0]);
+            $this->bindValueFrom($bind, $value[0], 'duplicate_key');
         }
         return $this;
     }

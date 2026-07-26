@@ -404,6 +404,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
 
         $this->col_values = array();
         $this->bind_values = array();
+        $this->bind_sources = array();
     }
 
     /**
