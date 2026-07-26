@@ -82,16 +82,89 @@ ON CONFLICT ("email") DO UPDATE SET
     "name" = excluded."name"
 ```
 
-The target may be one column, an array of columns, or a named constraint written
-as `onConflict('ON CONSTRAINT users_email_key')`. PostgreSQL requires a target
-for `DO UPDATE`; omitting it throws `Aura\SqlQuery\Exception\LogicException`
-rather than failing at execute time. Combining `ignore()` with the `doUpdate*()`
-methods also throws, since a statement cannot both do nothing and update.
+Here `email` is both an inserted column and the conflict target: the row is
+inserted if that email is new, and its `name` is overwritten with the proposed
+`'Alice'` if the email is already present.
 
-`doUpdateCols()` refers to the values you tried to insert through the `excluded`
-pseudo-table. `doUpdateCol()` binds a separate value instead, and `doUpdate()`
-takes a raw expression. `doUpdateWhere()` adds a condition that decides whether
-the conflicting row is updated at all.
+The target must be covered by a unique index or primary key. It may be one
+column, an array of columns, or a named constraint:
+
+```php
+$insert->onConflict('email');                         // ON CONFLICT ("email")
+$insert->onConflict(['tenant_id', 'email']);          // ON CONFLICT ("tenant_id", "email")
+$insert->onConflict('ON CONSTRAINT users_email_key'); // ON CONFLICT ON CONSTRAINT "users_email_key"
+```
+
+PostgreSQL requires a target for `DO UPDATE`; omitting it throws
+`Aura\SqlQuery\Exception\LogicException` rather than failing at execute time.
+Combining `ignore()` with the `doUpdate*()` methods also throws, since a
+statement cannot both do nothing and update.
+
+#### Setting the updated values
+
+`doUpdateCol()` binds a value of your own rather than reusing the proposed one,
+and `doUpdate()` takes a raw expression, which is not escaped. This statement
+inserts a page row, and on conflict keeps the proposed title, stamps a fixed
+status, and increments the existing hit count:
+
+```php
+$insert = $queryFactory->newInsert();
+$insert
+    ->into('pages')
+    ->cols(['slug' => 'home', 'title' => 'Home', 'hits' => 1])
+    ->onConflict('slug')
+    ->doUpdateCols(['title'])
+    ->doUpdateCol('status', 'revised')
+    ->doUpdate('hits', 'pages.hits + 1');
+```
+
+```sql
+INSERT INTO "pages" (
+    "slug",
+    "title",
+    "hits"
+) VALUES (
+    :slug,
+    :title,
+    :hits
+)
+ON CONFLICT ("slug") DO UPDATE SET
+    "title" = excluded."title",
+    "status" = :status__on_conflict,
+    "hits" = "pages"."hits" + 1
+```
+
+The bind values are `slug`, `title` and `hits` for the insert, plus
+`status__on_conflict` for the update; `doUpdateCol()` suffixes its placeholder so
+it cannot collide with the inserted column of the same name.
+
+`doUpdateWhere()` decides whether the conflicting row is updated at all. Without
+it every conflict updates; with it, a conflict whose row fails the condition is
+left untouched:
+
+```php
+$insert = $queryFactory->newInsert();
+$insert
+    ->into('pages')
+    ->cols(['slug' => 'home', 'title' => 'Home'])
+    ->onConflict('slug')
+    ->doUpdateCols(['title'])
+    ->doUpdateWhere('pages.locked = :locked', ['locked' => false]);
+```
+
+```sql
+INSERT INTO "pages" (
+    "slug",
+    "title"
+) VALUES (
+    :slug,
+    :title
+)
+ON CONFLICT ("slug") DO UPDATE SET
+    "title" = excluded."title"
+WHERE
+    "pages"."locked" = :locked
+```
 
 ### Qualify columns in raw doUpdate() expressions
 

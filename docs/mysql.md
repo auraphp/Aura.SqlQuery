@@ -74,11 +74,11 @@ this differs from the PostgreSQL objects, which reject it.
 In addition, the MySQL _Insert_ object has support for `ON DUPLICATE KEY UPDATE`:
 
 - `onDuplicateKeyUpdate($col, $raw_value)` sets a raw value
-- `onDuplicateKeyUpateCol($col, $value)` is a `col()` equivalent for the update
-- `onDuplicateKeyUpdateCols($cols)` is a `cols()`equivalent for the update
+- `onDuplicateKeyUpdateCol($col, $value)` is a `col()` equivalent for the update
+- `onDuplicateKeyUpdateCols($cols)` is a `cols()` equivalent for the update
 
 Placeholders for bound values in the `ON DUPLICATE KEY UPDATE` portions will be
-automatically suffixed with `__on_duplicate key` to deconflict them from the
+automatically suffixed with `__on_duplicate_key` to deconflict them from the
 insert placeholders.
 
 ## UPDATE
