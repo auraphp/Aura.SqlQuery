@@ -31,7 +31,9 @@ class Select extends Common\Select
      *
      * @param string $name The alias name for the sub-select.
      *
-     * @param string $cond Join on this condition.
+     * @param string $cond Join on this condition. Postgres requires an ON
+     * clause on every LATERAL join except CROSS and NATURAL, so when no
+     * condition is given for those other join types, "ON true" is used.
      *
      * @param array $bind Values to bind to ?-placeholders in the condition.
      *
@@ -40,16 +42,35 @@ class Select extends Common\Select
      * @throws Exception
      *
      */
-    public function lateralJoinSubSelect($join, $spec, $name, $cond = null, array $bind = array())
+    public function lateralJoinSubSelect($join, $spec, $name, $cond = null, array $bind = [])
     {
         $join = strtoupper(ltrim("$join JOIN LATERAL"));
-        $this->addTableRef("$join (SELECT ...) AS", $name);
+        $this->addTableRef("$join (SELECT ...)", $name);
 
         $spec = $this->subSelect($spec, '            ');
         $name = $this->quoter->quoteName($name);
         $cond = $this->fixJoinCondition($cond, $bind);
 
+        if ($cond === '' && ! $this->isUnconditionalJoin($join)) {
+            $cond = 'ON true';
+        }
+
         $text = rtrim("$join ($spec        ) $name $cond");
         return $this->addJoin('        ' . $text);
+    }
+
+    /**
+     *
+     * Does this join type forbid an ON clause?
+     *
+     * @param string $join The upper-cased join clause.
+     *
+     * @return bool
+     *
+     */
+    protected function isUnconditionalJoin($join)
+    {
+        return str_starts_with($join, 'CROSS ')
+            || str_starts_with($join, 'NATURAL ');
     }
 }

@@ -38,6 +38,14 @@
   `cast(col as varchar)`) as a column alias, which produced misquoted
   SQL. Fixes #157.
 
+- [ADD] Pgsql\Select gains `lateralJoinSubSelect()`, rendering
+  `JOIN LATERAL` against an aliased sub-select so the sub-select can
+  reference columns from the tables to its left. The signature matches
+  `joinSubSelect()`. PostgreSQL requires an `ON` clause on every LATERAL
+  join except CROSS and NATURAL, so when no condition is given for the
+  other join types, `ON true` is rendered. Thanks to @golgote for the
+  original implementation in #184.
+
 - [ADD] Insert-ignore is now spelled `ignore()` on every dialect that
   supports it: Mysql\Insert renders `INSERT IGNORE` and Sqlite\Insert
   renders `INSERT OR IGNORE` (both as before); Pgsql\Insert gains
