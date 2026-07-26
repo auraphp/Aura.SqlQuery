@@ -39,34 +39,27 @@ desired; as the prefixes change, you can then change your constants.
 
 Bound values live in one flat array keyed by placeholder name, so two values
 under one name means one of them is lost. When two *different* parts of a query
-do that, it throws `Aura\SqlQuery\Exception\LogicException` — see
-[UPDATE](./update.md) for the case that trips people up, a condition testing a
-column the query also sets.
+do that, or when two conditions bind different values to the same name, it throws
+`Aura\SqlQuery\Exception\LogicException` — see [UPDATE](./update.md) for the case
+that trips people up, a condition testing a column the query also sets.
 
-Two *conditions* sharing a name is not caught, because both come from the same
-part of the query. Watch for it:
+For example, this throws a `LogicException` because `:val` is bound to two
+different values:
 
 ```php
-$select = $queryFactory->newSelect();
+$query = $queryFactory->newSelect();
 
-$select
-    ->cols(['*'])
-    ->from('orders')
-    ->where('status = :val', ['val' => 'pending'])
-    ->orWhere('channel = :val', ['val' => 'web']);
+try {
+    $query
+        ->cols(['*'])
+        ->from('orders')
+        ->where('status = :val', ['val' => 'pending'])
+        ->orWhere('channel = :val', ['val' => 'web']);
+} catch (\Aura\SqlQuery\Exception\LogicException $e) {
+    // throws: The placeholder ':val' is already in use by a WHERE condition...
+}
 ```
 
-```sql
-SELECT
-    *
-FROM
-    "orders"
-WHERE
-    status = :val
-    OR channel = :val
-```
-
-Only `'web'` stays bound, so this asks for `status = 'web' OR channel = 'web'`.
 Give each condition its own name:
 
 ```php

@@ -17,11 +17,20 @@
   (`:old_status`) to fix it. This applies even when the two values happen to
   agree, since either part may revise its value afterwards and nothing
   re-checks the pair. Binding by hand with bindValue()/bindValues() is
-  unaffected and may still overwrite any value; one part of the query revising
-  its own placeholder is not a collision either. The same check covers
+  unaffected and may still overwrite any value; cols() and the upsert methods
+  may still revise a placeholder they already own. The same check covers
   doUpdateCol() and onDuplicateKeyUpdateCol(), whose placeholders are derived
   by suffix and so only collide when a column is literally named
-  `<col>__on_conflict` or `<col>__on_duplicate_key`. Fixes #238.
+  `<col>__on_conflict` or `<col>__on_duplicate_key`.
+
+  Conditions count separately per clause, so two WHERE conditions, or a WHERE
+  and a HAVING, binding different values to one name is caught as well; a
+  sub-select's own bound values and those passed alongside a closure condition
+  are tracked too, where before they were merged in unchecked. resetWhere(),
+  resetHaving() and resetTables() release the names their clause claimed, so
+  the placeholder may be reused after a reset; the bound values themselves
+  survive a reset as they always have, which is what lets union() bind the
+  half it has already rendered. Fixes #238.
 
 - [BRK] Bumped the minimum version to PHP 8.4; the CI matrix now covers
   PHP 8.4 and 8.5.
