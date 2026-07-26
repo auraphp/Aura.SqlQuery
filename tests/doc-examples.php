@@ -3,7 +3,7 @@
  *
  * Tells the shared doc-example checker how to run this package's examples.
  *
- *     php /Volumes/S/auraphp/scripts/verify-doc-examples.php .
+ *     php ../scripts/verify-doc-examples.php .
  *
  * Each dialect page is checked against a QueryFactory for that dialect, so the
  * SQL printed under a `php` block has to be the SQL the builder really emits.
