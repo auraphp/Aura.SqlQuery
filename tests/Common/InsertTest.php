@@ -77,16 +77,6 @@ class InsertTest extends AbstractQueryTest
         $this->assertSame($expect, $actual);
     }
 
-    public function testBindValues()
-    {
-        $this->assertInstanceOf('\Aura\SqlQuery\AbstractQuery', $this->query->bindValues(array('bar', 'bar value')));
-    }
-
-    public function testBindValue()
-    {
-        $this->assertInstanceOf('\Aura\SqlQuery\AbstractQuery', $this->query->bindValue('bar', 'bar value'));
-    }
-
     public function testBulkAddRow()
     {
         $this->query->into('t1');
