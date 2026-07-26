@@ -17,7 +17,9 @@ The `OR` flags are alternatives to one another, so setting two of them throws
 
 ### Skipping conflicting rows
 
-`ignore()` renders the older `INSERT OR IGNORE` form:
+`ignore()` renders the older `INSERT OR IGNORE` form, which skips a row
+violating a `UNIQUE`, `NOT NULL` or `CHECK` constraint. Foreign keys are the
+exception: the conflict algorithm does not apply to them, so those still raise.
 
 ```php
 $insert = $queryFactory->newInsert();
@@ -37,8 +39,9 @@ INSERT OR IGNORE INTO "users" (
 )
 ```
 
-Adding `onConflict()` switches it to the newer clause, narrowing the skip to one
-constraint so conflicts elsewhere still raise:
+Adding `onConflict()` switches it to the newer clause. That narrows the skip
+twice over: to the constraint named, and to uniqueness conflicts alone — a
+`NOT NULL` violation that `INSERT OR IGNORE` would have skipped raises here:
 
 ```php
 $insert = $queryFactory->newInsert();

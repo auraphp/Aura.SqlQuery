@@ -59,7 +59,9 @@ clause on those and the statement could only fail at execute time.
 ### Skipping conflicting rows
 
 `ignore()` renders `ON CONFLICT DO NOTHING`, so a row that would violate a
-constraint is skipped instead of raising an error:
+unique or exclusion constraint is skipped instead of raising an error. Only
+those two kinds of conflict are covered — a `NOT NULL`, `CHECK` or foreign-key
+violation still raises, with or without the clause:
 
 ```php
 $insert = $queryFactory->newInsert();
@@ -80,8 +82,9 @@ INSERT INTO "users" (
 ON CONFLICT DO NOTHING
 ```
 
-On its own it covers a conflict on any constraint. Adding `onConflict()` narrows
-it to one, so conflicts elsewhere still raise:
+On its own it covers a conflict on any unique or exclusion constraint. Adding
+`onConflict()` narrows it to the one named, so a conflict on a different
+constraint still raises:
 
 ```php
 $insert = $queryFactory->newInsert();

@@ -71,8 +71,10 @@ this differs from the PostgreSQL objects, which reject it.
 - `ignore()` to add or remove `IGNORE` flag
 - `delayed()` to add or remove `DELAYED` flag
 
-`ignore()` skips a row that would violate a constraint instead of raising an
-error:
+`ignore()` downgrades the errors a row would raise into warnings and skips it.
+MySQL casts this net wider than the other dialects: duplicate keys, `NOT NULL`,
+`CHECK` and foreign-key violations are all demoted, so check
+`SHOW WARNINGS` rather than assuming every row landed:
 
 ```php
 $insert = $queryFactory->newInsert();
