@@ -84,6 +84,23 @@ class PgsqlIntegrationTest extends AbstractIntegrationTest
         $this->assertGreaterThan(0, (int) $row['id']);
     }
 
+    public function testInsertIgnore()
+    {
+        // Postgres spells the IGNORE flag ON CONFLICT DO NOTHING; the row
+        // already seeded under id 1 must survive untouched
+        $insert = $this->query_factory->newInsert()
+            ->ignore()
+            ->into('test_dept')
+            ->cols(['id' => 1, 'name' => 'Duplicate']);
+
+        $this->assertStatementContains('ON CONFLICT DO NOTHING', $insert);
+
+        $this->assertSame(0, $this->exec($insert));
+
+        $sth = $this->pdo->query('SELECT name FROM test_dept WHERE id = 1');
+        $this->assertSame('Engineering', $sth->fetchColumn());
+    }
+
     public function testUpdateReturning()
     {
         $update = $this->query_factory->newUpdate()

@@ -73,6 +73,36 @@ class SqliteIntegrationTest extends AbstractIntegrationTest
         $this->assertSame('Engineering', $sth->fetchColumn());
     }
 
+    public function testUpdateIgnore()
+    {
+        // moving Sales onto the primary key Engineering already holds. The
+        // condition cannot reuse :id -- cols() already binds that name for
+        // the SET clause, and the second binding would win.
+        $update = $this->query_factory->newUpdate()
+            ->table('test_dept')
+            ->cols(['id' => 1])
+            ->where('id = :old_id', ['old_id' => 2]);
+
+        // without the flag the collision is an error
+        try {
+            $this->exec($update);
+            $this->fail('Expected a constraint violation.');
+        } catch (\PDOException $e) {
+            $this->assertStringContainsString('UNIQUE constraint failed', $e->getMessage());
+        }
+
+        // with it, the offending row is skipped instead
+        $update->ignore();
+        $this->assertStatementContains('UPDATE OR IGNORE <<test_dept>>', $update);
+        $this->assertSame(0, $this->exec($update));
+
+        $sth = $this->pdo->query('SELECT id, name FROM test_dept ORDER BY id');
+        $this->assertSame(
+            [['id' => 1, 'name' => 'Engineering'], ['id' => 2, 'name' => 'Sales']],
+            $sth->fetchAll(PDO::FETCH_ASSOC)
+        );
+    }
+
     public function testInsertOrReplace()
     {
         $insert = $this->query_factory->newInsert()
