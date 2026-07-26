@@ -82,7 +82,11 @@
   conflict target is Postgres-only -- SQLite accepts a column list and
   nothing else, and rejects that syntax -- so passing it to Sqlite\Insert
   throws Exception\BadMethodCallException instead of building SQL the
-  database cannot parse. Addresses the Postgres half of #124.
+  database cannot parse. An empty target -- `onConflict([])`,
+  `onConflict('')`, a blank column in the array, or the bare keyword
+  `ON CONSTRAINT` -- throws Exception\InvalidArgumentException, rather than
+  rendering `ON CONFLICT ()` for the database to reject. Addresses the
+  Postgres half of #124.
 
 - [CHG] Calling `ignore()`, `orReplace()` or the upsert methods on a
   dialect that does not support them now throws

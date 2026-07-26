@@ -2,6 +2,7 @@
 namespace Aura\SqlQuery\Pgsql;
 
 use Aura\SqlQuery\Common;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class InsertTest extends Common\InsertTest
 {
@@ -204,6 +205,34 @@ class InsertTest extends Common\InsertTest
                 <<c2>> = excluded.<<c2>>
         ";
         $this->assertSameSql($expect, $actual);
+    }
+
+    /**
+     * An empty target is the same mistake as no target, but it used to slip
+     * past the no-target check and build `ON CONFLICT ()`, which the server
+     * rejects as a syntax error.
+     *
+     * @param string|array $target
+     */
+    #[DataProvider('provideEmptyConflictTarget')]
+    public function testOnConflictThrowsExceptionWhenTargetEmpty($target)
+    {
+        $this->expectException('Aura\SqlQuery\Exception\InvalidArgumentException');
+        $this->expectExceptionMessage('onConflict() requires a column name or constraint.');
+        $this->query->onConflict($target);
+    }
+
+    public static function provideEmptyConflictTarget()
+    {
+        return array(
+            'empty array' => array(array()),
+            'empty string' => array(''),
+            'blank string' => array('   '),
+            'array of blanks' => array(array('')),
+            'array with a blank' => array(array('c1', '')),
+            'constraint keyword alone' => array('ON CONSTRAINT'),
+            'constraint with no name' => array('ON CONSTRAINT   '),
+        );
     }
 
     public function testOnConflictThrowsExceptionWhenNoTarget()

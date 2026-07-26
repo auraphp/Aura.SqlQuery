@@ -73,25 +73,68 @@ trait OnConflictUpdateTrait
         if (is_array($target)) {
             $cols = array();
             foreach ($target as $col) {
-                $cols[] = $this->quoter->quoteName($col);
+                $cols[] = $this->quoter->quoteName($this->assertConflictName($col));
+            }
+            if (empty($cols)) {
+                throw new Exception\InvalidArgumentException(
+                    'onConflict() requires a column name or constraint.'
+                );
             }
             $this->conflict_target = '(' . implode(', ', $cols) . ')';
-        } else {
-            $target = trim($target);
-            if (stripos($target, 'ON CONSTRAINT ') === 0) {
-                if (! $this->allowsConstraintTarget()) {
-                    throw new Exception\BadMethodCallException(
-                        get_class($this)
-                        . " doesn't support a constraint-name conflict target"
-                    );
-                }
-                $constraint = trim(substr($target, 14));
-                $this->conflict_target = 'ON CONSTRAINT ' . $this->quoter->quoteName($constraint);
-            } else {
-                $this->conflict_target = '(' . $this->quoter->quoteName($target) . ')';
-            }
+            return $this;
         }
+
+        $target = trim((string) $target);
+
+        // the keyword with nothing after it; trimming has already taken the
+        // space the prefix test below looks for, so catch it here or it goes
+        // on to be quoted as a column named "ON CONSTRAINT"
+        if (strcasecmp($target, 'ON CONSTRAINT') === 0) {
+            throw new Exception\InvalidArgumentException(
+                'onConflict() requires a column name or constraint.'
+            );
+        }
+
+        if (stripos($target, 'ON CONSTRAINT ') === 0) {
+            if (! $this->allowsConstraintTarget()) {
+                throw new Exception\BadMethodCallException(
+                    get_class($this)
+                    . " doesn't support a constraint-name conflict target"
+                );
+            }
+            $constraint = $this->assertConflictName(substr($target, 14));
+            $this->conflict_target = 'ON CONSTRAINT ' . $this->quoter->quoteName($constraint);
+            return $this;
+        }
+
+        $this->conflict_target = '(' . $this->quoter->quoteName($this->assertConflictName($target)) . ')';
         return $this;
+    }
+
+    /**
+     *
+     * Returns the trimmed name, rejecting an empty one: it would render as
+     * `ON CONFLICT ()` or a zero-length quoted identifier, which the database
+     * refuses to parse.
+     *
+     * @param string $name The column or constraint name.
+     *
+     * @return string
+     *
+     * @throws Exception\InvalidArgumentException
+     *
+     */
+    protected function assertConflictName($name)
+    {
+        $name = trim((string) $name);
+
+        if ($name === '') {
+            throw new Exception\InvalidArgumentException(
+                'onConflict() requires a column name or constraint.'
+            );
+        }
+
+        return $name;
     }
 
     /**

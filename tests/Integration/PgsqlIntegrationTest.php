@@ -293,6 +293,32 @@ class PgsqlIntegrationTest extends AbstractIntegrationTest
     }
 
     /**
+     * RETURNING has to come after the conflict clause, so this pins the
+     * order of the two as much as the result.
+     */
+    public function testInsertOnConflictReturning()
+    {
+        $insert = $this->query_factory->newInsert()
+            ->into('test_dept')
+            ->cols(['id' => 1, 'name' => 'Attempted'])
+            ->onConflict('id')
+            ->doUpdateCols(['name'])
+            ->returning(['id', 'name']);
+
+        $this->assertStatementContains('DO UPDATE SET', $insert);
+        $this->assertStatementContains('RETURNING', $insert);
+
+        $rows = $this->fetchAll($insert);
+        $this->assertSame(
+            [['id' => 1, 'name' => 'Attempted']],
+            array_map(
+                fn (array $row) => ['id' => (int) $row['id'], 'name' => $row['name']],
+                $rows
+            )
+        );
+    }
+
+    /**
      * A raw expression in doUpdate() has to qualify any column it names.
      * Inside DO UPDATE SET, a bare column is ambiguous between the target
      * table and the excluded pseudo-table, and Postgres rejects it -- where
