@@ -107,6 +107,13 @@
   combination now throws Exception\LogicException when the statement is
   built, whichever order the two methods were called in.
 
+- [FIX] Mysql\Insert::orReplace() combined with the
+  onDuplicateKeyUpdate*() methods built
+  `REPLACE INTO ... ON DUPLICATE KEY UPDATE`, which MySQL rejects with a
+  1064 syntax error: REPLACE resolves a conflict by deleting the old row,
+  so it has no update clause to take. The combination now throws
+  Exception\LogicException when the statement is built.
+
 - [FIX] Mysql\Insert accepted two priority modifiers at once, building
   `INSERT LOW_PRIORITY HIGH_PRIORITY INTO` and the like; MySQL takes at
   most one of LOW_PRIORITY, HIGH_PRIORITY and DELAYED, on REPLACE as well

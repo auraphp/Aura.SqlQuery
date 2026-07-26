@@ -320,4 +320,16 @@ class InsertTest extends Common\InsertTest
         $this->expectExceptionMessage("doesn't support ON CONFLICT clause");
         $this->query->onConflict('id');
     }
+
+    public function testOrReplaceWithOnDuplicateKeyUpdateThrowsException()
+    {
+        $this->query->orReplace()
+                    ->into('t1')
+                    ->cols(array('c1'))
+                    ->onDuplicateKeyUpdate('c1', 'new-val');
+
+        $this->expectException('Aura\SqlQuery\Exception\LogicException');
+        $this->expectExceptionMessage('A REPLACE statement cannot take an ON DUPLICATE KEY UPDATE clause.');
+        $this->query->__toString();
+    }
 }
