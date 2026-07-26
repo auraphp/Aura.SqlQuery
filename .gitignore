@@ -1,5 +1,10 @@
 /composer.lock
 /vendor
 .phpunit.result.cache
-/.env
 /phpunit.xml
+
+# local credentials, and any editor swap file left beside them; the example
+# file stays tracked
+/.env*
+!/.env.example
+*.swp
