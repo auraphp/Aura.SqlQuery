@@ -521,7 +521,11 @@ class Select extends AbstractQuery implements SelectInterface
     protected function subSelect($spec, $indent)
     {
         if ($spec instanceof SelectInterface) {
-            $this->bindValues($spec->getBindValues());
+            $bind_sources = ($spec instanceof AbstractQuery) ? $spec->bind_sources : [];
+            foreach ($spec->getBindValues() as $subName => $subVal) {
+                $subSource = isset($bind_sources[$subName]) ? $bind_sources[$subName] : 'cond';
+                $this->bindValueFrom($subName, $subVal, $subSource);
+            }
         }
 
         return PHP_EOL . $indent
@@ -575,7 +579,7 @@ class Select extends AbstractQuery implements SelectInterface
         }
 
         $cond = $this->quoter->quoteNamesIn($cond);
-        $cond = $this->rebuildCondAndBindValues($cond, $bind);
+        $cond = $this->rebuildCondAndBindValues($cond, $bind, 'join');
 
         if (strtoupper(substr(ltrim($cond), 0, 3)) == 'ON ') {
             return $cond;
@@ -856,6 +860,7 @@ class Select extends AbstractQuery implements SelectInterface
         $this->from_key = -1;
         $this->join = array();
         $this->table_refs = array();
+        $this->removeBindSources('join');
         return $this;
     }
 
@@ -869,6 +874,7 @@ class Select extends AbstractQuery implements SelectInterface
     public function resetWhere()
     {
         $this->where = array();
+        $this->removeBindSources('where');
         return $this;
     }
 
@@ -895,6 +901,7 @@ class Select extends AbstractQuery implements SelectInterface
     public function resetHaving()
     {
         $this->having = array();
+        $this->removeBindSources('having');
         return $this;
     }
 

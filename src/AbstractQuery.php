@@ -50,6 +50,9 @@ abstract class AbstractQuery
     protected $bind_source_labels = array(
         'col' => 'cols()',
         'cond' => 'a condition',
+        'where' => 'a WHERE condition',
+        'having' => 'a HAVING condition',
+        'join' => 'a JOIN condition',
         'conflict' => 'doUpdateCol()',
         'duplicate_key' => 'onDuplicateKeyUpdateCol()',
     );
@@ -248,8 +251,14 @@ abstract class AbstractQuery
         if (
             $source !== null
             && $prior !== null
-            && $prior !== $source
             && array_key_exists($name, $this->bind_values)
+            && (
+                $prior !== $source
+                || (
+                    $this->bind_values[$name] !== $value
+                    && !in_array($source, ['col', 'conflict', 'duplicate_key'], true)
+                )
+            )
         ) {
             $was = isset($this->bind_source_labels[$prior])
                 ? $this->bind_source_labels[$prior]
@@ -257,6 +266,13 @@ abstract class AbstractQuery
             $now = isset($this->bind_source_labels[$source])
                 ? $this->bind_source_labels[$source]
                 : $source;
+
+            // "a WHERE condition ... a WHERE condition" reads like a bug when
+            // both halves are the same clause; say "another" instead, taking
+            // the article off the label first.
+            if ($prior === $source) {
+                $now = 'another ' . preg_replace('/^an? /', '', $now);
+            }
 
             throw new Exception\LogicException(
                 "The placeholder ':{$name}' is already in use by {$was}, so "
@@ -304,6 +320,30 @@ abstract class AbstractQuery
     {
         $this->bind_values = array();
         $this->bind_sources = array();
+        return $this;
+    }
+
+    /**
+     *
+     * Removes all bound values and sources for a given query source.
+     *
+     * @param string $source The source to remove (e.g. 'where', 'having').
+     *
+     * @return $this
+     *
+     */
+    protected function removeBindSources($source)
+    {
+        // drop the record of who claimed the name, but keep the value: the
+        // clause resets never removed bound values, and union() depends on
+        // that -- it renders the current half to SQL, placeholders and all,
+        // then resets, so deleting the values leaves that SQL with tokens
+        // nothing can bind.
+        foreach ($this->bind_sources as $name => $src) {
+            if ($src === $source) {
+                unset($this->bind_sources[$name]);
+            }
+        }
         return $this;
     }
 
@@ -375,12 +415,14 @@ abstract class AbstractQuery
     {
         if ($cond instanceof Closure) {
             $this->addClauseCondClosure($clause, $andor, $cond);
-            $this->bindValues($bind);
+            foreach ($bind as $key => $val) {
+                $this->bindValueFrom($key, $val, $clause);
+            }
             return;
         }
 
         $cond = $this->quoter->quoteNamesIn($cond);
-        $cond = $this->rebuildCondAndBindValues($cond, $bind);
+        $cond = $this->rebuildCondAndBindValues($cond, $bind, $clause);
 
         $clause =& $this->$clause;
         if ($clause) {
@@ -452,10 +494,12 @@ abstract class AbstractQuery
      * @param array $bind_values The values to bind to the sequential
      * placeholders under their named versions.
      *
+     * @param string $clause The source clause name.
+     *
      * @return string The rebuilt condition string.
      *
      */
-    protected function rebuildCondAndBindValues($cond, array $bind_values)
+    protected function rebuildCondAndBindValues($cond, array $bind_values, $clause = 'cond')
     {
         $index = 0;
         $selects = [];
@@ -466,17 +510,18 @@ abstract class AbstractQuery
             } elseif (is_array($val)) {
                 $cond = $this->getCond($key, $cond, $val, $index);
             } else {
-                $this->bindValueFrom($key, $val, 'cond');
+                $this->bindValueFrom($key, $val, $clause);
             }
             $index++;
         }
 
         foreach ($selects as $key => $select) {
             $selects[$key] = $select->getStatement();
-            $this->bind_values = array_merge(
-                $this->bind_values,
-                $select->getBindValues()
-            );
+            $bind_sources = ($select instanceof AbstractQuery) ? $select->bind_sources : [];
+            foreach ($select->getBindValues() as $subName => $subVal) {
+                $subSource = isset($bind_sources[$subName]) ? $bind_sources[$subName] : $clause;
+                $this->bindValueFrom($subName, $subVal, $subSource);
+            }
         }
 
         $cond = strtr($cond, $selects);
