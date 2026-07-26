@@ -260,6 +260,41 @@ class InsertTest extends Common\InsertTest
         $this->query->__toString();
     }
 
+    public function testOnConflictFlagStateNotCorruptedOnException()
+    {
+        $this->query->into('t1')
+                    ->cols(array('c1', 'c2'))
+                    ->onConflict('c1')
+                    ->ignore()
+                    ->orReplace();
+
+        try {
+            $this->query->__toString();
+            $this->fail('Expected LogicException was not thrown.');
+        } catch (\Aura\SqlQuery\Exception\LogicException $e) {
+            $this->assertStringContainsString('Cannot combine ON CONFLICT clause with SQLite OR conflict flags: OR REPLACE.', $e->getMessage());
+        }
+
+        // The caller fixes the offending flag and reuses the object. The
+        // ignore() set earlier has to survive: build() clears OR IGNORE
+        // while rendering, so a throw between the clear and the restore
+        // used to strip it for good, turning DO NOTHING into a plain
+        // INSERT with nothing to report it.
+        $this->query->orReplace(false);
+
+        $expect = "
+            INSERT INTO <<t1>> (
+                <<c1>>,
+                <<c2>>
+            ) VALUES (
+                :c1,
+                :c2
+            )
+            ON CONFLICT (<<c1>>) DO NOTHING
+        ";
+        $this->assertSameSql($expect, $this->query->__toString());
+    }
+
     public function testOnConflictDoUpdateAmbiguousColumn()
     {
         $this->query->into('t1')

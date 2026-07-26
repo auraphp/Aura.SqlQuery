@@ -48,19 +48,22 @@ class Insert extends Common\Insert implements Common\OnConflictUpdateInterface
         $ignore = false;
         $has_or_ignore = $this->hasFlag('OR IGNORE');
         if (!empty($this->conflict_target)) {
-            if ($has_or_ignore) {
-                $this->setFlag('OR IGNORE', false);
-                $ignore = true;
-            }
             $this->assertNoOrConflictFlags();
         }
 
         $this->assertOneOrConflictFlag();
 
-        $stm = parent::build();
+        if (!empty($this->conflict_target) && $has_or_ignore) {
+            $this->setFlag('OR IGNORE', false);
+            $ignore = true;
+        }
 
-        if ($has_or_ignore && !empty($this->conflict_target)) {
-            $this->setFlag('OR IGNORE', true);
+        try {
+            $stm = parent::build();
+        } finally {
+            if ($has_or_ignore && !empty($this->conflict_target)) {
+                $this->setFlag('OR IGNORE', true);
+            }
         }
 
         return $stm
@@ -84,6 +87,9 @@ class Insert extends Common\Insert implements Common\OnConflictUpdateInterface
     {
         $set = [];
         foreach ($this->or_conflict_flags as $flag) {
+            if ($flag === 'OR IGNORE') {
+                continue;
+            }
             if ($this->hasFlag($flag)) {
                 $set[] = $flag;
             }
