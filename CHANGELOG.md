@@ -63,6 +63,28 @@
   deprecated aliases. Sqlsrv, which has no equivalent, keeps throwing
   Exception\BadMethodCallException. Fixes #172; related to #158.
 
+- [FIX] Mysql\Insert::orReplace() combined with highPriority() or ignore()
+  built `REPLACE HIGH_PRIORITY INTO` / `REPLACE IGNORE INTO`, which MySQL
+  rejects at parse time: rewriting the INSERT keyword left the flags in
+  place, and REPLACE accepts only LOW_PRIORITY and DELAYED. The
+  combination now throws Exception\LogicException when the statement is
+  built, whichever order the two methods were called in.
+
+- [FIX] Mysql\Insert accepted two priority modifiers at once, building
+  `INSERT LOW_PRIORITY HIGH_PRIORITY INTO` and the like; MySQL takes at
+  most one of LOW_PRIORITY, HIGH_PRIORITY and DELAYED, on REPLACE as well
+  as INSERT. Setting more than one now throws Exception\LogicException
+  when the statement is built. Mysql\Update and Mysql\Delete are
+  unaffected, having only the one priority modifier between them.
+
+- [FIX] The Sqlite conflict clauses -- `orAbort()`, `orFail()`,
+  `ignore()`/`orIgnore()`, `orReplace()` and `orRollback()` -- are
+  alternatives to each other, but setting two of them stacked both into the
+  statement (`INSERT OR IGNORE OR REPLACE`), which SQLite rejects. Setting
+  more than one now throws Exception\LogicException when the statement is
+  built, on both Sqlite\Insert and Sqlite\Update; switching clauses still
+  works by turning the first one off.
+
 - [FIX] The quoter now recognizes `#` as an identifier character (legal
   on DB2 / IBM i, in any position), so `table.col#` quotes as
   `"table"."col#"` instead of the broken `"table"."col"#`. Fixes #177.

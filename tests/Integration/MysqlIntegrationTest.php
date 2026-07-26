@@ -2,6 +2,7 @@
 namespace Aura\SqlQuery\Integration;
 
 use PDO;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  *
@@ -341,6 +342,38 @@ class MysqlIntegrationTest extends AbstractIntegrationTest
 
         $sth = $this->pdo->query('SELECT name FROM test_dept WHERE id = 1');
         $this->assertSame('Replaced', $sth->fetchColumn());
+    }
+
+    /**
+     * REPLACE accepts LOW_PRIORITY and DELAYED, and nothing else; the flags
+     * MySQL rejects cannot be built at all, so they are covered by the unit
+     * tests instead. DELAYED is obsolete but still parses -- the server
+     * converts it and warns.
+     */
+    #[DataProvider('provideReplaceFlagAllowed')]
+    public function testInsertOrReplaceWithFlag($method, $flag)
+    {
+        $insert = $this->query_factory->newInsert()
+            ->orReplace()
+            ->$method()
+            ->into('test_dept')
+            ->cols(['id' => 1, 'name' => 'Replaced']);
+
+        $this->assertStatementContains("REPLACE {$flag} INTO <<test_dept>>", $insert);
+
+        // two rows affected: the old one deleted, the new one inserted
+        $this->assertSame(2, $this->exec($insert));
+
+        $sth = $this->pdo->query('SELECT name FROM test_dept WHERE id = 1');
+        $this->assertSame('Replaced', $sth->fetchColumn());
+    }
+
+    public static function provideReplaceFlagAllowed(): array
+    {
+        return [
+            ['lowPriority', 'LOW_PRIORITY'],
+            ['delayed', 'DELAYED'],
+        ];
     }
 
     public function testUpdateIgnore()

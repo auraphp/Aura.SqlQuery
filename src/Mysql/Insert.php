@@ -9,6 +9,7 @@
 namespace Aura\SqlQuery\Mysql;
 
 use Aura\SqlQuery\Common;
+use Aura\SqlQuery\Exception;
 
 /**
  *
@@ -193,6 +194,75 @@ class Insert extends Common\Insert
 
     /**
      *
+     * The flags REPLACE will not accept; the rest of the INSERT flags carry
+     * over unchanged.
+     *
+     * @var string[]
+     *
+     */
+    protected $replace_forbids_flags = ['HIGH_PRIORITY', 'IGNORE'];
+
+    /**
+     *
+     * Throws if a flag was set that REPLACE does not accept; rewriting the
+     * INSERT keyword leaves the flags in place, so the statement would reach
+     * the database as a parse error.
+     *
+     * @return void
+     *
+     * @throws Exception\LogicException
+     *
+     */
+    protected function assertReplaceFlags()
+    {
+        foreach ($this->replace_forbids_flags as $flag) {
+            if ($this->hasFlag($flag)) {
+                throw new Exception\LogicException(
+                    "A REPLACE cannot take the $flag flag."
+                );
+            }
+        }
+    }
+
+    /**
+     *
+     * The priority modifiers; a statement takes at most one of them. REPLACE
+     * accepts a narrower set than INSERT, which assertReplaceFlags() covers.
+     *
+     * @var string[]
+     *
+     */
+    protected $priority_flags = ['LOW_PRIORITY', 'HIGH_PRIORITY', 'DELAYED'];
+
+    /**
+     *
+     * Throws if more than one priority modifier was set; they are
+     * alternatives to each other, so MySQL rejects a statement carrying two.
+     *
+     * @return void
+     *
+     * @throws Exception\LogicException
+     *
+     */
+    protected function assertOnePriorityFlag()
+    {
+        $set = [];
+        foreach ($this->priority_flags as $flag) {
+            if ($this->hasFlag($flag)) {
+                $set[] = $flag;
+            }
+        }
+
+        if (count($set) > 1) {
+            throw new Exception\LogicException(
+                'A statement takes only one priority modifier; got '
+                . implode(' and ', $set) . '.'
+            );
+        }
+    }
+
+    /**
+     *
      * Builds this query object into a string.
      *
      * @return string
@@ -202,7 +272,10 @@ class Insert extends Common\Insert
     {
         $stm = parent::build();
 
+        $this->assertOnePriorityFlag();
+
         if ($this->use_replace) {
+            $this->assertReplaceFlags();
             // change INSERT to REPLACE
             $stm = 'REPLACE' . substr($stm, 6);
         }
