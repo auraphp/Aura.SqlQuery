@@ -114,6 +114,91 @@ class PgsqlIntegrationTest extends AbstractIntegrationTest
         $this->assertSame(['Clara', 'Donna'], $names);
     }
 
+    public function testLateralJoinSubSelect()
+    {
+        // the top earner in each department
+        $select = $this->query_factory->newSelect()
+            ->cols(['test_dept.name AS dept_name', 'top.name AS employee_name'])
+            ->from('test_dept')
+            ->lateralJoinSubSelect(
+                'left',
+                'SELECT name, salary FROM test_employee
+                 WHERE test_employee.dept_id = test_dept.id
+                 ORDER BY salary DESC LIMIT 1',
+                'top',
+                'true'
+            )
+            ->orderBy(['test_dept.name']);
+
+        $this->assertStatementContains('LEFT JOIN LATERAL', $select);
+
+        $rows = $this->fetchAll($select);
+        $this->assertSame(
+            [
+                ['dept_name' => 'Engineering', 'employee_name' => 'Betty'],
+                ['dept_name' => 'Sales', 'employee_name' => 'Donna'],
+            ],
+            array_map(
+                fn ($row) => [
+                    'dept_name' => $row['dept_name'],
+                    'employee_name' => $row['employee_name'],
+                ],
+                $rows
+            )
+        );
+    }
+
+    /**
+     * A LATERAL join with no condition has to emit "ON true" or Postgres
+     * rejects the statement outright.
+     */
+    public function testLateralJoinSubSelect_noCondition()
+    {
+        $select = $this->query_factory->newSelect()
+            ->cols(['test_dept.name AS dept_name', 'top.name AS employee_name'])
+            ->from('test_dept')
+            ->lateralJoinSubSelect(
+                'left',
+                'SELECT name FROM test_employee
+                 WHERE test_employee.dept_id = test_dept.id
+                 ORDER BY salary DESC LIMIT 1',
+                'top'
+            )
+            ->orderBy(['test_dept.name']);
+
+        $this->assertStatementContains('ON true', $select);
+
+        $rows = $this->fetchAll($select);
+        $this->assertSame(
+            ['Betty', 'Donna'],
+            array_column($rows, 'employee_name')
+        );
+    }
+
+    public function testLateralJoinSubSelect_cross()
+    {
+        $select = $this->query_factory->newSelect()
+            ->cols(['test_dept.name AS dept_name', 'top.name AS employee_name'])
+            ->from('test_dept')
+            ->lateralJoinSubSelect(
+                'cross',
+                'SELECT name FROM test_employee
+                 WHERE test_employee.dept_id = test_dept.id
+                 ORDER BY salary DESC LIMIT 1',
+                'top'
+            )
+            ->orderBy(['test_dept.name']);
+
+        $this->assertStatementContains('CROSS JOIN LATERAL', $select);
+        $this->assertStringNotContainsString('ON true', (string) $select);
+
+        $rows = $this->fetchAll($select);
+        $this->assertSame(
+            ['Betty', 'Donna'],
+            array_column($rows, 'employee_name')
+        );
+    }
+
     public function testGetLastInsertIdName()
     {
         $insert = $this->query_factory->newInsert()

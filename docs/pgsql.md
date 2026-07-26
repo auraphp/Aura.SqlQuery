@@ -2,6 +2,53 @@
 
 These 'pgsql' query objects have additional PostgreSQL-specific behaviors.
 
+## SELECT
+
+- `lateralJoinSubSelect()` to add a `JOIN LATERAL` against an aliased
+  sub-select
+
+A `LATERAL` join lets the sub-select reference columns from the tables to its
+left, which is how you express "the top row per group":
+
+```php
+$select = $queryFactory->newSelect();
+$select
+    ->cols(['dept.name', 'top.name AS top_earner'])
+    ->from('dept')
+    ->lateralJoinSubSelect(
+        'left',
+        'SELECT name FROM employee
+         WHERE employee.dept_id = dept.id
+         ORDER BY salary DESC LIMIT 1',
+        'top'
+    );
+```
+
+The signature matches `joinSubSelect()`: the join type, the sub-select (a string
+or another _Select_ object), the alias, an optional condition, and optional bind
+values.
+
+PostgreSQL requires an `ON` clause on every `LATERAL` join except `CROSS` and
+`NATURAL`, which reject one. When you omit the condition for the other join
+types, `ON true` is added for you, so the example above renders as:
+
+```sql
+SELECT
+    "dept"."name",
+    "top"."name" AS "top_earner"
+FROM
+    "dept"
+        LEFT JOIN LATERAL (
+            SELECT name FROM employee
+            WHERE employee.dept_id = dept.id
+            ORDER BY salary DESC LIMIT 1
+        ) "top" ON true
+```
+
+Passing a condition to a `CROSS` or `NATURAL` lateral join throws
+`Aura\SqlQuery\Exception\LogicException`, because PostgreSQL rejects an `ON`
+clause on those and the statement could only fail at execute time.
+
 ## INSERT
 
 - `returning()` to add a `RETURNING` clause
