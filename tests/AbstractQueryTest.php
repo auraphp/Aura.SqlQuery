@@ -75,4 +75,23 @@ abstract class AbstractQueryTest extends TestCase
         $this->query->resetBindValues();
         $this->assertEmpty($this->query->getBindValues());
     }
+
+    public function testBindValue()
+    {
+        $this->query->bindValue('foo', 'bar');
+        $this->assertSame(array('foo' => 'bar'), $this->query->getBindValues());
+
+        $this->query->bindValue('baz', 'dib');
+        $expect = array('foo' => 'bar', 'baz' => 'dib');
+        $this->assertSame($expect, $this->query->getBindValues());
+
+        $this->query->resetBindValues();
+        $this->assertEmpty($this->query->getBindValues());
+    }
+
+    public function testBindValuesReturnsTheQueryForChaining()
+    {
+        $this->assertSame($this->query, $this->query->bindValues(array('foo' => 'bar')));
+        $this->assertSame($this->query, $this->query->bindValue('baz', 'dib'));
+    }
 }
