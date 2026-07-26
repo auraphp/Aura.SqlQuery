@@ -3,6 +3,7 @@ namespace Aura\SqlQuery\Sqlite;
 
 use Aura\SqlQuery\Common;
 use PDO;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class UpdateTest extends Common\UpdateTest
 {
@@ -254,5 +255,32 @@ class UpdateTest extends Common\UpdateTest
 
         $this->assertSame(10, $this->query->getLimit());
         $this->assertSame(5, $this->query->getOffset());
+    }
+
+    /**
+     * The OR clauses are alternatives to each other, so asking for two of
+     * them used to stack both into the statement.
+     */
+    #[DataProvider('provideConflictClausePair')]
+    public function testTwoConflictClauses($first, $second, $message)
+    {
+        $this->query->$first()
+                    ->$second()
+                    ->table('t1')
+                    ->cols(array('c1'));
+
+        $this->expectException('Aura\SqlQuery\Exception\LogicException');
+        $this->expectExceptionMessage($message);
+        $this->query->__toString();
+    }
+
+    public static function provideConflictClausePair()
+    {
+        return array(
+            array('orIgnore', 'orReplace', 'OR IGNORE and OR REPLACE'),
+            array('ignore', 'orReplace', 'OR IGNORE and OR REPLACE'),
+            array('orAbort', 'orFail', 'OR ABORT and OR FAIL'),
+            array('orRollback', 'orAbort', 'OR ABORT and OR ROLLBACK'),
+        );
     }
 }

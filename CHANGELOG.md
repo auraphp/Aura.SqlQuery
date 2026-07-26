@@ -70,6 +70,14 @@
   combination now throws Exception\LogicException when the statement is
   built, whichever order the two methods were called in.
 
+- [FIX] The Sqlite conflict clauses -- `orAbort()`, `orFail()`,
+  `ignore()`/`orIgnore()`, `orReplace()` and `orRollback()` -- are
+  alternatives to each other, but setting two of them stacked both into the
+  statement (`INSERT OR IGNORE OR REPLACE`), which SQLite rejects. Setting
+  more than one now throws Exception\LogicException when the statement is
+  built, on both Sqlite\Insert and Sqlite\Update; switching clauses still
+  works by turning the first one off.
+
 - [FIX] The quoter now recognizes `#` as an identifier character (legal
   on DB2 / IBM i, in any position), so `table.col#` quotes as
   `"table"."col#"` instead of the broken `"table"."col"#`. Fixes #177.

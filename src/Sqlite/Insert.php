@@ -19,6 +19,21 @@ use Aura\SqlQuery\Common;
  */
 class Insert extends Common\Insert
 {
+    use OrConflictTrait;
+
+    /**
+     *
+     * Builds the statement.
+     *
+     * @return string
+     *
+     */
+    protected function build()
+    {
+        $this->assertOneOrConflictFlag();
+        return parent::build();
+    }
+
     /**
      *
      * Adds or removes OR ABORT flag.

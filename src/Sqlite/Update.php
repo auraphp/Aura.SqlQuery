@@ -20,6 +20,7 @@ use Aura\SqlQuery\Common;
 class Update extends Common\Update implements Common\OrderByInterface, Common\LimitOffsetInterface
 {
     use Common\LimitOffsetTrait;
+    use OrConflictTrait;
 
     /**
      *
@@ -30,6 +31,7 @@ class Update extends Common\Update implements Common\OrderByInterface, Common\Li
      */
     protected function build()
     {
+        $this->assertOneOrConflictFlag();
         return parent::build()
             . $this->builder->buildLimitOffset($this->getLimit(), $this->offset);
     }

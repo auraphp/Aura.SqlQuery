@@ -87,4 +87,30 @@ class SqliteIntegrationTest extends AbstractIntegrationTest
         $sth = $this->pdo->query('SELECT name FROM test_dept WHERE id = 1');
         $this->assertSame('Replaced', $sth->fetchColumn());
     }
+
+    /**
+     * An UPDATE carries a conflict clause too. Moving Sales onto the key
+     * Engineering holds would violate the primary key; OR REPLACE resolves
+     * it by dropping the row that was in the way.
+     */
+    public function testUpdateOrReplace()
+    {
+        // the condition cannot reuse :id -- cols() already binds that name
+        // for the SET clause, and the second binding would win
+        $update = $this->query_factory->newUpdate()
+            ->orReplace()
+            ->table('test_dept')
+            ->cols(['id' => 1])
+            ->where('id = :old_id', ['old_id' => 2]);
+
+        $this->assertStatementContains('UPDATE OR REPLACE <<test_dept>>', $update);
+
+        $this->assertSame(1, $this->exec($update));
+
+        $sth = $this->pdo->query('SELECT id, name FROM test_dept ORDER BY id');
+        $this->assertSame(
+            [['id' => 1, 'name' => 'Sales']],
+            $sth->fetchAll(PDO::FETCH_ASSOC)
+        );
+    }
 }
