@@ -94,11 +94,12 @@
   but there was no counterpart on Common\Update or Common\Delete and none
   for orReplace(), so most unsupported combinations were a fatal "call to
   undefined method" instead: `ignore()` on Pgsql Update and Delete, Sqlite
-  Delete, and Sqlsrv Update and Delete; `orReplace()` on Mysql Update,
-  Pgsql Insert and Update, and Sqlsrv Insert and Update. These are correct
-  refusals rather than gaps to fill -- SQLite's DELETE grammar has no OR
-  clause, and Postgres has no REPLACE. `orReplace()` on a Delete remains
-  undefined on every dialect, since no dialect has such a flag there.
+  Delete, and Sqlsrv Update and Delete (since SQL Server has no DELETE
+  IGNORE equivalent); `orReplace()` on Mysql Update, Pgsql Insert and
+  Update, and Sqlsrv Insert and Update. These are correct refusals rather
+  than gaps to fill -- SQLite's DELETE grammar has no OR clause, and
+  Postgres has no REPLACE. `orReplace()` on a Delete remains undefined on
+  every dialect, since no dialect has such a flag there.
 
 - [FIX] Mysql\Insert::orReplace() combined with highPriority() or ignore()
   built `REPLACE HIGH_PRIORITY INTO` / `REPLACE IGNORE INTO`, which MySQL
