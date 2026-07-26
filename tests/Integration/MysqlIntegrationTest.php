@@ -31,10 +31,12 @@ class MysqlIntegrationTest extends AbstractIntegrationTest
     protected function getCreateTables(): array
     {
         return [
+            // InnoDB explicitly: test_dept_ref puts a foreign key on this
+            // table, and both ends have to be InnoDB for that to work
             'CREATE TABLE test_dept (
                 id   INT PRIMARY KEY,
                 name VARCHAR(50) NOT NULL
-            )',
+            ) ENGINE=InnoDB',
             'CREATE TABLE test_employee (
                 id      INT AUTO_INCREMENT PRIMARY KEY,
                 name    VARCHAR(50) NOT NULL,
@@ -57,7 +59,26 @@ class MysqlIntegrationTest extends AbstractIntegrationTest
                 `compound.group`  VARCHAR(50) NOT NULL,
                 `compound.name`   VARCHAR(50) NOT NULL
             )',
+            // a restricting foreign key, so that DELETE IGNORE has an error
+            // to swallow; created last because it references test_dept
+            'CREATE TABLE test_dept_ref (
+                id      INT PRIMARY KEY,
+                dept_id INT NOT NULL,
+                CONSTRAINT test_dept_ref_fk
+                    FOREIGN KEY (dept_id) REFERENCES test_dept (id)
+            ) ENGINE=InnoDB',
         ];
+    }
+
+    /**
+     * The referencing table has to be dropped before the table it points at,
+     * so it goes first.
+     *
+     * @return string[]
+     */
+    protected static function getTableNames(): array
+    {
+        return array_merge(['test_dept_ref'], parent::getTableNames());
     }
 
     protected function castToChar(string $expr): string
@@ -353,6 +374,70 @@ class MysqlIntegrationTest extends AbstractIntegrationTest
             ['lowPriority', 'LOW_PRIORITY'],
             ['delayed', 'DELAYED'],
         ];
+    }
+
+    public function testUpdateIgnore()
+    {
+        // moving Sales onto the primary key Engineering already holds. The
+        // condition cannot reuse :id -- cols() already binds that name for
+        // the SET clause, and the second binding would win.
+        $update = $this->query_factory->newUpdate()
+            ->table('test_dept')
+            ->cols(['id' => 1])
+            ->where('id = :old_id', ['old_id' => 2]);
+
+        // without the flag the collision is an error
+        try {
+            $this->exec($update);
+            $this->fail('Expected a duplicate-key error.');
+        } catch (\PDOException $e) {
+            $this->assertStringContainsString('Duplicate entry', $e->getMessage());
+        }
+
+        // with it, the offending row is skipped instead
+        $update->ignore();
+        $this->assertStatementContains('UPDATE IGNORE <<test_dept>>', $update);
+        $this->assertSame(0, $this->exec($update));
+
+        $sth = $this->pdo->query('SELECT id, name FROM test_dept ORDER BY id');
+        $rows = $sth->fetchAll(PDO::FETCH_ASSOC);
+        $this->assertSame([1, 2], array_map('intval', array_column($rows, 'id')));
+        $this->assertSame(['Engineering', 'Sales'], array_column($rows, 'name'));
+    }
+
+    public function testDeleteIgnore()
+    {
+        // a child row pointing at Engineering, so the delete below violates
+        // the restricting foreign key
+        $this->pdo->exec('INSERT INTO test_dept_ref (id, dept_id) VALUES (1, 1)');
+
+        $delete = $this->query_factory->newDelete()
+            ->from('test_dept')
+            ->where('id = :id', ['id' => 1]);
+
+        // without the flag the constraint is an error
+        try {
+            $this->exec($delete);
+            $this->fail('Expected a foreign key violation.');
+        } catch (\PDOException $e) {
+            $this->assertStringContainsString('foreign key constraint fails', $e->getMessage());
+        }
+
+        // with it, the same violation is downgraded to a warning and the
+        // parent row is left in place
+        $delete->ignore();
+        $this->assertStatementContains('DELETE IGNORE FROM <<test_dept>>', $delete);
+        $this->assertSame(0, $this->exec($delete));
+
+        $sth = $this->pdo->query('SELECT id FROM test_dept ORDER BY id');
+        $this->assertSame([1, 2], array_map('intval', $sth->fetchAll(PDO::FETCH_COLUMN)));
+
+        // and a delete that violates nothing still removes its row
+        $unblocked = $this->query_factory->newDelete()
+            ->ignore()
+            ->from('test_dept')
+            ->where('id = :id', ['id' => 2]);
+        $this->assertSame(1, $this->exec($unblocked));
     }
 
     public function testUpdateOrderByLimit()
