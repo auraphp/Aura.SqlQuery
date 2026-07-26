@@ -556,6 +556,47 @@ abstract class AbstractIntegrationTest extends TestCase
         $this->assertSame('anon', $sth->fetchColumn());
     }
 
+    /**
+     *
+     * "Set a column to a new value where it currently holds an old one" is the
+     * shape that used to collide: cols() and where() both wanted :name, one
+     * value was discarded, and the statement became a no-op that reported
+     * success. The builder now rejects it, and the documented fix -- binding
+     * the condition under its own name -- has to do the right thing against a
+     * real server. See #238.
+     *
+     */
+    public function testUpdateSetAndMatchTheSameColumn()
+    {
+        $collides = $this->query_factory->newUpdate()
+            ->table('test_employee')
+            ->cols(['name' => 'Annabel']);
+
+        try {
+            $collides->where('name = :name', ['name' => 'Anna']);
+            $this->fail('Expected a collision on the :name placeholder.');
+        } catch (\Aura\SqlQuery\Exception\LogicException $e) {
+            $this->assertStringContainsString(':name', $e->getMessage());
+        }
+
+        $update = $this->query_factory->newUpdate()
+            ->table('test_employee')
+            ->cols(['name' => 'Annabel'])
+            ->where('name = :old_name', ['old_name' => 'Anna']);
+
+        $this->assertSame(
+            ['name' => 'Annabel', 'old_name' => 'Anna'],
+            $update->getBindValues()
+        );
+
+        // exactly the one row matches, and it really is renamed
+        $this->assertSame(1, $this->exec($update));
+        $this->assertSame(
+            ['Annabel', 'Betty', 'Clara', 'Donna'],
+            $this->fetchNames()
+        );
+    }
+
     public function testUpdate()
     {
         $update = $this->query_factory->newUpdate()
