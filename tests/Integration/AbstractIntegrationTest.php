@@ -56,6 +56,16 @@ abstract class AbstractIntegrationTest extends TestCase
      */
     abstract protected function inCsv(string $col, string $param): string;
 
+    /**
+     * Returns the pagination clause this dialect renders for a query limited
+     * to 2 rows starting at offset 1. Most dialects spell it LIMIT/OFFSET;
+     * SQL Server has no LIMIT and overrides this.
+     */
+    protected function getLimitOffsetSql(): string
+    {
+        return 'LIMIT 2 OFFSET 1';
+    }
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -286,7 +296,7 @@ abstract class AbstractIntegrationTest extends TestCase
             ->limit(2)
             ->offset(1);
 
-        $this->assertStatementContains('LIMIT 2 OFFSET 1', $select);
+        $this->assertStatementContains($this->getLimitOffsetSql(), $select);
 
         $actual = $this->fetchAll($select);
         $this->assertSame(['Clara', 'Betty'], array_column($actual, 'name'));
