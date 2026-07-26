@@ -6,7 +6,7 @@ These 'sqlite' query objects have additional SQLite-specific behaviors.
 
 - `orAbort()` to add or remove an `OR ABORT` flag
 - `orFail()` to add or remove an `OR FAIL` flag
-- `orIgnore()` to add or remove an `OR IGNORE` flag
+- `ignore()`, or the deprecated `orIgnore()`, to add or remove an `OR IGNORE` flag
 - `orReplace()` to add or remove an `OR REPLACE` flag
 - `orRollback()` to add or remove an `OR ROLLBACK` flag
 - `onConflict()`, `doUpdateCol()`, `doUpdateCols()`, `doUpdate()` and
@@ -15,11 +15,56 @@ These 'sqlite' query objects have additional SQLite-specific behaviors.
 The `OR` flags are alternatives to one another, so setting two of them throws
 `Aura\SqlQuery\Exception\LogicException`.
 
+### Skipping conflicting rows
+
+`ignore()` renders the older `INSERT OR IGNORE` form:
+
+```php
+$insert = $queryFactory->newInsert();
+$insert
+    ->ignore()
+    ->into('users')
+    ->cols(['email' => 'alice@example.com', 'name' => 'Alice']);
+```
+
+```sql
+INSERT OR IGNORE INTO "users" (
+    "email",
+    "name"
+) VALUES (
+    :email,
+    :name
+)
+```
+
+Adding `onConflict()` switches it to the newer clause, narrowing the skip to one
+constraint so conflicts elsewhere still raise:
+
+```php
+$insert = $queryFactory->newInsert();
+$insert
+    ->ignore()
+    ->onConflict('email')
+    ->into('users')
+    ->cols(['email' => 'alice@example.com', 'name' => 'Alice']);
+```
+
+```sql
+INSERT INTO "users" (
+    "email",
+    "name"
+) VALUES (
+    :email,
+    :name
+)
+ON CONFLICT ("email") DO NOTHING
+```
+
 ### Upsert with ON CONFLICT
 
 SQLite adopted the PostgreSQL `ON CONFLICT` grammar in 3.24, and the methods
-here work the same way; see [the PostgreSQL page](./pgsql.md) for the full
-description.
+here work the same way; see [the PostgreSQL page](./pgsql.md) for
+`doUpdateCol()`, `doUpdate()` and `doUpdateWhere()` examples.
 
 ```php
 $insert = $queryFactory->newInsert();
@@ -61,7 +106,7 @@ ambiguous on PostgreSQL. Qualify the column if the same code has to run on both.
 
 - `orAbort()` to add or remove an `OR ABORT` flag
 - `orFail()` to add or remove an `OR FAIL` flag
-- `orIgnore()` to add or remove an `OR IGNORE` flag
+- `ignore()`, or the deprecated `orIgnore()`, to add or remove an `OR IGNORE` flag
 - `orReplace()` to add or remove an `OR REPLACE` flag
 - `orRollback()` to add or remove an `OR ROLLBACK` flag
 - `orderBy()` to add an ORDER BY clause
@@ -70,11 +115,10 @@ ambiguous on PostgreSQL. Qualify the column if the same code has to run on both.
 
 ## DELETE
 
-- `orAbort()` to add or remove an `OR ABORT` flag
-- `orFail()` to add or remove an `OR FAIL` flag
-- `orIgnore()` to add or remove an `OR IGNORE` flag
-- `orReplace()` to add or remove an `OR REPLACE` flag
-- `orRollback()` to add or remove an `OR ROLLBACK` flag
 - `orderBy()` to add an ORDER BY clause
 - `limit()` to set a LIMIT count
 - `offset()` to set an OFFSET count
+
+SQLite's DELETE grammar has no conflict clause, so none of the `OR` flags above
+are available here; calling `ignore()` throws
+`Aura\SqlQuery\Exception\BadMethodCallException`.

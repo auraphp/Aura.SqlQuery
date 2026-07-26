@@ -56,6 +56,53 @@ clause on those and the statement could only fail at execute time.
 - `onConflict()`, `doUpdateCol()`, `doUpdateCols()`, `doUpdate()` and
   `doUpdateWhere()` to add an `ON CONFLICT ... DO UPDATE SET` clause
 
+### Skipping conflicting rows
+
+`ignore()` renders `ON CONFLICT DO NOTHING`, so a row that would violate a
+constraint is skipped instead of raising an error:
+
+```php
+$insert = $queryFactory->newInsert();
+$insert
+    ->ignore()
+    ->into('users')
+    ->cols(['email' => 'alice@example.com', 'name' => 'Alice']);
+```
+
+```sql
+INSERT INTO "users" (
+    "email",
+    "name"
+) VALUES (
+    :email,
+    :name
+)
+ON CONFLICT DO NOTHING
+```
+
+On its own it covers a conflict on any constraint. Adding `onConflict()` narrows
+it to one, so conflicts elsewhere still raise:
+
+```php
+$insert = $queryFactory->newInsert();
+$insert
+    ->ignore()
+    ->onConflict('email')
+    ->into('users')
+    ->cols(['email' => 'alice@example.com', 'name' => 'Alice']);
+```
+
+```sql
+INSERT INTO "users" (
+    "email",
+    "name"
+) VALUES (
+    :email,
+    :name
+)
+ON CONFLICT ("email") DO NOTHING
+```
+
 ### Upsert with ON CONFLICT
 
 `onConflict()` names the conflict target, and the `doUpdate*()` methods say what

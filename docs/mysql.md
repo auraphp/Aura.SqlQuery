@@ -71,15 +71,75 @@ this differs from the PostgreSQL objects, which reject it.
 - `ignore()` to add or remove `IGNORE` flag
 - `delayed()` to add or remove `DELAYED` flag
 
+`ignore()` skips a row that would violate a constraint instead of raising an
+error:
+
+```php
+$insert = $queryFactory->newInsert();
+$insert
+    ->ignore()
+    ->into('users')
+    ->cols(['email' => 'alice@example.com', 'name' => 'Alice']);
+```
+
+```sql
+INSERT IGNORE INTO `users` (
+    `email`,
+    `name`
+) VALUES (
+    :email,
+    :name
+)
+```
+
+The flags are not all combinable. `REPLACE` accepts only `LOW_PRIORITY` and
+`DELAYED`, so pairing `orReplace()` with `highPriority()` or `ignore()` throws
+`Aura\SqlQuery\Exception\LogicException`; and since `LOW_PRIORITY`,
+`HIGH_PRIORITY` and `DELAYED` are alternatives to one another, asking for two of
+them throws as well. Both are raised when the statement is built, whichever
+order the methods were called in.
+
+### ON DUPLICATE KEY UPDATE
+
 In addition, the MySQL _Insert_ object has support for `ON DUPLICATE KEY UPDATE`:
 
 - `onDuplicateKeyUpdate($col, $raw_value)` sets a raw value
 - `onDuplicateKeyUpdateCol($col, $value)` is a `col()` equivalent for the update
 - `onDuplicateKeyUpdateCols($cols)` is a `cols()` equivalent for the update
 
+```php
+$insert = $queryFactory->newInsert();
+$insert
+    ->into('users')
+    ->cols(['email' => 'alice@example.com', 'name' => 'Alice', 'hits' => 1])
+    ->onDuplicateKeyUpdateCol('name', 'Updated')
+    ->onDuplicateKeyUpdate('hits', 'hits + 1');
+```
+
+```sql
+INSERT INTO `users` (
+    `email`,
+    `name`,
+    `hits`
+) VALUES (
+    :email,
+    :name,
+    :hits
+) ON DUPLICATE KEY UPDATE
+    `name` = :name__on_duplicate_key,
+    `hits` = hits + 1
+```
+
 Placeholders for bound values in the `ON DUPLICATE KEY UPDATE` portions will be
 automatically suffixed with `__on_duplicate_key` to deconflict them from the
-insert placeholders.
+insert placeholders — here the bind values are `email`, `name` and `hits` for
+the insert, plus `name__on_duplicate_key` for the update.
+
+Unlike MySQL, PostgreSQL and SQLite take an explicit conflict target and spell
+this `ON CONFLICT ... DO UPDATE`; see [the PostgreSQL page](./pgsql.md). Note
+that `onDuplicateKeyUpdateCols(['name'])` with no value emits a *new* placeholder
+for you to bind, where the `doUpdateCols(['name'])` of those dialects reuses the
+value you tried to insert.
 
 ## UPDATE
 
@@ -89,6 +149,26 @@ insert placeholders.
 - `orderBy()` to add an ORDER BY clause flag
 - `limit()` to set a LIMIT count
 
+`ignore()` here skips the rows whose update would violate a constraint, leaving
+the rest of the statement to apply:
+
+```php
+$update = $queryFactory->newUpdate();
+$update
+    ->ignore()
+    ->table('users')
+    ->cols(['email' => 'alice@example.com'])
+    ->where('id = :id', ['id' => 1]);
+```
+
+```sql
+UPDATE IGNORE `users`
+SET
+    `email` = :email
+WHERE
+    id = :id
+```
+
 ## DELETE
 
 - `lowPriority()` to add or remove `LOW_PRIORITY` flag
@@ -96,3 +176,20 @@ insert placeholders.
 - `quick()` to add or remove `QUICK` flag
 - `orderBy()` to add an ORDER BY clause
 - `limit()` to set a LIMIT count
+
+`ignore()` downgrades the errors a delete would raise — a restricting foreign
+key, say — to warnings, leaving the offending rows in place:
+
+```php
+$delete = $queryFactory->newDelete();
+$delete
+    ->ignore()
+    ->from('users')
+    ->where('id = :id', ['id' => 1]);
+```
+
+```sql
+DELETE IGNORE FROM `users`
+WHERE
+    id = :id
+```
