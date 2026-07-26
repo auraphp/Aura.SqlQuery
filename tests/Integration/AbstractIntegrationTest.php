@@ -451,6 +451,32 @@ abstract class AbstractIntegrationTest extends TestCase
         $this->assertSame('100', (string) $actual[0]['salary_text']);
     }
 
+    public function testSelectCountDistinct()
+    {
+        // issue #226: a space inside parentheses is not an alias separator.
+        // 'COUNT(DISTINCT x)' used to render as 'COUNT(DISTINCT AS x)',
+        // which is a syntax error on every dialect, so this only passes if
+        // the statement actually executes.
+        $select = $this->query_factory->newSelect()
+            ->cols([
+                'COUNT(DISTINCT test_employee.dept_id)',
+                // a balanced call is still a column name, so the two-word
+                // form keeps working as an alias
+                'COUNT(*) row_count',
+            ])
+            ->from('test_employee');
+
+        $this->assertStatementContains(
+            'COUNT(DISTINCT <<test_employee>>.<<dept_id>>)',
+            $select
+        );
+        $this->assertStatementContains('COUNT(*) AS <<row_count>>', $select);
+
+        $row = $this->fetchAll($select)[0];
+        $this->assertSame(2, (int) array_values($row)[0]);
+        $this->assertSame(4, (int) $row['row_count']);
+    }
+
     public function testInsert()
     {
         $insert = $this->query_factory->newInsert()

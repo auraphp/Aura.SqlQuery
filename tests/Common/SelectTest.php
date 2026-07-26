@@ -885,12 +885,17 @@ class SelectTest extends AbstractQueryTest
             "CONCAT('(',t1.c3,')') AS wrapped",
             // a doubled quote is an escaped one, not the end of the literal
             "CONCAT('it''s(',t1.c4) escaped",
+            // as is a backslashed one, on the dialects that escape that way.
+            // the quoter's own literal scan does not follow backslash
+            // escapes, so t1.c5 is left unquoted; the alias is still an alias
+            "CONCAT('it\\'s(',t1.c5) backslashed",
         ));
 
         $this->assertTrue($this->query->hasCol('opener'));
         $this->assertTrue($this->query->hasCol('closer'));
         $this->assertTrue($this->query->hasCol('wrapped'));
         $this->assertTrue($this->query->hasCol('escaped'));
+        $this->assertTrue($this->query->hasCol('backslashed'));
 
         $actual = $this->query->__toString();
         $expect = "
@@ -898,7 +903,8 @@ class SelectTest extends AbstractQueryTest
                 CONCAT('(',<<t1>>.<<c1>>) AS <<opener>>,
                 CONCAT(<<t1>>.<<c2>>,')') AS <<closer>>,
                 CONCAT('(',<<t1>>.<<c3>>,')') AS <<wrapped>>,
-                CONCAT('it''s(',<<t1>>.<<c4>>) AS <<escaped>>
+                CONCAT('it''s(',<<t1>>.<<c4>>) AS <<escaped>>,
+                CONCAT('it\\'s(',t1.c5) AS <<backslashed>>
         ";
         $this->assertSameSql($expect, $actual);
     }

@@ -309,6 +309,16 @@ class Select extends AbstractQuery implements SelectInterface
             $char = $expr[$i];
 
             if ($quote !== null) {
+                // a backslash escapes the next character on MySQL; on
+                // PostgreSQL, with standard_conforming_strings on, it does
+                // not. Either way an unterminated literal returns false and
+                // the caller keeps the spec whole, so the cost of guessing
+                // wrong is a missed alias, never malformed SQL.
+                if ($char === '\\' && isset($expr[$i + 1])) {
+                    $i ++;
+                    continue;
+                }
+
                 // a doubled quote inside a literal is an escaped one, not
                 // the end of the literal
                 if ($char === $quote && isset($expr[$i + 1]) && $expr[$i + 1] === $quote) {
