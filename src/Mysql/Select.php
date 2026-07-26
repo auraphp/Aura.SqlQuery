@@ -19,6 +19,26 @@ use Aura\SqlQuery\Common;
  */
 class Select extends Common\Select
 {
+    use Common\LateralJoinTrait;
+
+    /**
+     *
+     * Does this join type reject an ON clause outright?
+     *
+     * MySQL treats CROSS JOIN and INNER JOIN as synonyms and accepts an ON
+     * clause on either, so only NATURAL is rejected here -- unlike the
+     * PostgreSQL default in the trait.
+     *
+     * @param string $join The upper-cased join clause.
+     *
+     * @return bool
+     *
+     */
+    protected function joinForbidsCondition($join)
+    {
+        return str_starts_with($join, 'NATURAL ');
+    }
+
     /**
      *
      * Adds or removes SQL_CALC_FOUND_ROWS flag.

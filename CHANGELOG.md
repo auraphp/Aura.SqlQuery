@@ -38,16 +38,21 @@
   `cast(col as varchar)`) as a column alias, which produced misquoted
   SQL. Fixes #157.
 
-- [ADD] Pgsql\Select gains `lateralJoinSubSelect()`, rendering
-  `JOIN LATERAL` against an aliased sub-select so the sub-select can
-  reference columns from the tables to its left. The signature matches
-  `joinSubSelect()`. PostgreSQL requires an `ON` clause on every LATERAL
-  join except CROSS and NATURAL, so when no condition is given for the
-  other join types, `ON true` is rendered; conversely, passing a condition
-  to a CROSS or NATURAL join now throws
-  Aura\SqlQuery\Exception\LogicException, since PostgreSQL rejects an `ON`
-  clause there and the statement could only fail at execute time. Thanks
-  to @golgote for the original implementation in #184.
+- [ADD] Pgsql\Select and Mysql\Select gain `lateralJoinSubSelect()`,
+  rendering `JOIN LATERAL` against an aliased sub-select so the
+  sub-select can reference columns from the tables to its left. The
+  signature matches `joinSubSelect()`, and the shared implementation
+  lives in the new Common\LateralJoinTrait. A LATERAL join needs an `ON`
+  clause on every join type except CROSS and NATURAL, so when no
+  condition is given for the other join types, `ON true` is rendered.
+  Conversely, passing a condition to a join type that rejects an `ON`
+  clause now throws Aura\SqlQuery\Exception\LogicException rather than
+  building a statement that could only fail at execute time; that means
+  NATURAL on both dialects, plus CROSS on PostgreSQL, which MySQL allows
+  because CROSS and INNER are synonyms there. Note that LATERAL requires
+  MySQL 8.0.14 or later, and that MariaDB does not support it at all
+  despite sharing the `mysql` query objects. Thanks to @golgote for the
+  original implementation in #184.
 
 - [ADD] Insert-ignore is now spelled `ignore()` on every dialect that
   supports it: Mysql\Insert renders `INSERT IGNORE` and Sqlite\Insert
