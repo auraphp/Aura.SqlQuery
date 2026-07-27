@@ -42,6 +42,18 @@ abstract class AbstractQuery
 
     /**
      *
+     * A second claimant on a name a rendered UNION branch owns, for the case
+     * where the active branch asks for the value already bound. Ownership
+     * stays with the union, but the name is not free while this clause is
+     * still using it. Keys match $bind_sources.
+     *
+     * @var array
+     *
+     */
+    protected $bind_shared = array();
+
+    /**
+     *
      * Human-readable names for the $bind_sources values, for error messages.
      *
      * @var array
@@ -253,14 +265,25 @@ abstract class AbstractQuery
         // A rendered UNION branch owns its placeholders, but a later branch
         // filtering on the same value -- one tenant id across both halves --
         // asks for exactly what is already bound, and nothing is lost by
-        // letting it through. Returning here also leaves the name with the
-        // union: were ownership to pass to the new clause, a later
-        // resetWhere() would free a name the rendered SQL still binds.
+        // letting it through. Ownership stays with the union: were it to pass
+        // to the new clause, a later resetWhere() would free a name the
+        // rendered SQL still binds. Record the clause as a second claimant
+        // all the same, so that resetUnions() hands the name over to it
+        // instead of freeing a name this clause is still using.
         if (
             $prior === 'union'
             && array_key_exists($name, $this->bind_values)
             && $this->bind_values[$name] === $value
         ) {
+            if ($source !== null && $source !== 'union') {
+                $shared = isset($this->bind_shared[$name])
+                    ? $this->bind_shared[$name]
+                    : null;
+                if ($shared !== null && $shared !== $source) {
+                    $this->throwCollision($name, $shared, $source);
+                }
+                $this->bind_shared[$name] = $source;
+            }
             return $this;
         }
 
@@ -276,26 +299,7 @@ abstract class AbstractQuery
                 )
             )
         ) {
-            $was = isset($this->bind_source_labels[$prior])
-                ? $this->bind_source_labels[$prior]
-                : $prior;
-            $now = isset($this->bind_source_labels[$source])
-                ? $this->bind_source_labels[$source]
-                : $source;
-
-            // "a WHERE condition ... a WHERE condition" reads like a bug when
-            // both halves are the same clause; say "another" instead, taking
-            // the article off the label first.
-            if ($prior === $source) {
-                $now = 'another ' . preg_replace('/^an? /', '', $now);
-            }
-
-            throw new Exception\LogicException(
-                "The placeholder ':{$name}' is already in use by {$was}, so "
-                . "{$now} cannot bind it as well: one value would overwrite "
-                . "the other. Use a different placeholder name for one of "
-                . "them."
-            );
+            $this->throwCollision($name, $prior, $source);
         }
 
         $this->bind_values[$name] = $value;
@@ -311,6 +315,45 @@ abstract class AbstractQuery
         }
 
         return $this;
+    }
+
+    /**
+     *
+     * Reports two parts of the query claiming one placeholder name.
+     *
+     * @param string $name The placeholder name.
+     *
+     * @param string $prior The part of the query holding the name.
+     *
+     * @param string $source The part of the query asking for it as well.
+     *
+     * @return void
+     *
+     * @throws Exception\LogicException always.
+     *
+     */
+    protected function throwCollision($name, $prior, $source)
+    {
+        $was = isset($this->bind_source_labels[$prior])
+            ? $this->bind_source_labels[$prior]
+            : $prior;
+        $now = isset($this->bind_source_labels[$source])
+            ? $this->bind_source_labels[$source]
+            : $source;
+
+        // "a WHERE condition ... a WHERE condition" reads like a bug when
+        // both halves are the same clause; say "another" instead, taking
+        // the article off the label first.
+        if ($prior === $source) {
+            $now = 'another ' . preg_replace('/^an? /', '', $now);
+        }
+
+        throw new Exception\LogicException(
+            "The placeholder ':{$name}' is already in use by {$was}, so "
+            . "{$now} cannot bind it as well: one value would overwrite "
+            . "the other. Use a different placeholder name for one of "
+            . "them."
+        );
     }
 
     /**
@@ -336,6 +379,7 @@ abstract class AbstractQuery
     {
         $this->bind_values = array();
         $this->bind_sources = array();
+        $this->bind_shared = array();
         return $this;
     }
 
@@ -355,10 +399,25 @@ abstract class AbstractQuery
         // that -- it renders the current half to SQL, placeholders and all,
         // then resets, so deleting the values leaves that SQL with tokens
         // nothing can bind.
-        foreach ($this->bind_sources as $name => $src) {
+        foreach ($this->bind_shared as $name => $src) {
             if ($src === $source) {
-                unset($this->bind_sources[$name]);
+                unset($this->bind_shared[$name]);
             }
+        }
+
+        foreach ($this->bind_sources as $name => $src) {
+            if ($src !== $source) {
+                continue;
+            }
+            // a name another clause is still using is not free: hand it over
+            // rather than releasing it, or that clause's placeholder could be
+            // rebound to a different value with nothing to report the clash.
+            if (isset($this->bind_shared[$name])) {
+                $this->bind_sources[$name] = $this->bind_shared[$name];
+                unset($this->bind_shared[$name]);
+                continue;
+            }
+            unset($this->bind_sources[$name]);
         }
         return $this;
     }

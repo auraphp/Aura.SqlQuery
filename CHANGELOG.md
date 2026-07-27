@@ -30,7 +30,11 @@
   resetHaving() and resetTables() release the names their clause claimed, so
   the placeholder may be reused after a reset; the bound values themselves
   survive a reset as they always have, which is what lets union() bind the
-  half it has already rendered. Fixes #238.
+  half it has already rendered. Both halves of a union may filter on one
+  placeholder as long as they ask for the same value -- the same tenant id
+  either side of the union is not a collision -- but only one clause per
+  branch may do so, and resetUnions() then leaves the name with that clause
+  rather than freeing it. Fixes #238.
 
 - [BRK] Bumped the minimum version to PHP 8.4; the CI matrix now covers
   PHP 8.4 and 8.5.

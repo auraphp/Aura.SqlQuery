@@ -833,6 +833,11 @@ class Select extends AbstractQuery implements SelectInterface
         $bind_sources = $this->bind_sources;
         $this->reset();
         $this->bind_sources = array_fill_keys(array_keys($bind_sources), 'union');
+
+        // every name now belongs to the union, including any a clause of the
+        // branch just rendered was sharing: that clause is SQL now, so there
+        // is no live claimant left to hand a name back to.
+        $this->bind_shared = array();
     }
 
     /**

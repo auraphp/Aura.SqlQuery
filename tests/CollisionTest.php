@@ -594,6 +594,128 @@ class CollisionTest extends TestCase
         $this->assertSame(array('id' => 9), $select->getBindValues());
     }
 
+    /**
+     *
+     * Sharing on an equal value leaves the name with the union, so the active
+     * branch's own condition is never recorded as a claimant. resetUnions()
+     * then frees the name while that condition is still in the query.
+     *
+     */
+    public function testResetUnionsCannotFreeANameTheActiveBranchStillUses()
+    {
+        $select = $this->query_factory->newSelect();
+        $select->cols(array('*'))->from('a')->where('tenant = :t', array('t' => 5))
+               ->union()
+               ->cols(array('*'))->from('b')->where('tenant = :t', array('t' => 5))
+               ->resetUnions();
+
+        $this->expectException(Exception\LogicException::class);
+        $select->where('other = :t', array('t' => 6));
+    }
+
+    /**
+     *
+     * Sharing a union's name is one clause's privilege: two different clauses
+     * of the active branch asking for it are the ordinary cross-clause clash,
+     * since either may revise its value afterwards.
+     *
+     */
+    public function testTwoClausesCannotBothShareARenderedBranchesPlaceholder()
+    {
+        $select = $this->query_factory->newSelect();
+        $select->cols(array('*'))->from('a')->where('tenant = :t', array('t' => 5))
+               ->union()
+               ->cols(array('*'))->from('b')->where('tenant = :t', array('t' => 5));
+
+        $this->expectException(Exception\LogicException::class);
+        $select->having('tenant = :t', array('t' => 5));
+    }
+
+    /**
+     *
+     * Once resetUnions() has handed the name to the clause that was sharing
+     * it, resetting that clause frees it for real: nothing binds it any more.
+     *
+     */
+    public function testResetUnionsThenResettingTheSharingClauseFreesTheName()
+    {
+        $select = $this->query_factory->newSelect();
+        $select->cols(array('*'))->from('a')->where('tenant = :t', array('t' => 5))
+               ->union()
+               ->cols(array('*'))->from('b')->where('tenant = :t', array('t' => 5))
+               ->resetUnions()
+               ->resetWhere();
+
+        $select->where('other = :t', array('t' => 6));
+        $this->assertSame(array('t' => 6), $select->getBindValues());
+    }
+
+    /**
+     *
+     * A clause that has been reset is no longer using the name it shared, so
+     * a later resetUnions() must not hand the name back to it -- that would
+     * refuse a placeholder nothing in the query binds.
+     *
+     */
+    public function testResettingTheSharingClauseFirstStillFreesTheName()
+    {
+        $select = $this->query_factory->newSelect();
+        $select->cols(array('*'))->from('a')->where('tenant = :t', array('t' => 5))
+               ->union()
+               ->cols(array('*'))->from('b')->where('tenant = :t', array('t' => 5))
+               ->resetWhere()
+               ->resetUnions();
+
+        $select->where('other = :t', array('t' => 6));
+        $this->assertSame(array('t' => 6), $select->getBindValues());
+    }
+
+    /**
+     *
+     * A sharing clause that has itself been rendered into a union branch is
+     * no longer a live claimant: resetUnions() throws away that SQL too, so
+     * the name is free rather than owed back to the clause.
+     *
+     */
+    public function testASharingClauseRenderedIntoItsOwnBranchDoesNotHoldTheName()
+    {
+        $select = $this->query_factory->newSelect();
+        $select->cols(array('*'))->from('a')->where('tenant = :t', array('t' => 5))
+               ->union()
+               ->cols(array('*'))->from('b')->where('tenant = :t', array('t' => 5))
+               ->union()
+               ->cols(array('*'))->from('c')
+               ->resetUnions();
+
+        $select->where('other = :t', array('t' => 6));
+        $this->assertSame(array('t' => 6), $select->getBindValues());
+    }
+
+    /**
+     *
+     * Same again for a sub-select's names, which no clause reset releases:
+     * once the branch holding the sub-select is rendered, resetUnions() must
+     * still free them.
+     *
+     */
+    public function testASharedSubSelectNameIsFreedAfterItsBranchIsRendered()
+    {
+        $sub = $this->query_factory->newSelect();
+        $sub->cols(array('*'))->from('s');
+        $sub->bindValue('t', 5);
+
+        $select = $this->query_factory->newSelect();
+        $select->cols(array('*'))->from('a')->where('tenant = :t', array('t' => 5))
+               ->union()
+               ->cols(array('*'))->fromSubSelect($sub, 'x')
+               ->union()
+               ->cols(array('*'))->from('c')
+               ->resetUnions();
+
+        $select->where('other = :t', array('t' => 6));
+        $this->assertSame(array('t' => 6), $select->getBindValues());
+    }
+
     public function testUnionKeepsTheValuesOfEveryHalf()
     {
         $select = $this->query_factory->newSelect();
