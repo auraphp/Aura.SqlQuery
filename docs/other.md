@@ -145,7 +145,9 @@ WHERE
 
 A rendered branch holds its names against `resetWhere()` and the other clause
 resets too, since those clauses have been built into SQL already.
-`resetUnions()` discards that SQL and releases the names with it.
+`resetUnions()` discards that SQL and releases the names with it -- except
+those a clause of the current branch is sharing, which pass to that clause
+rather than going free, since it is still binding them.
 
 This covers hand-bound values as well. A branch can be written around
 `bindValue()` -- `where('id = :id')` with the value supplied separately -- and

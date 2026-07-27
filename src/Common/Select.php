@@ -521,11 +521,7 @@ class Select extends AbstractQuery implements SelectInterface
     protected function subSelect($spec, $indent)
     {
         if ($spec instanceof SelectInterface) {
-            $bind_sources = ($spec instanceof AbstractQuery) ? $spec->bind_sources : [];
-            foreach ($spec->getBindValues() as $subName => $subVal) {
-                $subSource = isset($bind_sources[$subName]) ? $bind_sources[$subName] : 'cond';
-                $this->bindValueFrom($subName, $subVal, $subSource);
-            }
+            $this->bindValuesFromSelect($spec, 'cond');
         }
 
         return PHP_EOL . $indent

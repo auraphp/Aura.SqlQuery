@@ -614,6 +614,30 @@ class CollisionTest extends TestCase
         $select->where('id = ?', array(1 => 6));
     }
 
+    /**
+     *
+     * The message has to describe the query the reader is looking at. A
+     * positional placeholder keeps its `?` in the statement, so quoting it as
+     * ':1' would name a token that is not there.
+     *
+     */
+    public function testCollisionMessageDoesNotNameAPositionalPlaceholder()
+    {
+        $select = $this->query_factory->newSelect();
+        $select->cols(array('*'))->from('a')->where('id = ?');
+        $select->bindValue(1, 5);
+        $select->union()->cols(array('*'))->from('b');
+
+        try {
+            $select->where('id = ?', array(1 => 6));
+            $this->fail('Expected a collision on the positional placeholder.');
+        } catch (Exception\LogicException $e) {
+            $message = $e->getMessage();
+            $this->assertStringContainsString('positional placeholder 1', $message);
+            $this->assertStringNotContainsString("':1'", $message);
+        }
+    }
+
     public function testHandBoundPlaceholderOfARenderedBranchMayBeSharedOnTheSameValue()
     {
         $select = $this->query_factory->newSelect();

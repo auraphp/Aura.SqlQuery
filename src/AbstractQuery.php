@@ -246,9 +246,10 @@ abstract class AbstractQuery
      *
      * @param mixed $value The value to bind to the placeholder.
      *
-     * @param string $source The part of the query binding the value: 'col',
-     * 'cond', 'conflict', 'duplicate_key', 'union', or null when bound by
-     * hand.
+     * @param string|null $source The part of the query binding the value:
+     * 'col', 'where', 'having', 'join', 'cond' for a condition with no
+     * clause of its own, 'conflict', 'duplicate_key', 'union', or null when
+     * bound by hand.
      *
      * @return $this
      *
@@ -319,6 +320,34 @@ abstract class AbstractQuery
 
     /**
      *
+     * Takes over the values a sub-select has bound, keeping the part of that
+     * sub-select which claimed each one so the collision check reads the same
+     * as it would there.
+     *
+     * @param SelectInterface $select The sub-select to take the values from.
+     *
+     * @param string $default_source The source to record for a value the
+     * sub-select bound by hand, which has no claimant to carry over.
+     *
+     * @return $this
+     *
+     */
+    protected function bindValuesFromSelect(SelectInterface $select, $default_source)
+    {
+        $bind_sources = ($select instanceof AbstractQuery) ? $select->bind_sources : [];
+
+        foreach ($select->getBindValues() as $name => $value) {
+            $source = isset($bind_sources[$name])
+                ? $bind_sources[$name]
+                : $default_source;
+            $this->bindValueFrom($name, $value, $source);
+        }
+
+        return $this;
+    }
+
+    /**
+     *
      * Reports two parts of the query claiming one placeholder name.
      *
      * @param string $name The placeholder name.
@@ -348,11 +377,17 @@ abstract class AbstractQuery
             $now = 'another ' . preg_replace('/^an? /', '', $now);
         }
 
+        // a positional placeholder is bound by number and keeps its `?` in
+        // the statement, so quoting it as ':1' would name a token the query
+        // does not contain and send the reader looking for it.
+        $which = ctype_digit((string) $name)
+            ? "The positional placeholder {$name}"
+            : "The placeholder ':{$name}'";
+
         throw new Exception\LogicException(
-            "The placeholder ':{$name}' is already in use by {$was}, so "
+            "{$which} is already in use by {$was}, so "
             . "{$now} cannot bind it as well: one value would overwrite "
-            . "the other. Use a different placeholder name for one of "
-            . "them."
+            . "the other. Use a different placeholder for one of them."
         );
     }
 
@@ -385,7 +420,12 @@ abstract class AbstractQuery
 
     /**
      *
-     * Removes all bound values and sources for a given query source.
+     * Releases the placeholder names a query source claimed, so they may be
+     * claimed again. The bound values themselves are kept: the clause resets
+     * have never removed them, and union() depends on that.
+     *
+     * A name another clause is sharing passes to that clause rather than
+     * being released, since it is still in use.
      *
      * @param string $source The source to remove (e.g. 'where', 'having').
      *
@@ -592,11 +632,7 @@ abstract class AbstractQuery
 
         foreach ($selects as $key => $select) {
             $selects[$key] = $select->getStatement();
-            $bind_sources = ($select instanceof AbstractQuery) ? $select->bind_sources : [];
-            foreach ($select->getBindValues() as $subName => $subVal) {
-                $subSource = isset($bind_sources[$subName]) ? $bind_sources[$subName] : $clause;
-                $this->bindValueFrom($subName, $subVal, $subSource);
-            }
+            $this->bindValuesFromSelect($select, $clause);
         }
 
         $cond = strtr($cond, $selects);
