@@ -38,6 +38,59 @@ $update->table('foo')           // update this table
     ]);
 ```
 
+## Placeholder names
+
+`cols()` names its placeholder after the column, and so does a bind value
+passed to `where()`. When a condition tests a column the query also sets, both
+want the same placeholder, and only one value can survive — so this throws
+`Aura\SqlQuery\Exception\LogicException`. It throws even if the two values
+happen to match, since either one may be revised afterwards:
+
+```php
+$update = $queryFactory->newUpdate();
+
+$update
+    ->table('orders')
+    ->cols(['status' => 'shipped'])                     // binds :status
+    ->where('status = :status', ['status' => 'pending']);   // wants :status too
+```
+
+Bind the condition under a name of its own:
+
+```php
+$update = $queryFactory->newUpdate();
+
+$update
+    ->table('orders')
+    ->cols(['status' => 'shipped'])
+    ->where('status = :old_status', ['old_status' => 'pending']);
+```
+
+```sql
+UPDATE "orders"
+SET
+    "status" = :status
+WHERE
+    status = :old_status
+```
+
+Only UPDATE can run into this: INSERT has no `where()`, DELETE has no `cols()`,
+and a SELECT `cols()` binds nothing. Two conditions sharing one placeholder
+name is a separate case that is *not* caught — see
+[Placeholder Names](./other.md#placeholder-names).
+
+Binding a value yourself is never blocked, whatever set it first:
+
+```php
+$update = $queryFactory->newUpdate();
+
+$update->table('orders')->cols(['status' => 'shipped']);
+$update->bindValue('status', 'delivered');   // :status is now 'delivered'
+```
+
+It does not take ownership of the name, though: the placeholder still belongs
+to `cols()`, so a condition claiming `:status` afterwards still throws.
+
 Once you have built the query, pass it to the database connection of your
 choice as a string, and send the bound values along with it.
 

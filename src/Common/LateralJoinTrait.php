@@ -56,7 +56,7 @@ trait LateralJoinTrait
 
         $this->addTableRef("$join (SELECT ...)", $name);
 
-        $spec = $this->subSelect($spec, '            ');
+        $spec = $this->subSelect($spec, '            ', 'join');
         $name = $this->quoter->quoteName($name);
         $cond = $this->fixJoinCondition($cond, $bind);
 

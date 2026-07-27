@@ -32,6 +32,47 @@ abstract class AbstractQuery
 
     /**
      *
+     * Which part of the query bound each placeholder name; null means it was
+     * bound by hand. Keys match $bind_values.
+     *
+     * @var array
+     *
+     */
+    protected $bind_sources = array();
+
+    /**
+     *
+     * A second claimant on a name a rendered UNION branch owns, for the case
+     * where the active branch asks for the value already bound. Ownership
+     * stays with the union, but the name is not free while this clause is
+     * still using it. Keys match $bind_sources.
+     *
+     * @var array
+     *
+     */
+    protected $bind_shared = array();
+
+    /**
+     *
+     * Human-readable names for the $bind_sources values, for error messages.
+     *
+     * @var array
+     *
+     */
+    protected $bind_source_labels = array(
+        'col' => 'cols()',
+        'cond' => 'a condition',
+        'where' => 'a WHERE condition',
+        'having' => 'a HAVING condition',
+        'join' => 'a JOIN condition',
+        'table' => 'a sub-select in the FROM clause',
+        'union' => 'a rendered UNION branch',
+        'conflict' => 'doUpdateCol()',
+        'duplicate_key' => 'onDuplicateKeyUpdateCol()',
+    );
+
+    /**
+     *
      * The list of WHERE conditions.
      *
      * @var array
@@ -184,8 +225,184 @@ abstract class AbstractQuery
      */
     public function bindValue($name, $value)
     {
+        return $this->bindValueFrom($name, $value, null);
+    }
+
+    /**
+     *
+     * Binds a single value, recording which part of the query asked for it.
+     *
+     * Two different parts of a query claiming the same placeholder name is a
+     * mistake: only one value can survive in the flat bind array, so the
+     * other is silently discarded and the statement runs with the wrong data.
+     * Throw instead of losing it -- even when the two values happen to agree
+     * today, since either part may revise its value afterwards and there is
+     * nothing to re-check it against.
+     *
+     * A null source means the caller bound the value by hand, which may
+     * always overwrite: rebinding before execution, and reusing a query
+     * object with fresh values, are both legitimate.
+     *
+     * @param string $name The placeholder name or number.
+     *
+     * @param mixed $value The value to bind to the placeholder.
+     *
+     * @param string|null $source The part of the query binding the value:
+     * 'col', 'where', 'having', 'join', 'cond' for a condition with no
+     * clause of its own, 'conflict', 'duplicate_key', 'union', or null when
+     * bound by hand.
+     *
+     * @return $this
+     *
+     * @throws Exception\LogicException when two different parts of the query
+     * claim one placeholder name.
+     *
+     */
+    protected function bindValueFrom($name, $value, $source)
+    {
+        $prior = isset($this->bind_sources[$name])
+            ? $this->bind_sources[$name]
+            : null;
+
+        // A rendered UNION branch owns its placeholders, but a later branch
+        // filtering on the same value -- one tenant id across both halves --
+        // asks for exactly what is already bound, and nothing is lost by
+        // letting it through. Ownership stays with the union: were it to pass
+        // to the new clause, a later resetWhere() would free a name the
+        // rendered SQL still binds. Record the clause as a second claimant
+        // all the same, so that resetUnions() hands the name over to it
+        // instead of freeing a name this clause is still using.
+        if (
+            $prior === 'union'
+            && array_key_exists($name, $this->bind_values)
+            && $this->bind_values[$name] === $value
+        ) {
+            if ($source !== null && $source !== 'union') {
+                $shared = isset($this->bind_shared[$name])
+                    ? $this->bind_shared[$name]
+                    : null;
+                if ($shared !== null && $shared !== $source) {
+                    $this->throwCollision($name, $shared, $source);
+                }
+                $this->bind_shared[$name] = $source;
+            }
+            return $this;
+        }
+
+        if (
+            $source !== null
+            && $prior !== null
+            && array_key_exists($name, $this->bind_values)
+            && (
+                $prior !== $source
+                || (
+                    $this->bind_values[$name] !== $value
+                    && !in_array($source, ['col', 'conflict', 'duplicate_key'], true)
+                )
+            )
+        ) {
+            $this->throwCollision($name, $prior, $source);
+        }
+
         $this->bind_values[$name] = $value;
+
+        // A hand-bound value overwrites the value but does not claim the
+        // name: otherwise binding by hand between two parts of the query
+        // would erase the record of who claimed it first, and the collision
+        // they would have had goes undetected. Any other source reaching
+        // here either claimed the name already or found it free, since a
+        // second claimant throws above.
+        if ($source !== null) {
+            $this->bind_sources[$name] = $source;
+        }
+
         return $this;
+    }
+
+    /**
+     *
+     * Takes over the values a sub-select has bound, claiming them for the
+     * clause the sub-select was rendered into.
+     *
+     * The sub-select's own clause labels are deliberately not carried over.
+     * They describe parts of a different query: recording them here would
+     * have the outer query hold a name against a WHERE it may not even have,
+     * which no reset of the outer query can reach -- resetTables() releases
+     * the clause the sub-select actually sits in, and would leave the name
+     * claimed forever. The message would name that absent clause too, and
+     * send the reader looking for it.
+     *
+     * @param SelectInterface $select The sub-select to take the values from.
+     *
+     * @param string $source The part of THIS query the sub-select was
+     * rendered into.
+     *
+     * @return $this
+     *
+     */
+    protected function bindValuesFromSelect(SelectInterface $select, $source)
+    {
+        foreach ($select->getBindValues() as $name => $value) {
+            $this->bindValueFrom($name, $value, $source);
+        }
+
+        return $this;
+    }
+
+    /**
+     *
+     * Reports two parts of the query claiming one placeholder name.
+     *
+     * @param string $name The placeholder name.
+     *
+     * @param string $prior The part of the query holding the name.
+     *
+     * @param string $source The part of the query asking for it as well.
+     *
+     * @return void
+     *
+     * @throws Exception\LogicException always.
+     *
+     */
+    protected function throwCollision($name, $prior, $source)
+    {
+        $was = isset($this->bind_source_labels[$prior])
+            ? $this->bind_source_labels[$prior]
+            : $prior;
+        $now = isset($this->bind_source_labels[$source])
+            ? $this->bind_source_labels[$source]
+            : $source;
+
+        // "a WHERE condition ... a WHERE condition" reads like a bug when
+        // both halves are the same clause; say "another" instead, taking
+        // the article off the label first.
+        if ($prior === $source) {
+            $now = 'another ' . preg_replace('/^an? /', '', $now);
+        }
+
+        // a positional placeholder is bound by number and keeps its `?` in
+        // the statement, so quoting it as ':1' would name a token the query
+        // does not contain and send the reader looking for it.
+        // a positional placeholder is numbered by its offset in the values
+        // array, which starts again at zero on every call, so "use a
+        // different one" is advice the caller cannot act on: naming them is
+        // the only way to keep the two apart.
+        $positional = ctype_digit((string) $name);
+
+        $which = $positional
+            ? "The positional placeholder {$name}"
+            : "The placeholder ':{$name}'";
+
+        $remedy = $positional
+            ? "Give the placeholders names instead of '?', so that each one "
+            . "carries its own value."
+            : "Use a different placeholder for one of them.";
+
+        throw new Exception\LogicException(
+            "{$which} is already in use by {$was}, so "
+            . "{$now} cannot bind it as well: one value would overwrite "
+            . "the other. {$remedy}"
+        );
     }
 
     /**
@@ -210,6 +427,52 @@ abstract class AbstractQuery
     public function resetBindValues()
     {
         $this->bind_values = array();
+        $this->bind_sources = array();
+        $this->bind_shared = array();
+        return $this;
+    }
+
+    /**
+     *
+     * Releases the placeholder names a query source claimed, so they may be
+     * claimed again. The bound values themselves are kept: the clause resets
+     * have never removed them, and union() depends on that.
+     *
+     * A name another clause is sharing passes to that clause rather than
+     * being released, since it is still in use.
+     *
+     * @param string $source The source to remove (e.g. 'where', 'having').
+     *
+     * @return $this
+     *
+     */
+    protected function removeBindSources($source)
+    {
+        // drop the record of who claimed the name, but keep the value: the
+        // clause resets never removed bound values, and union() depends on
+        // that -- it renders the current half to SQL, placeholders and all,
+        // then resets, so deleting the values leaves that SQL with tokens
+        // nothing can bind.
+        foreach ($this->bind_shared as $name => $src) {
+            if ($src === $source) {
+                unset($this->bind_shared[$name]);
+            }
+        }
+
+        foreach ($this->bind_sources as $name => $src) {
+            if ($src !== $source) {
+                continue;
+            }
+            // a name another clause is still using is not free: hand it over
+            // rather than releasing it, or that clause's placeholder could be
+            // rebound to a different value with nothing to report the clash.
+            if (isset($this->bind_shared[$name])) {
+                $this->bind_sources[$name] = $this->bind_shared[$name];
+                unset($this->bind_shared[$name]);
+                continue;
+            }
+            unset($this->bind_sources[$name]);
+        }
         return $this;
     }
 
@@ -281,12 +544,14 @@ abstract class AbstractQuery
     {
         if ($cond instanceof Closure) {
             $this->addClauseCondClosure($clause, $andor, $cond);
-            $this->bindValues($bind);
+            foreach ($bind as $key => $val) {
+                $this->bindValueFrom($key, $val, $clause);
+            }
             return;
         }
 
         $cond = $this->quoter->quoteNamesIn($cond);
-        $cond = $this->rebuildCondAndBindValues($cond, $bind);
+        $cond = $this->rebuildCondAndBindValues($cond, $bind, $clause);
 
         $clause =& $this->$clause;
         if ($clause) {
@@ -358,10 +623,12 @@ abstract class AbstractQuery
      * @param array $bind_values The values to bind to the sequential
      * placeholders under their named versions.
      *
+     * @param string $clause The source clause name.
+     *
      * @return string The rebuilt condition string.
      *
      */
-    protected function rebuildCondAndBindValues($cond, array $bind_values)
+    protected function rebuildCondAndBindValues($cond, array $bind_values, $clause = 'cond')
     {
         $index = 0;
         $selects = [];
@@ -372,17 +639,14 @@ abstract class AbstractQuery
             } elseif (is_array($val)) {
                 $cond = $this->getCond($key, $cond, $val, $index);
             } else {
-                $this->bindValue($key, $val);
+                $this->bindValueFrom($key, $val, $clause);
             }
             $index++;
         }
 
         foreach ($selects as $key => $select) {
             $selects[$key] = $select->getStatement();
-            $this->bind_values = array_merge(
-                $this->bind_values,
-                $select->getBindValues()
-            );
+            $this->bindValuesFromSelect($select, $clause);
         }
 
         $cond = strtr($cond, $selects);
@@ -395,7 +659,7 @@ abstract class AbstractQuery
         foreach ($array as $val) {
             $this->inlineCount++;
             $key = "__{$this->inlineCount}__";
-            $this->bindValue($key, $val);
+            $this->bindValueFrom($key, $val, 'cond');
             $keys[] = ":{$key}";
         }
         return implode(', ', $keys);

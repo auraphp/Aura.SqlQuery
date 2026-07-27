@@ -89,6 +89,19 @@ abstract class AbstractQueryTest extends TestCase
         $this->assertEmpty($this->query->getBindValues());
     }
 
+    public function testBindValueOverwritesByHand()
+    {
+        // binding by hand may always overwrite, whatever set the value
+        // first; collision detection applies only between two parts of the
+        // query building it themselves. See #238.
+        $this->query->bindValue('foo', 'first');
+        $this->query->bindValue('foo', 'second');
+        $this->assertSame(array('foo' => 'second'), $this->query->getBindValues());
+
+        $this->query->bindValues(array('foo' => 'third'));
+        $this->assertSame(array('foo' => 'third'), $this->query->getBindValues());
+    }
+
     public function testBindValuesReturnsTheQueryForChaining()
     {
         $this->assertSame($this->query, $this->query->bindValues(array('foo' => 'bar')));

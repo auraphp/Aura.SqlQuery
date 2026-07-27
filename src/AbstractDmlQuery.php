@@ -56,7 +56,7 @@ abstract class AbstractDmlQuery extends AbstractQuery
         $key = $this->quoter->quoteName($col);
         $this->col_values[$key] = ":$col";
         if (count($value) > 0) {
-            $this->bindValue($col, $value[0]);
+            $this->bindValueFrom($col, $value[0], 'col');
         }
         return $this;
     }

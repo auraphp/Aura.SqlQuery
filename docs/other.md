@@ -34,3 +34,133 @@ turns out to be not as great as it seems in theory. This assessment is the
 result of the hard trials of experience. For those of you who want modifiable
 table prefixes, we suggest using constants with your table names prefixed as
 desired; as the prefixes change, you can then change your constants.
+
+## Placeholder Names
+
+Bound values live in one flat array keyed by placeholder name, so two values
+under one name means one of them is lost. When two *different* parts of a query
+do that, or when two conditions bind different values to the same name, it throws
+`Aura\SqlQuery\Exception\LogicException` — see [UPDATE](./update.md) for the case
+that trips people up, a condition testing a column the query also sets.
+
+For example, this throws a `LogicException` because `:val` is bound to two
+different values:
+
+```php
+$query = $queryFactory->newSelect();
+
+try {
+    $query
+        ->cols(['*'])
+        ->from('orders')
+        ->where('status = :val', ['val' => 'pending'])
+        ->orWhere('channel = :val', ['val' => 'web']);
+} catch (\Aura\SqlQuery\Exception\LogicException $e) {
+    // throws: The placeholder ':val' is already in use by a WHERE condition...
+}
+```
+
+Give each condition its own name:
+
+```php
+$select = $queryFactory->newSelect();
+
+$select
+    ->cols(['*'])
+    ->from('orders')
+    ->where('status = :status', ['status' => 'pending'])
+    ->orWhere('channel = :channel', ['channel' => 'web']);
+```
+
+```sql
+SELECT
+    *
+FROM
+    "orders"
+WHERE
+    status = :status
+    OR channel = :channel
+```
+
+The upsert methods stay clear of `cols()` on their own: `doUpdateCol()` and
+`onDuplicateKeyUpdateCol()` derive their placeholder by suffixing the column
+name, so `cols(['name' => 'Alice'])` binds `:name` while
+`onDuplicateKeyUpdateCol('name', 'updated')` binds `:name__on_duplicate_key`,
+and both values survive.
+
+The suffix only settles the ordinary case, though; the derived names are
+reserved, so do not bind them yourself. A column literally named
+`name__on_duplicate_key` in `cols()` collides with
+`onDuplicateKeyUpdateCol('name', ...)`, and `name__on_conflict` collides with
+`doUpdateCol('name', ...)`. Both throw the same `LogicException`.
+
+### UNION Branches
+
+`union()` and `unionAll()` build the branch so far into SQL and keep it, so
+that SQL goes on binding the placeholders it was written with. A later branch
+may not rebind one of those names to a *different* value -- the rendered branch
+would silently start running with the new one -- so this throws:
+
+```php
+$select = $queryFactory->newSelect();
+
+try {
+    $select
+        ->cols(['*'])->from('a')->where('id = :id', ['id' => 1])
+        ->union()
+        ->cols(['*'])->from('b')->where('id = :id', ['id' => 2]);
+} catch (\Aura\SqlQuery\Exception\LogicException $e) {
+    // throws: The placeholder ':id' is already in use by a rendered UNION
+    // branch...
+}
+```
+
+Binding the *same* value is fine, since there is nothing to lose -- one filter
+applied to both halves needs only one placeholder:
+
+```php
+$select = $queryFactory->newSelect();
+
+$select
+    ->cols(['*'])->from('a')->where('tenant = :tenant', ['tenant' => 5])
+    ->union()
+    ->cols(['*'])->from('b')->where('tenant = :tenant', ['tenant' => 5]);
+```
+
+```sql
+SELECT
+    *
+FROM
+    "a"
+WHERE
+    tenant = :tenant
+UNION
+SELECT
+    *
+FROM
+    "b"
+WHERE
+    tenant = :tenant
+```
+
+A rendered branch holds its names against `resetWhere()` and the other clause
+resets too, since those clauses have been built into SQL already.
+`resetUnions()` discards that SQL and releases the names with it -- except
+those a clause of the current branch is sharing, which pass to that clause
+rather than going free, since it is still binding them.
+
+This covers hand-bound values as well. A branch can be written around
+`bindValue()` -- `where('id = :id')` with the value supplied separately -- and
+the retained SQL binds `:id` no differently, so a later clause cannot rebind it
+to another value.
+
+A branch is held to every name bound when it was rendered, not to the ones its
+SQL spells out as `:name`. The wider net is deliberate: a placeholder can be
+bound by SQL that never names it, and a positional one is exactly that --
+`where('id = ?')` keeps the `?` token and binds its value by number, so there
+is no name in the statement to find. Holding only the visible names would free
+that value for a later branch to overwrite, and the first branch would then run
+on the second branch's data with nothing reported. Holding them all can instead
+refuse a name a branch had bound but never used, which says so and is answered
+by choosing another name -- or by `bindValue()`, which overwrites any of them,
+as it does everywhere else.

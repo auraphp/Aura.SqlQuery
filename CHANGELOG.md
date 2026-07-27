@@ -2,6 +2,51 @@
 
 ## 6.0.0 (unreleased)
 
+- [BRK] Two different parts of one query claiming the same placeholder name
+  now throws Aura\SqlQuery\Exception\LogicException instead of silently
+  discarding one of the values. The common case is a condition that tests a
+  column the query also sets:
+
+      $update->table('orders')
+          ->cols(['status' => 'shipped'])
+          ->where('status = :status', ['status' => 'pending']);
+
+  which previously rendered `SET "status" = :status WHERE status = :status`
+  with a single bound value, so the UPDATE quietly set the column to the value
+  meant only to select rows. Bind the condition under its own name
+  (`:old_status`) to fix it. This applies even when the two values happen to
+  agree, since either part may revise its value afterwards and nothing
+  re-checks the pair. Binding by hand with bindValue()/bindValues() is
+  unaffected and may still overwrite any value; cols() and the upsert methods
+  may still revise a placeholder they already own. The same check covers
+  doUpdateCol() and onDuplicateKeyUpdateCol(), whose placeholders are derived
+  by suffix and so only collide when a column is literally named
+  `<col>__on_conflict` or `<col>__on_duplicate_key`.
+
+  Conditions count separately per clause, so two WHERE conditions, or a WHERE
+  and a HAVING, binding different values to one name is caught as well; a
+  sub-select's own bound values and those passed alongside a closure condition
+  are tracked too, where before they were merged in unchecked. resetWhere(),
+  resetHaving() and resetTables() release the names their clause claimed, so
+  the placeholder may be reused after a reset; the bound values themselves
+  survive a reset as they always have, which is what lets union() bind the
+  half it has already rendered. Both halves of a union may filter on one
+  placeholder as long as they ask for the same value -- the same tenant id
+  either side of the union is not a collision -- but only one clause per
+  branch may do so, and resetUnions() then leaves the name with that clause
+  rather than freeing it.
+
+  Two consequences worth calling out. A sub-select's bound values are claimed
+  by the clause it is rendered into -- fromSubSelect() and joinSubSelect()
+  hold theirs until resetTables() -- rather than by whichever of the
+  sub-select's own clauses bound them, so resetWhere() on the outer query no
+  longer frees a name the sub-select is still binding. And two `?`
+  placeholders bound by separate where() calls now throw, because both are
+  numbered from the start of their own values array and so ask for the same
+  name; this never worked, since the two conditions rendered against a single
+  bound value and PDO rejected the statement at execute time. Several `?` in
+  one call are unaffected. Fixes #238.
+
 - [BRK] Bumped the minimum version to PHP 8.4; the CI matrix now covers
   PHP 8.4 and 8.5.
 

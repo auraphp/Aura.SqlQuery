@@ -515,13 +515,16 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @param string $indent Indent each line with this string.
      *
+     * @param string $source The part of this query the sub-select is being
+     * rendered into, which claims the names it binds.
+     *
      * @return string The sub-SELECT string.
      *
      */
-    protected function subSelect($spec, $indent)
+    protected function subSelect($spec, $indent, $source = 'table')
     {
         if ($spec instanceof SelectInterface) {
-            $this->bindValues($spec->getBindValues());
+            $this->bindValuesFromSelect($spec, $source);
         }
 
         return PHP_EOL . $indent
@@ -575,7 +578,7 @@ class Select extends AbstractQuery implements SelectInterface
         }
 
         $cond = $this->quoter->quoteNamesIn($cond);
-        $cond = $this->rebuildCondAndBindValues($cond, $bind);
+        $cond = $this->rebuildCondAndBindValues($cond, $bind, 'join');
 
         if (strtoupper(substr(ltrim($cond), 0, 3)) == 'ON ') {
             return $cond;
@@ -654,7 +657,7 @@ class Select extends AbstractQuery implements SelectInterface
         $join = strtoupper(ltrim("$join JOIN"));
         $this->addTableRef("$join (SELECT ...) AS", $name);
 
-        $spec = $this->subSelect($spec, '            ');
+        $spec = $this->subSelect($spec, '            ', 'join');
         $name = $this->quoter->quoteName($name);
         $cond = $this->fixJoinCondition($cond, $bind);
 
@@ -788,7 +791,7 @@ class Select extends AbstractQuery implements SelectInterface
     public function union()
     {
         $this->union[] = $this->build() . PHP_EOL . 'UNION';
-        $this->reset();
+        $this->resetAfterRendering();
         return $this;
     }
 
@@ -803,8 +806,67 @@ class Select extends AbstractQuery implements SelectInterface
     public function unionAll()
     {
         $this->union[] = $this->build() . PHP_EOL . 'UNION ALL';
-        $this->reset();
+        $this->resetAfterRendering();
         return $this;
+    }
+
+    /**
+     *
+     * Clears the current select properties after its SQL has been rendered
+     * and retained, keeping the placeholder names that SQL still binds.
+     *
+     * A clause reset frees the names it claimed, which is right while the
+     * query is still being built. It is wrong here: union() has already
+     * turned the current branch into SQL, placeholders and all, and that SQL
+     * keeps binding those names. Left free, the next branch could claim :id
+     * for a different value and overwrite the one the rendered branch needs,
+     * with nothing to report the clash. The names pass to the union itself
+     * rather than staying with their clause, so that a resetWhere() in the
+     * next branch cannot free them either.
+     *
+     * The names come from the rendered SQL rather than from the query parts
+     * that bound them. A hand-bound value has no claimant -- that is what lets
+     * it overwrite -- but the rendered SQL can just as well be written around
+     * it, as `where('id = :id')` with the value supplied by bindValue(), and a
+     * later clause binding :id would overwrite what that SQL needs. Scanning
+     * the SQL catches that name along with every other one it spells.
+     *
+     * It also stops short of the names that SQL does *not* spell. A clause
+     * reset frees a name but keeps its value, so a placeholder dropped before
+     * the union is still bound while appearing nowhere in the branch: nothing
+     * there can bind it, the union has no claim to stake, and the next branch
+     * is free to use the name for a value of its own.
+     *
+     * A positional placeholder is the one name the scan cannot find, since it
+     * keeps its `?` in the statement and is bound by number. Those are held on
+     * the strength of being bound at all -- the alternative is to release a
+     * name the rendered SQL is certainly using.
+     *
+     * @return null
+     *
+     */
+    protected function resetAfterRendering()
+    {
+        $this->reset();
+
+        // a name inside a string literal is data, not a placeholder, so this
+        // can claim a name the branch does not really bind. That costs a
+        // needless collision report, where missing a name the branch *does*
+        // bind would let a later branch overwrite it silently.
+        preg_match_all('/(?<!:):(\w+)/', end($this->union), $matches);
+        $spelled = array_flip($matches[1]);
+
+        $this->bind_sources = array();
+        foreach (array_keys($this->bind_values) as $name) {
+            if (isset($spelled[$name]) || ctype_digit((string) $name)) {
+                $this->bind_sources[$name] = 'union';
+            }
+        }
+
+        // every name now belongs to the union, including any a clause of the
+        // branch just rendered was sharing: that clause is SQL now, so there
+        // is no live claimant left to hand a name back to.
+        $this->bind_shared = array();
     }
 
     /**
@@ -856,6 +918,8 @@ class Select extends AbstractQuery implements SelectInterface
         $this->from_key = -1;
         $this->join = array();
         $this->table_refs = array();
+        $this->removeBindSources('join');
+        $this->removeBindSources('table');
         return $this;
     }
 
@@ -869,6 +933,7 @@ class Select extends AbstractQuery implements SelectInterface
     public function resetWhere()
     {
         $this->where = array();
+        $this->removeBindSources('where');
         return $this;
     }
 
@@ -895,6 +960,7 @@ class Select extends AbstractQuery implements SelectInterface
     public function resetHaving()
     {
         $this->having = array();
+        $this->removeBindSources('having');
         return $this;
     }
 
@@ -921,6 +987,10 @@ class Select extends AbstractQuery implements SelectInterface
     public function resetUnions()
     {
         $this->union = array();
+
+        // the rendered branches are gone, so nothing binds their placeholders
+        // any more: release the names they were holding.
+        $this->removeBindSources('union');
         return $this;
     }
 
