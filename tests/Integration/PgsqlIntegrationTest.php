@@ -250,6 +250,39 @@ class PgsqlIntegrationTest extends AbstractIntegrationTest
     }
 
     /**
+     *
+     * A bulk insert whose rows collide with existing keys: the DO UPDATE
+     * value and its WHERE condition are bound once for the whole statement,
+     * not per row. Building the statement finishes the last row, and clearing
+     * that row used to take both binds with it, leaving :name__on_conflict
+     * and :min unbound -- so this failed at execute() with HY093 rather than
+     * returning wrong data.
+     *
+     */
+    public function testBulkInsertOnConflictDoUpdate()
+    {
+        $insert = $this->query_factory->newInsert()
+            ->into('test_dept')
+            ->cols(['id' => 1, 'name' => 'Ignored One'])
+            ->addRow(['id' => 2, 'name' => 'Ignored Two'])
+            ->onConflict('id')
+            ->doUpdateCol('name', 'Bulk Updated')
+            ->doUpdateWhere('test_dept.id < :max', ['max' => 100]);
+
+        $binds = $insert->getBindValues();
+        $this->assertArrayHasKey('name__on_conflict', $binds);
+        $this->assertArrayHasKey('max', $binds);
+
+        $this->assertSame(2, $this->exec($insert));
+
+        $sth = $this->pdo->query('SELECT name FROM test_dept ORDER BY id');
+        $this->assertSame(
+            ['Bulk Updated', 'Bulk Updated'],
+            $sth->fetchAll(PDO::FETCH_COLUMN)
+        );
+    }
+
+    /**
      * The conflict target may name a constraint instead of its columns.
      */
     public function testInsertOnConflictConstraintTarget()

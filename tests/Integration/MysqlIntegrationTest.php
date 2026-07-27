@@ -329,6 +329,35 @@ class MysqlIntegrationTest extends AbstractIntegrationTest
         $this->assertSame('Updated', $sth->fetchColumn());
     }
 
+    /**
+     *
+     * A bulk insert whose rows collide with existing keys: the upsert value
+     * is bound once for the whole statement, not per row. Building the
+     * statement finishes the last row, and clearing that row used to take the
+     * upsert bind with it, leaving :name__on_duplicate_key unbound -- so this
+     * failed at execute() with HY093 rather than returning wrong data.
+     *
+     */
+    public function testBulkInsertOnDuplicateKeyUpdate()
+    {
+        $insert = $this->query_factory->newInsert()
+            ->into('test_dept')
+            ->cols(['id' => 1, 'name' => 'Ignored One'])
+            ->addRow(['id' => 2, 'name' => 'Ignored Two'])
+            ->onDuplicateKeyUpdateCol('name', 'Bulk Updated');
+
+        $this->assertStatementContains('ON DUPLICATE KEY UPDATE', $insert);
+        $this->assertArrayHasKey('name__on_duplicate_key', $insert->getBindValues());
+
+        $this->exec($insert);
+
+        $sth = $this->pdo->query('SELECT name FROM test_dept ORDER BY id');
+        $this->assertSame(
+            ['Bulk Updated', 'Bulk Updated'],
+            $sth->fetchAll(PDO::FETCH_COLUMN)
+        );
+    }
+
     public function testInsertOrReplace()
     {
         $insert = $this->query_factory->newInsert()
