@@ -124,6 +124,45 @@ class CollisionTest extends TestCase
         $select->having('b = :x', array('x' => 2));
     }
 
+    public function testJoinAndWhereCannotShareAPlaceholder()
+    {
+        $select = $this->query_factory->newSelect();
+        $select
+            ->cols(array('a'))
+            ->from('t1')
+            ->join('LEFT', 't2', 't2.id = t1.id AND t2.status = :x', array('x' => 1));
+
+        $this->expectException(Exception\LogicException::class);
+        $select->where('b = :x', array('x' => 2));
+    }
+
+    public function testTwoJoinConditionsCannotShareAPlaceholder()
+    {
+        $select = $this->query_factory->newSelect();
+        $select
+            ->cols(array('a'))
+            ->from('t1')
+            ->join('LEFT', 't2', 't2.status = :x', array('x' => 1));
+
+        $this->expectException(Exception\LogicException::class);
+        $select->join('LEFT', 't3', 't3.status = :x', array('x' => 2));
+    }
+
+    public function testJoinSubSelectConditionCannotShareAPlaceholder()
+    {
+        $subSelect = $this->query_factory->newSelect();
+        $subSelect->cols(array('id'))->from('users');
+
+        $select = $this->query_factory->newSelect();
+        $select
+            ->cols(array('a'))
+            ->from('t1')
+            ->where('b = :x', array('x' => 1));
+
+        $this->expectException(Exception\LogicException::class);
+        $select->joinSubSelect('LEFT', $subSelect, 'sub', 'sub.status = :x', array('x' => 2));
+    }
+
     public function testRebindingByHandIsAllowed()
     {
         $select = $this->query_factory->newSelect();
