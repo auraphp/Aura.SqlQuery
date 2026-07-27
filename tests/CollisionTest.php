@@ -424,6 +424,30 @@ class CollisionTest extends TestCase
 
     /**
      *
+     * A LATERAL JOIN sub-select is joined, not selected from, so it must say
+     * so: resetTables() releases either way, but the message is the only
+     * thing telling the reader which part of the query to go and look at.
+     *
+     */
+    public function testLateralJoinSubSelectIsNamedAsAJoin()
+    {
+        $subSelect = $this->newFactory('pgsql')->newSelect();
+        $subSelect->cols(array('id'))->from('u')->where('s = :s', array('s' => 'a'));
+
+        $select = $this->newFactory('pgsql')->newSelect();
+        $select->cols(array('*'))->from('t')
+               ->lateralJoinSubSelect('INNER', $subSelect, 'sub', 'sub.id = t.id');
+
+        try {
+            $select->where('s = :s', array('s' => 'b'));
+            $this->fail('Expected a collision on the :s placeholder.');
+        } catch (Exception\LogicException $e) {
+            $this->assertStringContainsString('JOIN', $e->getMessage());
+        }
+    }
+
+    /**
+     *
      * The message has to name a part of the query the reader can find. A
      * sub-select's internal WHERE is not one: the outer query never had a
      * WHERE clause to look at.
