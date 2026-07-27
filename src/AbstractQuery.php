@@ -65,6 +65,7 @@ abstract class AbstractQuery
         'where' => 'a WHERE condition',
         'having' => 'a HAVING condition',
         'join' => 'a JOIN condition',
+        'table' => 'a sub-select in the FROM clause',
         'union' => 'a rendered UNION branch',
         'conflict' => 'doUpdateCol()',
         'duplicate_key' => 'onDuplicateKeyUpdateCol()',
@@ -320,26 +321,28 @@ abstract class AbstractQuery
 
     /**
      *
-     * Takes over the values a sub-select has bound, keeping the part of that
-     * sub-select which claimed each one so the collision check reads the same
-     * as it would there.
+     * Takes over the values a sub-select has bound, claiming them for the
+     * clause the sub-select was rendered into.
+     *
+     * The sub-select's own clause labels are deliberately not carried over.
+     * They describe parts of a different query: recording them here would
+     * have the outer query hold a name against a WHERE it may not even have,
+     * which no reset of the outer query can reach -- resetTables() releases
+     * the clause the sub-select actually sits in, and would leave the name
+     * claimed forever. The message would name that absent clause too, and
+     * send the reader looking for it.
      *
      * @param SelectInterface $select The sub-select to take the values from.
      *
-     * @param string $default_source The source to record for a value the
-     * sub-select bound by hand, which has no claimant to carry over.
+     * @param string $source The part of THIS query the sub-select was
+     * rendered into.
      *
      * @return $this
      *
      */
-    protected function bindValuesFromSelect(SelectInterface $select, $default_source)
+    protected function bindValuesFromSelect(SelectInterface $select, $source)
     {
-        $bind_sources = ($select instanceof AbstractQuery) ? $select->bind_sources : [];
-
         foreach ($select->getBindValues() as $name => $value) {
-            $source = isset($bind_sources[$name])
-                ? $bind_sources[$name]
-                : $default_source;
             $this->bindValueFrom($name, $value, $source);
         }
 
@@ -380,14 +383,25 @@ abstract class AbstractQuery
         // a positional placeholder is bound by number and keeps its `?` in
         // the statement, so quoting it as ':1' would name a token the query
         // does not contain and send the reader looking for it.
-        $which = ctype_digit((string) $name)
+        // a positional placeholder is numbered by its offset in the values
+        // array, which starts again at zero on every call, so "use a
+        // different one" is advice the caller cannot act on: naming them is
+        // the only way to keep the two apart.
+        $positional = ctype_digit((string) $name);
+
+        $which = $positional
             ? "The positional placeholder {$name}"
             : "The placeholder ':{$name}'";
+
+        $remedy = $positional
+            ? "Give the placeholders names instead of '?', so that each one "
+            . "carries its own value."
+            : "Use a different placeholder for one of them.";
 
         throw new Exception\LogicException(
             "{$which} is already in use by {$was}, so "
             . "{$now} cannot bind it as well: one value would overwrite "
-            . "the other. Use a different placeholder for one of them."
+            . "the other. {$remedy}"
         );
     }
 

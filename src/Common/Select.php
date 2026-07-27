@@ -515,13 +515,16 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @param string $indent Indent each line with this string.
      *
+     * @param string $source The part of this query the sub-select is being
+     * rendered into, which claims the names it binds.
+     *
      * @return string The sub-SELECT string.
      *
      */
-    protected function subSelect($spec, $indent)
+    protected function subSelect($spec, $indent, $source = 'table')
     {
         if ($spec instanceof SelectInterface) {
-            $this->bindValuesFromSelect($spec, 'cond');
+            $this->bindValuesFromSelect($spec, $source);
         }
 
         return PHP_EOL . $indent
@@ -654,7 +657,7 @@ class Select extends AbstractQuery implements SelectInterface
         $join = strtoupper(ltrim("$join JOIN"));
         $this->addTableRef("$join (SELECT ...) AS", $name);
 
-        $spec = $this->subSelect($spec, '            ');
+        $spec = $this->subSelect($spec, '            ', 'join');
         $name = $this->quoter->quoteName($name);
         $cond = $this->fixJoinCondition($cond, $bind);
 
@@ -894,6 +897,7 @@ class Select extends AbstractQuery implements SelectInterface
         $this->join = array();
         $this->table_refs = array();
         $this->removeBindSources('join');
+        $this->removeBindSources('table');
         return $this;
     }
 

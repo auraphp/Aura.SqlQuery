@@ -365,6 +365,88 @@ class CollisionTest extends TestCase
         $select->where('status = :status', array('status' => 'pending'));
     }
 
+    /**
+     *
+     * A sub-select's names are claimed by the clause it was rendered into,
+     * not by whichever of its own clauses bound them: the outer query has no
+     * WHERE of its own here, and the sub-select's WHERE is not a part of the
+     * outer query that any reset could reach. resetTables() discards the
+     * sub-select's SQL, so its names go with it.
+     *
+     */
+    public function testJoinSubSelectNamesAreReleasedByResetTables()
+    {
+        $subSelect = $this->query_factory->newSelect();
+        $subSelect->cols(array('id'))->from('u')->where('s = :s', array('s' => 'a'));
+
+        $select = $this->query_factory->newSelect();
+        $select->cols(array('*'))->from('t')
+               ->joinSubSelect('INNER', $subSelect, 'sub', 'sub.id = t.id');
+        $select->resetTables();
+
+        $select->from('t')->join('INNER', 'u', 'u.s = :s', array('s' => 'b'));
+        $this->assertSame(array('s' => 'b'), $select->getBindValues());
+    }
+
+    public function testFromSubSelectNamesAreReleasedByResetTables()
+    {
+        $subSelect = $this->query_factory->newSelect();
+        $subSelect->cols(array('id'))->from('u')->where('s = :s', array('s' => 'a'));
+
+        $select = $this->query_factory->newSelect();
+        $select->cols(array('*'))->fromSubSelect($subSelect, 'sub');
+        $select->resetTables();
+
+        $select->from('t')->where('s = :s', array('s' => 'b'));
+        $this->assertSame(array('s' => 'b'), $select->getBindValues());
+    }
+
+    /**
+     *
+     * The other half of claiming for the rendered-into clause: resetWhere()
+     * must not free a name a FROM sub-select is binding. It used to, because
+     * the name was inherited as the sub-select's own 'where', which left the
+     * rendered sub-select running on a later clause's value.
+     *
+     */
+    public function testResetWhereCannotFreeAFromSubSelectsPlaceholder()
+    {
+        $subSelect = $this->query_factory->newSelect();
+        $subSelect->cols(array('id'))->from('u')->where('status = :status', array('status' => 'active'));
+
+        $select = $this->query_factory->newSelect();
+        $select->cols(array('*'))->fromSubSelect($subSelect, 'sub');
+        $select->resetWhere();
+
+        $this->expectException(Exception\LogicException::class);
+        $select->where('x = :status', array('status' => 'CLOBBERED'));
+    }
+
+    /**
+     *
+     * The message has to name a part of the query the reader can find. A
+     * sub-select's internal WHERE is not one: the outer query never had a
+     * WHERE clause to look at.
+     *
+     */
+    public function testSubSelectCollisionNamesTheOuterClause()
+    {
+        $subSelect = $this->query_factory->newSelect();
+        $subSelect->cols(array('id'))->from('u')->where('s = :s', array('s' => 'a'));
+
+        $select = $this->query_factory->newSelect();
+        $select->cols(array('*'))->fromSubSelect($subSelect, 'sub');
+
+        try {
+            $select->where('s = :s', array('s' => 'b'));
+            $this->fail('Expected a collision on the :s placeholder.');
+        } catch (Exception\LogicException $e) {
+            $message = $e->getMessage();
+            $this->assertStringContainsString('sub-select', $message);
+            $this->assertStringNotContainsString('already in use by a WHERE condition', $message);
+        }
+    }
+
     public function testSameSourceDifferentValueCollides()
     {
         $select = $this->query_factory->newSelect();
@@ -635,6 +717,10 @@ class CollisionTest extends TestCase
             $message = $e->getMessage();
             $this->assertStringContainsString('positional placeholder 1', $message);
             $this->assertStringNotContainsString("':1'", $message);
+
+            // "use a different placeholder" is not something the caller can
+            // do with `?`, whose number is its offset in the values array
+            $this->assertStringContainsString('names instead', $message);
         }
     }
 

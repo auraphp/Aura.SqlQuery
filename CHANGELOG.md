@@ -34,7 +34,18 @@
   placeholder as long as they ask for the same value -- the same tenant id
   either side of the union is not a collision -- but only one clause per
   branch may do so, and resetUnions() then leaves the name with that clause
-  rather than freeing it. Fixes #238.
+  rather than freeing it.
+
+  Two consequences worth calling out. A sub-select's bound values are claimed
+  by the clause it is rendered into -- fromSubSelect() and joinSubSelect()
+  hold theirs until resetTables() -- rather than by whichever of the
+  sub-select's own clauses bound them, so resetWhere() on the outer query no
+  longer frees a name the sub-select is still binding. And two `?`
+  placeholders bound by separate where() calls now throw, because both are
+  numbered from the start of their own values array and so ask for the same
+  name; this never worked, since the two conditions rendered against a single
+  bound value and PDO rejected the statement at execute time. Several `?` in
+  one call are unaffected. Fixes #238.
 
 - [BRK] Bumped the minimum version to PHP 8.4; the CI matrix now covers
   PHP 8.4 and 8.5.
