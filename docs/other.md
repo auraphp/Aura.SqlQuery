@@ -93,3 +93,56 @@ reserved, so do not bind them yourself. A column literally named
 `name__on_duplicate_key` in `cols()` collides with
 `onDuplicateKeyUpdateCol('name', ...)`, and `name__on_conflict` collides with
 `doUpdateCol('name', ...)`. Both throw the same `LogicException`.
+
+### UNION Branches
+
+`union()` and `unionAll()` build the branch so far into SQL and keep it, so
+that SQL goes on binding the placeholders it was written with. A later branch
+may not rebind one of those names to a *different* value -- the rendered branch
+would silently start running with the new one -- so this throws:
+
+```php
+$select = $queryFactory->newSelect();
+
+try {
+    $select
+        ->cols(['*'])->from('a')->where('id = :id', ['id' => 1])
+        ->union()
+        ->cols(['*'])->from('b')->where('id = :id', ['id' => 2]);
+} catch (\Aura\SqlQuery\Exception\LogicException $e) {
+    // throws: The placeholder ':id' is already in use by a rendered UNION
+    // branch...
+}
+```
+
+Binding the *same* value is fine, since there is nothing to lose -- one filter
+applied to both halves needs only one placeholder:
+
+```php
+$select = $queryFactory->newSelect();
+
+$select
+    ->cols(['*'])->from('a')->where('tenant = :tenant', ['tenant' => 5])
+    ->union()
+    ->cols(['*'])->from('b')->where('tenant = :tenant', ['tenant' => 5]);
+```
+
+```sql
+SELECT
+    *
+FROM
+    "a"
+WHERE
+    tenant = :tenant
+UNION
+SELECT
+    *
+FROM
+    "b"
+WHERE
+    tenant = :tenant
+```
+
+A rendered branch holds its names against `resetWhere()` and the other clause
+resets too, since those clauses have been built into SQL already.
+`resetUnions()` discards that SQL and releases the names with it.

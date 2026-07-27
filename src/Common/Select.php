@@ -792,7 +792,7 @@ class Select extends AbstractQuery implements SelectInterface
     public function union()
     {
         $this->union[] = $this->build() . PHP_EOL . 'UNION';
-        $this->reset();
+        $this->resetAfterRendering();
         return $this;
     }
 
@@ -807,8 +807,32 @@ class Select extends AbstractQuery implements SelectInterface
     public function unionAll()
     {
         $this->union[] = $this->build() . PHP_EOL . 'UNION ALL';
-        $this->reset();
+        $this->resetAfterRendering();
         return $this;
+    }
+
+    /**
+     *
+     * Clears the current select properties after its SQL has been rendered
+     * and retained, keeping the placeholder names that SQL still binds.
+     *
+     * A clause reset frees the names it claimed, which is right while the
+     * query is still being built. It is wrong here: union() has already
+     * turned the current branch into SQL, placeholders and all, and that SQL
+     * keeps binding those names. Left free, the next branch could claim :id
+     * for a different value and overwrite the one the rendered branch needs,
+     * with nothing to report the clash. The names pass to the union itself
+     * rather than staying with their clause, so that a resetWhere() in the
+     * next branch cannot free them either.
+     *
+     * @return null
+     *
+     */
+    protected function resetAfterRendering()
+    {
+        $bind_sources = $this->bind_sources;
+        $this->reset();
+        $this->bind_sources = array_fill_keys(array_keys($bind_sources), 'union');
     }
 
     /**
@@ -928,6 +952,10 @@ class Select extends AbstractQuery implements SelectInterface
     public function resetUnions()
     {
         $this->union = array();
+
+        // the rendered branches are gone, so nothing binds their placeholders
+        // any more: release the names they were holding.
+        $this->removeBindSources('union');
         return $this;
     }
 

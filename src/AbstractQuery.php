@@ -53,6 +53,7 @@ abstract class AbstractQuery
         'where' => 'a WHERE condition',
         'having' => 'a HAVING condition',
         'join' => 'a JOIN condition',
+        'union' => 'a rendered UNION branch',
         'conflict' => 'doUpdateCol()',
         'duplicate_key' => 'onDuplicateKeyUpdateCol()',
     );
@@ -234,7 +235,8 @@ abstract class AbstractQuery
      * @param mixed $value The value to bind to the placeholder.
      *
      * @param string $source The part of the query binding the value: 'col',
-     * 'cond', 'conflict', 'duplicate_key', or null when bound by hand.
+     * 'cond', 'conflict', 'duplicate_key', 'union', or null when bound by
+     * hand.
      *
      * @return $this
      *
@@ -247,6 +249,20 @@ abstract class AbstractQuery
         $prior = isset($this->bind_sources[$name])
             ? $this->bind_sources[$name]
             : null;
+
+        // A rendered UNION branch owns its placeholders, but a later branch
+        // filtering on the same value -- one tenant id across both halves --
+        // asks for exactly what is already bound, and nothing is lost by
+        // letting it through. Returning here also leaves the name with the
+        // union: were ownership to pass to the new clause, a later
+        // resetWhere() would free a name the rendered SQL still binds.
+        if (
+            $prior === 'union'
+            && array_key_exists($name, $this->bind_values)
+            && $this->bind_values[$name] === $value
+        ) {
+            return $this;
+        }
 
         if (
             $source !== null

@@ -418,6 +418,182 @@ class CollisionTest extends TestCase
      * has nothing to bind.
      *
      */
+    /**
+     *
+     * union() renders the current branch to SQL and retains it, placeholders
+     * and all, so that SQL goes on binding the names it was rendered with. A
+     * later branch reusing one of them for a different value overwrites the
+     * value the rendered branch needs, and the first half of the union then
+     * runs with the second half's data. The names stay claimed across the
+     * reset precisely so this is caught.
+     *
+     */
+    public function testUnionBranchesCannotShareAPlaceholder()
+    {
+        $select = $this->query_factory->newSelect();
+        $select->cols(array('*'))->from('a')->where('id = :id', array('id' => 1))
+               ->union()
+               ->cols(array('*'))->from('b');
+
+        $this->expectException(Exception\LogicException::class);
+        $select->where('id = :id', array('id' => 2));
+    }
+
+    public function testUnionAllBranchesCannotShareAPlaceholder()
+    {
+        $select = $this->query_factory->newSelect();
+        $select->cols(array('*'))->from('a')->where('id = :id', array('id' => 1))
+               ->unionAll()
+               ->cols(array('*'))->from('b');
+
+        $this->expectException(Exception\LogicException::class);
+        $select->where('id = :id', array('id' => 2));
+    }
+
+    /**
+     *
+     * The message must name the union rather than the clause the placeholder
+     * was bound in: the clause has been reset and rebuilt, and pointing at it
+     * would send the reader looking at the branch they are writing now.
+     *
+     */
+    public function testUnionCollisionMessageNamesTheRenderedBranch()
+    {
+        $select = $this->query_factory->newSelect();
+        $select->cols(array('*'))->from('a')->where('id = :id', array('id' => 1))
+               ->union()
+               ->cols(array('*'))->from('b');
+
+        try {
+            $select->where('id = :id', array('id' => 2));
+            $this->fail('Expected the shared placeholder to be rejected.');
+        } catch (Exception\LogicException $e) {
+            $this->assertStringContainsString("':id'", $e->getMessage());
+            $this->assertStringContainsString('UNION branch', $e->getMessage());
+        }
+    }
+
+    /**
+     *
+     * A clause reset frees the names that clause claimed, so the ownership a
+     * rendered branch keeps has to sit with the union instead: left with the
+     * clause, a resetWhere() in the next branch would hand back a name the
+     * retained SQL still binds, and the overwrite goes undetected again.
+     *
+     */
+    public function testResetWhereCannotFreeARenderedBranchesPlaceholder()
+    {
+        $select = $this->query_factory->newSelect();
+        $select->cols(array('*'))->from('a')->where('id = :id', array('id' => 1))
+               ->union()
+               ->cols(array('*'))->from('b')
+               ->resetWhere();
+
+        $this->expectException(Exception\LogicException::class);
+        $select->where('id = :id', array('id' => 2));
+    }
+
+    public function testResetHavingCannotFreeARenderedBranchesPlaceholder()
+    {
+        $select = $this->query_factory->newSelect();
+        $select->cols(array('*'))->from('a')->having('id = :id', array('id' => 1))
+               ->union()
+               ->cols(array('*'))->from('b')
+               ->resetHaving();
+
+        $this->expectException(Exception\LogicException::class);
+        $select->having('id = :id', array('id' => 2));
+    }
+
+    public function testResetTablesCannotFreeARenderedBranchesPlaceholder()
+    {
+        $select = $this->query_factory->newSelect();
+        $select->cols(array('*'))->from('a')
+               ->join('LEFT', 'j', 'j.id = a.id AND j.status = :id', array('id' => 1))
+               ->union()
+               ->cols(array('*'))->from('b')
+               ->resetTables();
+
+        $this->expectException(Exception\LogicException::class);
+        $select->from('c')->join('LEFT', 'k', 'k.status = :id', array('id' => 2));
+    }
+
+    /**
+     *
+     * Both branches filtering on one value -- the same tenant either side of
+     * the union -- ask for exactly what is already bound. Nothing is lost, so
+     * nothing is wrong: rejecting it would break working queries.
+     *
+     */
+    public function testUnionBranchesMayShareAPlaceholderOnTheSameValue()
+    {
+        $select = $this->query_factory->newSelect();
+        $select->cols(array('*'))->from('a')->where('tenant = :t', array('t' => 5))
+               ->union()
+               ->cols(array('*'))->from('b')->where('tenant = :t', array('t' => 5));
+
+        $statement = $select->getStatement();
+        $this->assertSame(2, substr_count($statement, ':t'));
+        $this->assertSame(array('t' => 5), $select->getBindValues());
+    }
+
+    /**
+     *
+     * Sharing the name on an equal value must not move ownership to the new
+     * clause: if it did, resetting that clause would free a name the rendered
+     * branch still binds.
+     *
+     */
+    public function testSharingOnTheSameValueLeavesOwnershipWithTheUnion()
+    {
+        $select = $this->query_factory->newSelect();
+        $select->cols(array('*'))->from('a')->where('tenant = :t', array('t' => 5))
+               ->union()
+               ->cols(array('*'))->from('b')->where('tenant = :t', array('t' => 5))
+               ->resetWhere();
+
+        $this->expectException(Exception\LogicException::class);
+        $select->where('tenant = :t', array('t' => 6));
+    }
+
+    /**
+     *
+     * resetUnions() throws away the rendered SQL, and with it the only reason
+     * those placeholders were held: nothing binds them any more, so the names
+     * are free again.
+     *
+     */
+    public function testResetUnionsReleasesTheRenderedPlaceholders()
+    {
+        $select = $this->query_factory->newSelect();
+        $select->cols(array('*'))->from('a')->where('id = :id', array('id' => 1))
+               ->union()
+               ->cols(array('*'))->from('b');
+
+        $select->resetUnions();
+
+        $select->where('id = :id', array('id' => 2));
+        $this->assertSame(array('id' => 2), $select->getBindValues());
+    }
+
+    /**
+     *
+     * Binding by hand stays the escape hatch it is everywhere else: a null
+     * source overwrites the value without the union's claim standing in the
+     * way.
+     *
+     */
+    public function testHandBindStillOverwritesARenderedBranchesValue()
+    {
+        $select = $this->query_factory->newSelect();
+        $select->cols(array('*'))->from('a')->where('id = :id', array('id' => 1))
+               ->union()
+               ->cols(array('*'))->from('b');
+
+        $select->bindValue('id', 9);
+        $this->assertSame(array('id' => 9), $select->getBindValues());
+    }
+
     public function testUnionKeepsTheValuesOfEveryHalf()
     {
         $select = $this->query_factory->newSelect();
