@@ -824,11 +824,23 @@ class Select extends AbstractQuery implements SelectInterface
      * rather than staying with their clause, so that a resetWhere() in the
      * next branch cannot free them either.
      *
-     * Every bound name passes to the union, not only the ones a query part
-     * claimed. A hand-bound value has no claimant -- that is what lets it
-     * overwrite -- but the rendered SQL can just as well be written around it,
-     * as `where('id = :id')` with the value supplied by bindValue(), and a
-     * later clause binding :id would overwrite what that SQL needs.
+     * The names come from the rendered SQL rather than from the query parts
+     * that bound them. A hand-bound value has no claimant -- that is what lets
+     * it overwrite -- but the rendered SQL can just as well be written around
+     * it, as `where('id = :id')` with the value supplied by bindValue(), and a
+     * later clause binding :id would overwrite what that SQL needs. Scanning
+     * the SQL catches that name along with every other one it spells.
+     *
+     * It also stops short of the names that SQL does *not* spell. A clause
+     * reset frees a name but keeps its value, so a placeholder dropped before
+     * the union is still bound while appearing nowhere in the branch: nothing
+     * there can bind it, the union has no claim to stake, and the next branch
+     * is free to use the name for a value of its own.
+     *
+     * A positional placeholder is the one name the scan cannot find, since it
+     * keeps its `?` in the statement and is bound by number. Those are held on
+     * the strength of being bound at all -- the alternative is to release a
+     * name the rendered SQL is certainly using.
      *
      * @return null
      *
@@ -836,10 +848,20 @@ class Select extends AbstractQuery implements SelectInterface
     protected function resetAfterRendering()
     {
         $this->reset();
-        $this->bind_sources = array_fill_keys(
-            array_keys($this->bind_values),
-            'union'
-        );
+
+        // a name inside a string literal is data, not a placeholder, so this
+        // can claim a name the branch does not really bind. That costs a
+        // needless collision report, where missing a name the branch *does*
+        // bind would let a later branch overwrite it silently.
+        preg_match_all('/(?<!:):(\w+)/', end($this->union), $matches);
+        $spelled = array_flip($matches[1]);
+
+        $this->bind_sources = array();
+        foreach (array_keys($this->bind_values) as $name) {
+            if (isset($spelled[$name]) || ctype_digit((string) $name)) {
+                $this->bind_sources[$name] = 'union';
+            }
+        }
 
         // every name now belongs to the union, including any a clause of the
         // branch just rendered was sharing: that clause is SQL now, so there

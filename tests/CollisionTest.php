@@ -517,6 +517,38 @@ class CollisionTest extends TestCase
 
     /**
      *
+     * A clause reset frees the name but keeps the value, so a name reset
+     * before the union is bound without appearing anywhere in the rendered
+     * branch. Nothing in that SQL can bind it, so the union has no claim to
+     * stake, and the next branch must be free to use the name for its own
+     * value.
+     *
+     */
+    public function testANameResetBeforeTheUnionIsFreeInTheNextBranch()
+    {
+        $select = $this->query_factory->newSelect();
+        $select->cols(array('*'))->from('a')
+               ->where('id = :id', array('id' => 1));
+
+        $select->resetWhere();
+        $select->where('status = :status', array('status' => 'pending'));
+        $select->union()->cols(array('*'))->from('b');
+
+        // the rendered branch spells :status, but never :id
+        $statement = $select->getStatement();
+        $this->assertStringContainsString('status = :status', $statement);
+        $this->assertStringNotContainsString(':id', $statement);
+
+        // so the next branch may claim :id for a value of its own
+        $select->where('id = :id', array('id' => 2));
+        $this->assertSame(
+            array('id' => 2, 'status' => 'pending'),
+            $select->getBindValues()
+        );
+    }
+
+    /**
+     *
      * union() renders the current branch to SQL and retains it, placeholders
      * and all, so that SQL goes on binding the names it was rendered with. A
      * later branch reusing one of them for a different value overwrites the
