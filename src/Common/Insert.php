@@ -389,6 +389,13 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * Finishes off the current row in a bulk insert, collecting the bulk
      * values and resetting for the next row.
      *
+     * Only the names this row banked are cleared. Clearing the whole of
+     * bind_values would take the rest of the query's placeholders with it --
+     * the upsert values and their WHERE conditions, which belong to the
+     * statement as a whole rather than to any one row. build() finishes the
+     * last row, so those names would go missing from a statement that still
+     * spells them, and execute() would fail on the unbound placeholder.
+     *
      * @return null
      *
      */
@@ -399,12 +406,13 @@ class Insert extends AbstractDmlQuery implements InsertInterface
         }
 
         foreach ($this->col_order as $col) {
-            $this->finishCol($col);
+            $name = $this->finishCol($col);
+            if ($name !== null) {
+                unset($this->bind_values[$name], $this->bind_sources[$name]);
+            }
         }
 
         $this->col_values = array();
-        $this->bind_values = array();
-        $this->bind_sources = array();
     }
 
     /**
@@ -413,7 +421,8 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      *
      * @param string $col The column to finish off.
      *
-     * @return null
+     * @return string|null The placeholder name this row banked, which the
+     * caller clears; null for a raw value, which never had one.
      *
      * @throws InvalidArgumentException on named column missing from row.
      *
@@ -431,7 +440,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
         if (substr($value, 0, 1) != ':') {
             // copy the value as-is
             $this->col_values_bulk[$this->row][$col] = $value;
-            return;
+            return null;
         }
 
         // retain col_values in bulk with the row number appended
@@ -444,5 +453,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
         if (array_key_exists($name, $this->bind_values)) {
             $this->bind_values_bulk["{$name}_{$this->row}"] = $this->bind_values[$name];
         }
+
+        return $name;
     }
 }

@@ -183,6 +183,47 @@ class InsertTest extends Common\InsertTest
     }
 
     /**
+     *
+     * A bulk insert renames each row's placeholders and banks them, then
+     * clears the working values ready for the next row. Neither the DO UPDATE
+     * value nor its WHERE condition is a row value, and the statement goes on
+     * spelling both placeholders, so they have to survive that clearing: an
+     * unbound placeholder makes execute() fail with HY093.
+     *
+     */
+    public function testBulkInsertKeepsTheDoUpdateBinds()
+    {
+        $this->query->into('t1')
+                    ->cols(array('c1' => 'v1-0'))
+                    ->addRow(array('c1' => 'v1-1'))
+                    ->onConflict('c1')
+                    ->doUpdateCol('c2', 'c2-updated')
+                    ->doUpdateWhere('t1.c3 = :c3_old', array('c3_old' => 'bar'));
+
+        $actual = $this->query->__toString();
+        $expect = "
+            INSERT INTO <<t1>>
+                (<<c1>>)
+            VALUES
+                (:c1_0),
+                (:c1_1)
+            ON CONFLICT (<<c1>>) DO UPDATE SET
+                <<c2>> = :c2__on_conflict
+            WHERE
+                <<t1>>.<<c3>> = :c3_old
+        ";
+        $this->assertSameSql($expect, $actual);
+
+        $expect = array(
+            'c2__on_conflict' => 'c2-updated',
+            'c3_old' => 'bar',
+            'c1_0' => 'v1-0',
+            'c1_1' => 'v1-1',
+        );
+        $this->assertSame($expect, $this->query->getBindValues());
+    }
+
+    /**
      * The constraint-name conflict target is Postgres-only.
      */
     public function testOnConflictConstraintTarget()

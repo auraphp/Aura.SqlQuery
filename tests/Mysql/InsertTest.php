@@ -314,6 +314,41 @@ class InsertTest extends Common\InsertTest
         $this->assertSame($expect, $actual);
     }
 
+    /**
+     *
+     * A bulk insert renames each row's placeholders and banks them, then
+     * clears the working values ready for the next row. The ON DUPLICATE KEY
+     * UPDATE value is not one of those row values, and the statement goes on
+     * spelling its placeholder, so it has to survive that clearing: an
+     * unbound placeholder makes execute() fail with HY093.
+     *
+     */
+    public function testBulkInsertKeepsTheOnDuplicateKeyUpdateBind()
+    {
+        $this->query->into('t1')
+                    ->cols(array('c1' => 'v1-0'))
+                    ->addRow(array('c1' => 'v1-1'))
+                    ->onDuplicateKeyUpdateCol('c1', 'c1-updated');
+
+        $actual = $this->query->__toString();
+        $expect = '
+            INSERT INTO <<t1>>
+                (<<c1>>)
+            VALUES
+                (:c1_0),
+                (:c1_1) ON DUPLICATE KEY UPDATE
+                <<c1>> = :c1__on_duplicate_key
+        ';
+        $this->assertSameSql($expect, $actual);
+
+        $expect = array(
+            'c1__on_duplicate_key' => 'c1-updated',
+            'c1_0' => 'v1-0',
+            'c1_1' => 'v1-1',
+        );
+        $this->assertSame($expect, $this->query->getBindValues());
+    }
+
     public function testOnConflictNotSupported()
     {
         $this->expectException('Aura\SqlQuery\Exception\BadMethodCallException');
