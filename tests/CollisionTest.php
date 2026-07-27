@@ -599,6 +599,49 @@ class CollisionTest extends TestCase
 
     /**
      *
+     * A name that starts with no claimant can acquire one. Hand-bound, then
+     * taken over by the union at render time, then shared by the next
+     * branch's WHERE: resetUnions() hands it to that WHERE, which is still in
+     * the query and still binding it, so a second clause rebinding it is the
+     * ordinary clash. Being hand-bound to begin with does not exempt it --
+     * only bindValue() itself keeps that privilege.
+     *
+     */
+    public function testAHandBoundNameSharedByALiveClauseBecomesItsToHold()
+    {
+        $select = $this->query_factory->newSelect();
+        $select->cols(array('*'))->from('a')->where('id = :id');
+        $select->bindValue('id', 1);
+        $select->union()->cols(array('*'))->from('b')->where('id = :id', array('id' => 1));
+        $select->resetUnions();
+
+        // the sharing WHERE outlives the union it was sharing with
+        $this->assertStringContainsString('id = :id', $select->getStatement());
+
+        $this->expectException(Exception\LogicException::class);
+        $select->having('x = :id', array('id' => 2));
+    }
+
+    /**
+     *
+     * The same name with no live claimant is free after resetUnions(), so the
+     * handover cannot be blaming the union for a hold nothing needs.
+     *
+     */
+    public function testAHandBoundNameNoClauseSharesIsFreeAfterResetUnions()
+    {
+        $select = $this->query_factory->newSelect();
+        $select->cols(array('*'))->from('a')->where('id = :id');
+        $select->bindValue('id', 1);
+        $select->union()->cols(array('*'))->from('b');
+        $select->resetUnions();
+
+        $select->having('x = :id', array('id' => 2));
+        $this->assertSame(array('id' => 2), $select->getBindValues());
+    }
+
+    /**
+     *
      * Binding by hand stays the escape hatch it is everywhere else: a null
      * source overwrites the value without the union's claim standing in the
      * way.
