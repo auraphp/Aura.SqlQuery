@@ -411,15 +411,6 @@ class CollisionTest extends TestCase
 
     /**
      *
-     * union() builds the current half into SQL and then resets, so every
-     * value bound so far must still be there to bind against the retained
-     * statement. Clearing bind values on reset breaks this, and only the
-     * integration suite catches it -- the statement is well-formed, PDO just
-     * has nothing to bind.
-     *
-     */
-    /**
-     *
      * union() renders the current branch to SQL and retains it, placeholders
      * and all, so that SQL goes on binding the names it was rendered with. A
      * later branch reusing one of them for a different value overwrites the
@@ -578,6 +569,36 @@ class CollisionTest extends TestCase
 
     /**
      *
+     * A hand-bound value has no claimant, which is what lets it overwrite --
+     * but the rendered branch can be written around it all the same, with the
+     * condition naming :id and bindValue() supplying the value. The retained
+     * SQL binds that name as surely as any other, so the union takes it over
+     * too and a later clause cannot rebind it to something else.
+     *
+     */
+    public function testHandBoundPlaceholderOfARenderedBranchIsHeld()
+    {
+        $select = $this->query_factory->newSelect();
+        $select->cols(array('*'))->from('a')->where('id = :id');
+        $select->bindValue('id', 1);
+        $select->union()->cols(array('*'))->from('b');
+
+        $this->expectException(Exception\LogicException::class);
+        $select->where('id = :id', array('id' => 2));
+    }
+
+    public function testHandBoundPlaceholderOfARenderedBranchMayBeSharedOnTheSameValue()
+    {
+        $select = $this->query_factory->newSelect();
+        $select->cols(array('*'))->from('a')->where('tenant = :t');
+        $select->bindValue('t', 5);
+        $select->union()->cols(array('*'))->from('b')->where('tenant = :t', array('t' => 5));
+
+        $this->assertSame(array('t' => 5), $select->getBindValues());
+    }
+
+    /**
+     *
      * Binding by hand stays the escape hatch it is everywhere else: a null
      * source overwrites the value without the union's claim standing in the
      * way.
@@ -716,6 +737,15 @@ class CollisionTest extends TestCase
         $this->assertSame(array('t' => 6), $select->getBindValues());
     }
 
+    /**
+     *
+     * union() builds the current half into SQL and then resets, so every
+     * value bound so far must still be there to bind against the retained
+     * statement. Clearing bind values on reset breaks this, and only the
+     * integration suite catches it -- the statement is well-formed, PDO just
+     * has nothing to bind.
+     *
+     */
     public function testUnionKeepsTheValuesOfEveryHalf()
     {
         $select = $this->query_factory->newSelect();

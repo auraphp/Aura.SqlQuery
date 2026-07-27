@@ -825,14 +825,22 @@ class Select extends AbstractQuery implements SelectInterface
      * rather than staying with their clause, so that a resetWhere() in the
      * next branch cannot free them either.
      *
+     * Every bound name passes to the union, not only the ones a query part
+     * claimed. A hand-bound value has no claimant -- that is what lets it
+     * overwrite -- but the rendered SQL can just as well be written around it,
+     * as `where('id = :id')` with the value supplied by bindValue(), and a
+     * later clause binding :id would overwrite what that SQL needs.
+     *
      * @return null
      *
      */
     protected function resetAfterRendering()
     {
-        $bind_sources = $this->bind_sources;
         $this->reset();
-        $this->bind_sources = array_fill_keys(array_keys($bind_sources), 'union');
+        $this->bind_sources = array_fill_keys(
+            array_keys($this->bind_values),
+            'union'
+        );
 
         // every name now belongs to the union, including any a clause of the
         // branch just rendered was sharing: that clause is SQL now, so there
