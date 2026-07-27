@@ -587,6 +587,33 @@ class CollisionTest extends TestCase
         $select->where('id = :id', array('id' => 2));
     }
 
+    /**
+     *
+     * The union holds every name bound when the branch was rendered, not the
+     * subset its SQL spells out as ':name'. A positional placeholder is the
+     * case that shows why: the retained SQL keeps the '?' token and the value
+     * is keyed by number, so reading the SQL back cannot recover the name.
+     *
+     * Narrowing the claim to the names a branch visibly mentions looks like a
+     * tidy-up and passes every other test in this file. It frees this one,
+     * and the first branch then runs on the second branch's value with
+     * nothing raised. That is what this test is here to stop.
+     *
+     */
+    public function testPositionalPlaceholderOfARenderedBranchIsHeld()
+    {
+        $select = $this->query_factory->newSelect();
+        $select->cols(array('*'))->from('a')->where('id = ?');
+        $select->bindValue(1, 5);
+        $select->union()->cols(array('*'))->from('b');
+
+        // the retained branch spells no name to scan for
+        $this->assertStringContainsString('id = ?', $select->getStatement());
+
+        $this->expectException(Exception\LogicException::class);
+        $select->where('id = ?', array(1 => 6));
+    }
+
     public function testHandBoundPlaceholderOfARenderedBranchMayBeSharedOnTheSameValue()
     {
         $select = $this->query_factory->newSelect();
