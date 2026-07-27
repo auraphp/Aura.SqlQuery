@@ -154,13 +154,14 @@ This covers hand-bound values as well. A branch can be written around
 the retained SQL binds `:id` no differently, so a later clause cannot rebind it
 to another value.
 
-A branch is held to every name bound when it was rendered, not to the ones its
-SQL spells out as `:name`. The wider net is deliberate: a placeholder can be
-bound by SQL that never names it, and a positional one is exactly that --
-`where('id = ?')` keeps the `?` token and binds its value by number, so there
-is no name in the statement to find. Holding only the visible names would free
-that value for a later branch to overwrite, and the first branch would then run
-on the second branch's data with nothing reported. Holding them all can instead
-refuse a name a branch had bound but never used, which says so and is answered
-by choosing another name -- or by `bindValue()`, which overwrites any of them,
-as it does everywhere else.
+A branch holds the names its SQL actually spells as `:name`. A name bound but
+never used -- one a `resetWhere()` dropped from the branch before it was
+rendered, say -- is not held, since nothing in that SQL can bind it, and the
+next branch may use it for a value of its own.
+
+Positional placeholders are the exception. `where('id = ?')` keeps the `?`
+token and binds its value by number, so there is no name in the statement to
+look for; those are held on the strength of having been bound at all. The
+alternative would be to release a name the rendered SQL is certainly using and
+let a later branch overwrite it, leaving the first branch to run on the second
+branch's data with nothing reported.
