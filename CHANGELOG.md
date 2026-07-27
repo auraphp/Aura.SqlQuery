@@ -61,6 +61,16 @@
   `DB_MYSQL_DSN` / `DB_PGSQL_DSN` / `DB_SQLSRV_DSN` are set; see
   CONTRIBUTING.md.
 
+- [FIX] A bulk insert combined with an upsert no longer loses the upsert's
+  bound values. Finishing a row cleared every bound value, not just that
+  row's, and building the statement finishes the last row -- so
+  `cols(['a' => 1])->addRow(['a' => 2])->onDuplicateKeyUpdateCol('a', 3)`
+  rendered `:a__on_duplicate_key` while binding only `a_0` and `a_1`, and
+  execute() failed with `HY093: Invalid parameter number`. The same applied
+  to Postgres and SQLite `doUpdateCol()` and to `doUpdateWhere()`
+  conditions. Part of #241; the remaining half of that issue, bulk
+  placeholders bypassing collision tracking, is still open.
+
 - [FIX] An Insert with no columns no longer throws a TypeError; it now
   renders `INSERT INTO t DEFAULT VALUES` (or `INSERT INTO t () VALUES ()`
   on MySQL, which does not support DEFAULT VALUES), letting the database
