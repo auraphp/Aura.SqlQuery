@@ -82,8 +82,14 @@ WHERE
     OR channel = :channel
 ```
 
-The upsert methods need no such care: `doUpdateCol()` and
+The upsert methods stay clear of `cols()` on their own: `doUpdateCol()` and
 `onDuplicateKeyUpdateCol()` derive their placeholder by suffixing the column
 name, so `cols(['name' => 'Alice'])` binds `:name` while
 `onDuplicateKeyUpdateCol('name', 'updated')` binds `:name__on_duplicate_key`,
 and both values survive.
+
+The suffix only settles the ordinary case, though; the derived names are
+reserved, so do not bind them yourself. A column literally named
+`name__on_duplicate_key` in `cols()` collides with
+`onDuplicateKeyUpdateCol('name', ...)`, and `name__on_conflict` collides with
+`doUpdateCol('name', ...)`. Both throw the same `LogicException`.
