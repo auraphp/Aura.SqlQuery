@@ -210,6 +210,34 @@ class SelectTest extends AbstractQueryTest
 
     /**
      *
+     * A closing quote is escaped by doubling it -- `[odd]],name]` on SQL
+     * Server, `"odd"",name"` on the others -- so the name here is `odd?,name`
+     * and the comma is still inside it. Brackets are the case that bites: an
+     * opener and closer that differ cannot close-then-reopen their way back
+     * inside, the way a doubled symmetric quote accidentally does.
+     *
+     */
+    public function testFromDoesNotSplitAnEscapedQuoteInsideAName()
+    {
+        $prefix = $this->query->getQuoteNamePrefix();
+        $suffix = $this->query->getQuoteNameSuffix();
+        $name = $prefix . 'odd' . $suffix . $suffix . ',name' . $suffix;
+
+        $this->query->cols(array('*'));
+        $this->query->from($name);
+
+        $actual = $this->query->__toString();
+        $expect = "
+            SELECT
+                *
+            FROM
+                {$name}
+        ";
+        $this->assertSameSql($expect, $actual);
+    }
+
+    /**
+     *
      * The duplicate-reference guard has to see each table in the list, or a
      * repeat slips through and the database reports it instead.
      *

@@ -50,9 +50,22 @@ trait TableListTrait
 
             if ($closer !== null) {
                 $name .= $char;
-                if ($char === $closer) {
-                    $closer = null;
+                if ($char !== $closer) {
+                    continue;
                 }
+
+                // a doubled closer is an escaped one, part of the name: the
+                // SQL Server identifier [odd]],name] is `odd],name`, comma
+                // and all. Symmetric quotes survive without this, since
+                // closing and reopening on the doubled character lands back
+                // inside the name, but `[` and `]` cannot do that.
+                if (isset($spec[$i + 1]) && $spec[$i + 1] === $closer) {
+                    $i ++;
+                    $name .= $spec[$i];
+                    continue;
+                }
+
+                $closer = null;
                 continue;
             }
 

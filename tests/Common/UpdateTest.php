@@ -107,6 +107,29 @@ class UpdateTest extends AbstractQueryTest
         $this->assertSameSql($expect, $actual);
     }
 
+    /**
+     *
+     * A doubled closing quote escapes it, so this is one table whose name
+     * contains a comma, and refusing it as a list would be wrong.
+     *
+     */
+    public function testTableAcceptsAnEscapedQuoteInsideAName()
+    {
+        $prefix = $this->query->getQuoteNamePrefix();
+        $suffix = $this->query->getQuoteNameSuffix();
+        $name = $prefix . 'odd' . $suffix . $suffix . ',name' . $suffix;
+
+        $this->query->table($name)->cols(array('c1'));
+
+        $actual = $this->query->__toString();
+        $expect = "
+            UPDATE {$name}
+            SET
+                <<c1>> = :c1
+        ";
+        $this->assertSameSql($expect, $actual);
+    }
+
     public function testHasCols()
     {
         $this->query->table('t1');
