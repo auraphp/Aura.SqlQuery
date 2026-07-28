@@ -80,6 +80,18 @@ class Insert extends AbstractDmlQuery implements InsertInterface
 
     /**
      *
+     * Which banked bulk names are taken, as `<name>_<row>` => 'bulk_col'.
+     * The banked values live outside `$bind_values` until getBindValues()
+     * merges them, so `$bind_sources` cannot record them and this stands in
+     * for it.
+     *
+     * @var array
+     *
+     */
+    protected $bind_sources_bulk = array();
+
+    /**
+     *
      * The order in which columns will be bulk-inserted; this is taken from the
      * very first inserted row.
      *
@@ -219,7 +231,23 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      */
     public function getBindValues()
     {
-        return array_merge(parent::getBindValues(), $this->bind_values_bulk);
+        $values = parent::getBindValues();
+
+        foreach ($this->bind_values_bulk as $name => $value) {
+            // a hand bind overwrites the value wherever it lands, as it does
+            // everywhere else, so it keeps the name against the banked value.
+            // Nothing else can be holding one: a sourced bind under a banked
+            // name throws, so an unclaimed name here was bound by hand.
+            if (
+                array_key_exists($name, $values)
+                && ! isset($this->bind_sources[$name])
+            ) {
+                continue;
+            }
+            $values[$name] = $value;
+        }
+
+        return $values;
     }
 
     /**
@@ -451,9 +479,76 @@ class Insert extends AbstractDmlQuery implements InsertInterface
 
         // retain bind_value in bulk with new placeholder
         if (array_key_exists($name, $this->bind_values)) {
-            $this->bind_values_bulk["{$name}_{$this->row}"] = $this->bind_values[$name];
+            $banked = "{$name}_{$this->row}";
+
+            // the generated name is a claim on the flat bind array like any
+            // other. If a clause got there first, banking over it would
+            // discard that clause's value in the getBindValues() merge.
+            //
+            // A column of this same row is the exception: `a` in row 1 banks
+            // `a_1`, which a sibling column literally named `a_1` is holding
+            // at that moment. Both are row placeholders, and finishRow()
+            // clears them -- the sibling banks itself as `a_1_1` -- so they
+            // never meet in the merge.
+            $prior = isset($this->bind_sources[$banked])
+                ? $this->bind_sources[$banked]
+                : null;
+
+            if ($prior !== null && $prior !== 'col') {
+                $this->throwCollision($banked, $prior, 'bulk_col');
+            }
+
+            $this->bind_values_bulk[$banked] = $this->bind_values[$name];
+            $this->bind_sources_bulk[$banked] = 'bulk_col';
         }
 
         return $name;
+    }
+
+    /**
+     *
+     * Clears the banked bulk values along with the rest, so the names they
+     * held are free to claim again. Leaving the banked sources behind would
+     * refuse a name nothing is bound to any more.
+     *
+     * The rows themselves stay. `$col_values_bulk` is structure rather than
+     * bound values -- the non-bulk path keeps `$col_values` the same way --
+     * so the statement goes on spelling every placeholder with nothing bound
+     * to it, which is what this method means everywhere else.
+     *
+     * @return $this
+     *
+     */
+    public function resetBindValues()
+    {
+        $this->bind_values_bulk = array();
+        $this->bind_sources_bulk = array();
+        return parent::resetBindValues();
+    }
+
+    /**
+     *
+     * Adds the banked bulk names to the collision check. They are not in
+     * `$bind_values`, so the inherited check cannot see them, yet they win
+     * the merge in getBindValues() and would silently discard whatever a
+     * clause bound under the same name.
+     *
+     * {@inheritdoc}
+     *
+     */
+    protected function bindValueFrom($name, $value, $source)
+    {
+        // 'col' is exempt for the same reason it is in finishCol(): a later
+        // row's column may be named `a_1` while `a` in row 1 has banked that
+        // name, and both are cleared before the merge.
+        if (
+            $source !== null
+            && $source !== 'col'
+            && isset($this->bind_sources_bulk[$name])
+        ) {
+            $this->throwCollision($name, $this->bind_sources_bulk[$name], $source);
+        }
+
+        return parent::bindValueFrom($name, $value, $source);
     }
 }

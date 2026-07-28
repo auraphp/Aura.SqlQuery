@@ -94,6 +94,37 @@ reserved, so do not bind them yourself. A column literally named
 `onDuplicateKeyUpdateCol('name', ...)`, and `name__on_conflict` collides with
 `doUpdateCol('name', ...)`. Both throw the same `LogicException`.
 
+### Bulk Insert Rows
+
+A bulk insert renames each row's placeholders, appending the row number: two
+rows of `cols(['status' => ...])` bind `:status_0` and `:status_1`. Those
+generated names are reserved in the same way, so binding one from another part
+of the query throws:
+
+```php
+// onConflict() is PostgreSQL and SQLite only, so this example needs one of
+// those factories rather than the shared one used elsewhere on this page
+$pgsqlFactory = new \Aura\SqlQuery\QueryFactory('pgsql');
+$insert = $pgsqlFactory->newInsert();
+
+try {
+    $insert
+        ->into('t')
+        ->cols(['status' => 'row0'])
+        ->addRow(['status' => 'row1'])
+        ->onConflict('id')
+        ->doUpdateCol('status')
+        ->doUpdateWhere('t.note = :status_0', ['status_0' => 'checked']);
+} catch (\Aura\SqlQuery\Exception\LogicException $e) {
+    // throws: The placeholder ':status_0' is already in use by a
+    // bulk-insert row...
+}
+```
+
+Name the condition's placeholder something a row cannot generate -- `:note` --
+and both values survive. As everywhere else, `bindValue()` may still overwrite
+a row's value by its generated name.
+
 ### UNION Branches
 
 `union()` and `unionAll()` build the branch so far into SQL and keep it, so

@@ -251,6 +251,56 @@ class PgsqlIntegrationTest extends AbstractIntegrationTest
 
     /**
      *
+     * A bulk insert renames its placeholders to `<name>_<row>`, and a
+     * condition binding one of those generated names used to lose its value
+     * to the row's -- well-formed SQL asking the wrong question. The builder
+     * now rejects it, and the documented fix, naming the condition's
+     * placeholder something no row can generate, has to do the right thing
+     * against a real server. See #241.
+     *
+     */
+    public function testBulkInsertConditionOnABankedName()
+    {
+        $collides = $this->query_factory->newInsert()
+            ->into('test_dept')
+            ->cols(['id' => 1, 'name' => 'row0'])
+            ->addRow(['id' => 2, 'name' => 'row1'])
+            ->onConflict('id')
+            ->doUpdateCol('name', 'Updated');
+
+        try {
+            $collides->doUpdateWhere('test_dept.name != :name_0', ['name_0' => 'Sales']);
+            $this->fail('Expected a collision on the :name_0 placeholder.');
+        } catch (\Aura\SqlQuery\Exception\LogicException $e) {
+            $this->assertStringContainsString(':name_0', $e->getMessage());
+        }
+
+        $insert = $this->query_factory->newInsert()
+            ->into('test_dept')
+            ->cols(['id' => 1, 'name' => 'row0'])
+            ->addRow(['id' => 2, 'name' => 'row1'])
+            ->onConflict('id')
+            ->doUpdateCol('name', 'Updated')
+            ->doUpdateWhere('test_dept.name != :keep', ['keep' => 'Sales']);
+
+        // the condition really is testing 'Sales' and not row 0's name, so
+        // exactly the one row that is not Sales gets updated
+        $this->assertSame(1, $this->exec($insert));
+
+        // read after execution: building the statement is what banks the
+        // last row, so before that the row is still live under its own name
+        $this->assertSame(
+            ['name__on_conflict' => 'Updated', 'keep' => 'Sales',
+             'id_0' => 1, 'name_0' => 'row0', 'id_1' => 2, 'name_1' => 'row1'],
+            $insert->getBindValues()
+        );
+
+        $sth = $this->pdo->query('SELECT name FROM test_dept ORDER BY id');
+        $this->assertSame(['Updated', 'Sales'], $sth->fetchAll(PDO::FETCH_COLUMN));
+    }
+
+    /**
+     *
      * A bulk insert whose rows collide with existing keys: the DO UPDATE
      * value and its WHERE condition are bound once for the whole statement,
      * not per row. Building the statement finishes the last row, and clearing

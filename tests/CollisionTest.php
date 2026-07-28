@@ -1001,4 +1001,181 @@ class CollisionTest extends TestCase
             $bind_values
         );
     }
+
+    /**
+     *
+     * A bulk insert renames each row's placeholders to `<name>_<row>` and
+     * banks them. Those generated names are as much a claim on the flat bind
+     * array as any other, so a clause binding one of them by hand afterwards
+     * would lose its value to the banked one: the merge in getBindValues()
+     * comes last. This is the reproduction filed as #241.
+     *
+     */
+    public function testABankedBulkNameCollidesWithALaterCondition()
+    {
+        $insert = $this->newFactory('pgsql')->newInsert();
+        $insert->into('t')
+               ->cols(array('status' => 'row0'))
+               ->addRow(array('status' => 'row1'));
+
+        $this->expectException(Exception\LogicException::class);
+        $this->expectExceptionMessage("':status_0' is already in use by a bulk-insert row");
+        $insert->onConflict('id')
+               ->doUpdateCol('status')
+               ->doUpdateWhere('t.note = :status_0', array('status_0' => 'from the condition'));
+    }
+
+    /**
+     *
+     * And the other way round: the clause claimed the name first, so the row
+     * that would bank over it is the second claimant.
+     *
+     */
+    public function testARowCannotBankOverANameAClauseAlreadyClaimed()
+    {
+        $insert = $this->newFactory('pgsql')->newInsert();
+        $insert->into('t')
+               ->cols(array('status' => 'row0'))
+               ->onConflict('id')
+               ->doUpdateCol('status')
+               ->doUpdateWhere('t.note = :status_0', array('status_0' => 'from the condition'));
+
+        $this->expectException(Exception\LogicException::class);
+        $this->expectExceptionMessage("':status_0' is already in use by a condition");
+        $insert->addRow(array('status' => 'row1'));
+    }
+
+    /**
+     *
+     * A hand bind overwrites the value wherever it lands, as it does
+     * everywhere else -- rebinding before execution is legitimate. On the
+     * bulk path the banked value used to win regardless, so the hand-bound
+     * one vanished without a word.
+     *
+     */
+    public function testAHandBindOverwritesABankedBulkValue()
+    {
+        $insert = $this->newFactory('pgsql')->newInsert();
+        $insert->into('t')
+               ->cols(array('status' => 'row0'))
+               ->addRow(array('status' => 'row1'));
+
+        $insert->getStatement();
+        $insert->bindValue('status_0', 'by hand');
+
+        $this->assertSame(
+            array('status_0' => 'by hand', 'status_1' => 'row1'),
+            $insert->getBindValues()
+        );
+    }
+
+    /**
+     *
+     * resetBindValues() clears the values a query has bound, banked bulk ones
+     * included, so the names they held are free again. Leaving the banked
+     * sources behind would refuse a name nothing is bound to any more.
+     *
+     */
+    public function testResetBindValuesFreesTheBankedBulkNames()
+    {
+        $insert = $this->newFactory('pgsql')->newInsert();
+        $insert->into('t')
+               ->cols(array('status' => 'row0'))
+               ->addRow(array('status' => 'row1'));
+        $insert->getStatement();
+
+        $insert->resetBindValues();
+
+        // no collision, because nothing is holding :status_0 now
+        $insert->onConflict('id')
+               ->doUpdateCol('status')
+               ->doUpdateWhere('t.note = :status_0', array('status_0' => 'fresh'));
+
+        $values = $insert->getBindValues();
+        $this->assertSame('fresh', $values['status_0']);
+        $this->assertArrayNotHasKey('status_1', $values);
+    }
+
+    /**
+     *
+     * The reset takes the values and leaves the rows. Columns are structure,
+     * not bound values -- the non-bulk path keeps col_values the same way, so
+     * the statement still spells every placeholder and simply has nothing
+     * bound to them, which is what resetBindValues() means everywhere else.
+     *
+     */
+    public function testResetBindValuesKeepsTheBulkRows()
+    {
+        $insert = $this->newFactory('pgsql')->newInsert();
+        $insert->into('t')
+               ->cols(array('status' => 'row0'))
+               ->addRow(array('status' => 'row1'));
+        $insert->getStatement();
+
+        $insert->resetBindValues();
+
+        $this->assertSame(array(), $insert->getBindValues());
+        $statement = $insert->getStatement();
+        $this->assertStringContainsString(':status_0', $statement);
+        $this->assertStringContainsString(':status_1', $statement);
+    }
+
+    /**
+     *
+     * A row still being built holds its own column names, and one of them may
+     * be spelled the same as a name an earlier row banked -- column `a_1`
+     * against the `a_1` that column `a` banked in row 1. Asking for the bind
+     * values before the statement is built catches that overlap in the open.
+     *
+     * The banked value wins, because it is the one the finished statement
+     * binds: the live column has not been renamed yet and will bank itself as
+     * `a_1_2`.
+     *
+     */
+    public function testABankedNameBeatsALiveColumnSpelledTheSame()
+    {
+        $insert = $this->newFactory('pgsql')->newInsert();
+        $insert->into('t')
+               ->cols(array('a' => 'r0', 'a_1' => 'x0'))
+               ->addRow(array('a' => 'r1', 'a_1' => 'x1'))
+               ->addRow(array('a' => 'r2', 'a_1' => 'x2'));
+
+        // deliberately before getStatement(), while row 2 is still live
+        $values = $insert->getBindValues();
+        $this->assertSame('r1', $values['a_1']);
+
+        // and once built, the live row banks itself out of the way
+        $insert->getStatement();
+        $values = $insert->getBindValues();
+        $this->assertSame('r1', $values['a_1']);
+        $this->assertSame('x2', $values['a_1_2']);
+    }
+
+    /**
+     *
+     * The generated names cannot collide with each other: the row number is
+     * appended, so a column named `a` in row 1 banks `a_1` while a column
+     * named `a_1` in row 0 banks `a_1_0`. Pinned so that a future change to
+     * the naming scheme has to think about it.
+     *
+     */
+    public function testTwoBulkColumnsWhoseNamesOverlapDoNotCollide()
+    {
+        $insert = $this->newFactory('pgsql')->newInsert();
+        $insert->into('t')
+               ->cols(array('a' => 'a-row0', 'a_1' => 'a1-row0'))
+               ->addRow(array('a' => 'a-row1', 'a_1' => 'a1-row1'));
+
+        $insert->getStatement();
+
+        $this->assertSame(
+            array(
+                'a_0' => 'a-row0',
+                'a_1_0' => 'a1-row0',
+                'a_1' => 'a-row1',
+                'a_1_1' => 'a1-row1',
+            ),
+            $insert->getBindValues()
+        );
+    }
 }
