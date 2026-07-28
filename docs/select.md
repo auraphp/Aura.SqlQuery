@@ -43,8 +43,30 @@ $select
     ->from('bar AS b');     // alias the table as desired
 ```
 
+Several tables may be named in one call, comma-separated, which builds the
+same list:
+
+```php
+$select = $queryFactory->newSelect();
+
+$select->cols(['*'])->from('foo, bar AS b');
+```
+
+```sql
+SELECT
+    *
+FROM
+    "foo",
+    "bar" AS "b"
+```
+
 The table names will automatically be quoted for you. If you don't want
-quoting applied, use the `fromRaw()` method instead.
+quoting applied, use the `fromRaw()` method instead. A name you have quoted
+yourself is left as you wrote it, so a comma inside it stays part of the name
+rather than separating the list.
+
+Note that UPDATE and DELETE take a single table and reject a list; see
+[the UPDATE page](update.md) for why, and what to write instead.
 
 If you want to SELECT FROM a subselect, do so by calling `fromSubSelect()`.
 Pass both the subselect query string, and an alias for the subselect:

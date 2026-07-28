@@ -38,6 +38,49 @@ $update->table('foo')           // update this table
     ]);
 ```
 
+## One table at a time
+
+`table()` takes a single table. Naming several, comma-separated, throws
+`Aura\SqlQuery\Exception\LogicException`:
+
+```php
+$update = $queryFactory->newUpdate();
+
+try {
+    $update->table('themes, entities');
+} catch (\Aura\SqlQuery\Exception\LogicException $e) {
+    // throws: An UPDATE takes one table, and 'themes, entities' names
+    // several...
+}
+```
+
+There is no portable statement to build. MySQL writes a multi-table update as
+`UPDATE a, b SET ...`, PostgreSQL and SQLite as `UPDATE a SET ... FROM b`, and
+SQL Server as `UPDATE a SET ... FROM a JOIN b` — four grammars, not one. Match
+the other table with a sub-select in the `WHERE` clause instead:
+
+```php
+$update = $queryFactory->newUpdate();
+
+$update->table('themes')
+    ->cols(['name' => 'new name'])
+    ->where(
+        'id IN (SELECT theme_id FROM entities WHERE uuid = :uuid)',
+        ['uuid' => 'abc-123']
+    );
+```
+
+```sql
+UPDATE "themes"
+SET
+    "name" = :name
+WHERE
+    id IN (SELECT theme_id FROM entities WHERE uuid = :uuid)
+```
+
+`DELETE` is the same: `from()` takes one table. SELECT is unaffected — several
+tables in a `FROM` is an ordinary join, so `from('a, b')` builds the list.
+
 ## Placeholder names
 
 `cols()` names its placeholder after the column, and so does a bind value

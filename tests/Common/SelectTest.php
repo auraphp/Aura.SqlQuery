@@ -143,6 +143,85 @@ class SelectTest extends AbstractQueryTest
         $this->assertSameSql($expect, $actual);
     }
 
+    /**
+     *
+     * One string naming several tables is the same list as several from()
+     * calls. It used to be read as "table alias" and quoted whole, giving
+     * <<t1,>> <<t2>> -- an identifier no database has. See #160.
+     *
+     */
+    public function testFromMultipleTablesInOneString()
+    {
+        $this->query->cols(array('*'));
+        $this->query->from('t1, t2');
+
+        $actual = $this->query->__toString();
+        $expect = '
+            SELECT
+                *
+            FROM
+                <<t1>>,
+                <<t2>>
+        ';
+        $this->assertSameSql($expect, $actual);
+    }
+
+    public function testFromMultipleTablesWithSpacesAndAliases()
+    {
+        $this->query->cols(array('*'));
+        $this->query->from('t1 AS a , t2 AS b');
+
+        $actual = $this->query->__toString();
+        $expect = '
+            SELECT
+                *
+            FROM
+                <<t1>> AS <<a>>,
+                <<t2>> AS <<b>>
+        ';
+        $this->assertSameSql($expect, $actual);
+    }
+
+    /**
+     *
+     * A comma inside a quoted identifier is part of the name, not a
+     * separator, so it must not split the list. Quoted in this dialect's own
+     * style, the name is already finished and passes through untouched.
+     *
+     */
+    public function testFromDoesNotSplitAQuotedComma()
+    {
+        $name = $this->query->getQuoteNamePrefix()
+              . 'odd,name'
+              . $this->query->getQuoteNameSuffix();
+
+        $this->query->cols(array('*'));
+        $this->query->from($name);
+
+        $actual = $this->query->__toString();
+        $expect = "
+            SELECT
+                *
+            FROM
+                {$name}
+        ";
+        $this->assertSameSql($expect, $actual);
+    }
+
+    /**
+     *
+     * The duplicate-reference guard has to see each table in the list, or a
+     * repeat slips through and the database reports it instead.
+     *
+     */
+    public function testFromMultipleTablesRejectsADuplicate()
+    {
+        $this->query->cols(array('*'));
+
+        $this->expectException(\Aura\SqlQuery\Exception\LogicException::class);
+        $this->query->from('t1, t1');
+    }
+
     public function testFromRaw()
     {
         $this->query->cols(array('*'));

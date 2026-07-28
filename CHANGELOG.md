@@ -71,6 +71,21 @@
   conditions. Part of #241; the remaining half of that issue, bulk
   placeholders bypassing collision tracking, is still open.
 
+- [FIX] Naming several tables in one string no longer produces an identifier
+  no database has. `from('t1, t2')` was read as a name and its alias and
+  quoted whole, giving `"t1," "t2"`; a Select now builds the list, quoting
+  and reference-checking each table, so it is the same as calling `from()`
+  once per table. An identifier you quoted yourself is left as you wrote it,
+  as it already was inside expressions, so a comma within it stays part of
+  the name.
+
+  Update::table() and Delete::from() take a single table and now throw
+  Aura\SqlQuery\Exception\LogicException for a list, naming the sub-select
+  alternative. There is no portable statement to build: MySQL writes a
+  multi-table update as `UPDATE a, b SET ...`, PostgreSQL and SQLite as
+  `UPDATE a SET ... FROM b`, and SQL Server as `UPDATE a SET ... FROM a JOIN
+  b`, while `DELETE FROM a, b` is valid nowhere. Fixes #160.
+
 - [FIX] An Insert with no columns no longer throws a TypeError; it now
   renders `INSERT INTO t DEFAULT VALUES` (or `INSERT INTO t () VALUES ()`
   on MySQL, which does not support DEFAULT VALUES), letting the database

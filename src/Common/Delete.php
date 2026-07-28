@@ -10,6 +10,7 @@ namespace Aura\SqlQuery\Common;
 
 use Aura\SqlQuery\AbstractDmlQuery;
 use Aura\SqlQuery\Exception\BadMethodCallException;
+use Aura\SqlQuery\Exception\LogicException;
 
 /**
  *
@@ -21,6 +22,7 @@ use Aura\SqlQuery\Exception\BadMethodCallException;
 class Delete extends AbstractDmlQuery implements DeleteInterface
 {
     use WhereTrait;
+    use TableListTrait;
 
     /**
      *
@@ -39,9 +41,22 @@ class Delete extends AbstractDmlQuery implements DeleteInterface
      *
      * @return $this
      *
+     * @throws LogicException when the spec names more than one table.
+     *
      */
     public function from($from)
     {
+        $names = $this->splitNamesList($from);
+        if (count($names) > 1) {
+            throw new LogicException(
+                "A DELETE takes one table, and '{$from}' names several. "
+                . '`DELETE FROM a, b` is not valid on any of the supported '
+                . "databases -- MySQL's multi-table delete is a different "
+                . 'shape again, `DELETE a, b FROM a JOIN b`. Match the other '
+                . 'table with a sub-select in the WHERE clause instead.'
+            );
+        }
+
         $this->from = $this->quoter->quoteName($from);
         return $this;
     }

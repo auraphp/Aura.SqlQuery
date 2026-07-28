@@ -21,6 +21,8 @@ use Aura\SqlQuery\Exception\LogicException;
  */
 class Update extends AbstractDmlQuery implements UpdateInterface
 {
+    use TableListTrait;
+
     use WhereTrait;
 
     /**
@@ -40,9 +42,23 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      *
      * @return $this
      *
+     * @throws LogicException when the spec names more than one table.
+     *
      */
     public function table($table)
     {
+        $names = $this->splitNamesList($table);
+        if (count($names) > 1) {
+            throw new LogicException(
+                "An UPDATE takes one table, and '{$table}' names several. "
+                . 'Every database spells a multi-table update differently -- '
+                . 'MySQL with a comma, PostgreSQL and SQLite with FROM, SQL '
+                . 'Server with FROM and a JOIN -- so there is no portable '
+                . 'form to build here. Match the other table with a '
+                . 'sub-select in the WHERE clause instead.'
+            );
+        }
+
         $this->table = $this->quoter->quoteName($table);
         return $this;
     }

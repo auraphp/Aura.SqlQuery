@@ -302,6 +302,51 @@ abstract class AbstractIntegrationTest extends TestCase
         $this->assertSame(['Clara', 'Betty'], array_column($actual, 'name'));
     }
 
+    /**
+     *
+     * Naming several tables in one from() is an old-style join, and it has to
+     * be a list the database accepts -- the names used to be quoted whole as
+     * one identifier, which no server would take. See #160.
+     *
+     */
+    public function testSelectFromMultipleTablesInOneString()
+    {
+        $select = $this->query_factory->newSelect()
+            ->cols(['test_employee.name', 'test_dept.name AS dept_name'])
+            ->from('test_employee, test_dept')
+            ->where('test_employee.dept_id = test_dept.id')
+            ->where('test_dept.id = :id', ['id' => 1])
+            ->orderBy(['test_employee.name']);
+
+        $actual = $this->fetchAll($select);
+        $this->assertSame(['Anna', 'Betty'], array_column($actual, 'name'));
+        $this->assertSame('Engineering', $actual[0]['dept_name']);
+    }
+
+    /**
+     *
+     * The same list is refused for UPDATE and DELETE, where no portable form
+     * exists. Refusing at build time beats a server error the caller cannot
+     * act on.
+     *
+     */
+    public function testUpdateAndDeleteRefuseMultipleTables()
+    {
+        try {
+            $this->query_factory->newUpdate()->table('test_employee, test_dept');
+            $this->fail('Expected an UPDATE multi-table rejection.');
+        } catch (\Aura\SqlQuery\Exception\LogicException $e) {
+            $this->assertStringContainsString('one table', $e->getMessage());
+        }
+
+        try {
+            $this->query_factory->newDelete()->from('test_employee, test_dept');
+            $this->fail('Expected a DELETE multi-table rejection.');
+        } catch (\Aura\SqlQuery\Exception\LogicException $e) {
+            $this->assertStringContainsString('one table', $e->getMessage());
+        }
+    }
+
     public function testSelectJoinGroupByHaving()
     {
         $select = $this->query_factory->newSelect()

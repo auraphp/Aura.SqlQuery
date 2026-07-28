@@ -50,6 +50,63 @@ class UpdateTest extends AbstractQueryTest
         $this->assertSame($expect, $actual);
     }
 
+    /**
+     *
+     * `UPDATE a, b SET ...` is MySQL-only grammar; Postgres, SQLite and SQL
+     * Server each spell a multi-table update differently, and none of them
+     * with a comma. The list used to be quoted whole as <<t1,>> <<t2>>, an
+     * identifier no database has, so the statement failed at execute time
+     * with nothing to say why. Refuse it while the caller can still act on
+     * it. See #160.
+     *
+     */
+    public function testTableRejectsMultipleTables()
+    {
+        $this->expectException(\Aura\SqlQuery\Exception\LogicException::class);
+        $this->expectExceptionMessage('one table');
+        $this->query->table('t1, t2');
+    }
+
+    /**
+     *
+     * The message has to point somewhere: a sub-select in the WHERE is the
+     * portable way to update one table against another.
+     *
+     */
+    public function testTableMultipleTablesMessageNamesTheAlternative()
+    {
+        try {
+            $this->query->table('t1, t2');
+            $this->fail('Expected a rejection of the multi-table list.');
+        } catch (\Aura\SqlQuery\Exception\LogicException $e) {
+            $this->assertStringContainsString('t1, t2', $e->getMessage());
+            $this->assertStringContainsString('sub-select', $e->getMessage());
+        }
+    }
+
+    /**
+     *
+     * A comma inside a quoted identifier is part of the name, so this is one
+     * table and must not be refused as a list.
+     *
+     */
+    public function testTableAcceptsAQuotedComma()
+    {
+        $name = $this->query->getQuoteNamePrefix()
+              . 'odd,name'
+              . $this->query->getQuoteNameSuffix();
+
+        $this->query->table($name)->cols(array('c1'));
+
+        $actual = $this->query->__toString();
+        $expect = "
+            UPDATE {$name}
+            SET
+                <<c1>> = :c1
+        ";
+        $this->assertSameSql($expect, $actual);
+    }
+
     public function testHasCols()
     {
         $this->query->table('t1');
