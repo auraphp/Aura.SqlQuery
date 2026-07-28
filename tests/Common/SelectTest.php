@@ -1375,7 +1375,6 @@ class SelectTest extends AbstractQueryTest
             // reading added is a chance to swallow a name that is real.
             'block comment around a comment' => array(array(), 'c1 > 0 /* /* :a */ */'),
             'gap: nested block comment' => array(array('a'), 'c1 > 0 /* /* q */ :a */'),
-            'gap: quoted identifier' => array(array('a'), 'x = "odd:a name"'),
         );
     }
 
@@ -1390,6 +1389,42 @@ class SelectTest extends AbstractQueryTest
     public function testNamesHeldFromABranch(array $expect, $cond)
     {
         $this->assertNamesHeld($expect, $cond);
+    }
+
+    /**
+     *
+     * A colon inside a quoted identifier is part of the name -- backticks on
+     * MySQL, brackets on SQL Server, double quotes elsewhere -- and no
+     * placeholder can stand there, so nothing inside one is read as a name.
+     * The quoting the builder writes around every name it is given is the
+     * same quoting read back here.
+     *
+     */
+    public function testNamesHeldFromAQuotedIdentifier()
+    {
+        $prefix = $this->query->getQuoteNamePrefix();
+        $suffix = $this->query->getQuoteNameSuffix();
+
+        $this->assertNamesHeld(array(), "x = {$prefix}odd:a name{$suffix}");
+
+        // a closing quote inside the name is written by doubling it, so the
+        // name runs on rather than ending there
+        $this->assertNamesHeld(
+            array(),
+            "x = {$prefix}odd{$suffix}{$suffix}:a name{$suffix}"
+        );
+
+        // and the placeholder standing outside the name is still read
+        $this->assertNamesHeld(
+            array('b'),
+            "x = {$prefix}odd:a name{$suffix} AND b = :b"
+        );
+
+        // an opener that never closes leaves the rest as SQL, as an unclosed
+        // literal does -- including when a doubled quote is what leaves it
+        // open, the name running on past the pair rather than ending at it
+        $this->assertNamesHeld(array('a'), "x = {$prefix}unclosed AND a = :a");
+        $this->assertNamesHeld(array('a'), "x = {$prefix}:a{$suffix}{$suffix}");
     }
 
     public function testUnionHoldsAPlaceholderFromAMiddleBranch()

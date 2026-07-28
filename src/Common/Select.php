@@ -893,12 +893,12 @@ class Select extends AbstractQuery implements SelectInterface
     {
         $this->reset();
 
-        // a name inside a string literal or a comment is text, not a
-        // placeholder: `where("name = ':a'")` binds nothing, and holding :a
-        // on the strength of it would report a collision against a name the
-        // next branch is free to bind. The dialect's own alternatives run
-        // before the capture and consume those regions, so that only the
-        // names outside them are captured.
+        // a name inside a string literal, a comment, or a quoted identifier
+        // is text, not a placeholder: `where("name = ':a'")` binds nothing,
+        // and holding :a on the strength of it would report a collision
+        // against a name the next branch is free to bind. The dialect's own
+        // alternatives run before the capture and consume those regions, so
+        // that only the names outside them are captured.
         //
         // Everything doubtful falls the same way: keep the text as SQL. A
         // name kept by mistake costs a needless collision report, where a
@@ -910,7 +910,8 @@ class Select extends AbstractQuery implements SelectInterface
         // Each branch is read on its own for the same reason, so that a stray
         // quote in one cannot pair with a quote in the next and swallow the
         // placeholders between them.
-        $find = "/{$this->text_pattern}|(?<!:):(\w+)/s";
+        $find = "/{$this->getQuotedNamePattern()}|{$this->text_pattern}"
+              . "|(?<!:):(\w+)/s";
         $spelled = array();
         foreach ($this->union as $branch) {
             preg_match_all($find, $branch, $matches);
@@ -928,6 +929,31 @@ class Select extends AbstractQuery implements SelectInterface
         // branch just rendered was sharing: that clause is SQL now, so there
         // is no live claimant left to hand a name back to.
         $this->bind_shared = array();
+    }
+
+    /**
+     *
+     * A regex alternative matching a quoted identifier, in the quoting this
+     * dialect writes: backticks on MySQL, brackets on SQL Server, double
+     * quotes elsewhere.
+     *
+     * A colon inside one is part of the name and no placeholder can stand
+     * there, so a scan for placeholder names must read past it. The quoting
+     * comes from the quoter rather than being spelled here, so that what is
+     * read back is what the builder wrote; the closing quote doubled is how a
+     * name containing one is written, and the name runs on past it.
+     *
+     * @return string
+     *
+     * @see resetAfterRendering()
+     *
+     */
+    protected function getQuotedNamePattern()
+    {
+        $prefix = preg_quote($this->getQuoteNamePrefix(), '/');
+        $suffix = preg_quote($this->getQuoteNameSuffix(), '/');
+
+        return "{$prefix}(?:[^{$suffix}]|{$suffix}{$suffix})*+{$suffix}";
     }
 
     /**

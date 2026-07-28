@@ -95,14 +95,16 @@
   branches may share a name so long as they share its value. Fixes #248.
 
 - [FIX] A union branch no longer holds a placeholder name that only its
-  string literals or comments spell. `where("name = ':a'")` binds nothing
-  by that name, and holding it reported a collision against the next
-  branch's legitimate `:a`. Literals and comments are passed over before the
-  names are read, each dialect by its own rules -- on MySQL a backslash
-  escapes the quote after it and a `#` begins a comment, where the standard
-  reading gives a backslash no such power. Anything unterminated is read as
-  SQL instead, since keeping a name costs at worst a collision report where
-  losing one lets a later branch overwrite the SQL silently.
+  string literals, comments or quoted identifiers spell. `where("name =
+  ':a'")` binds nothing by that name, and holding it reported a collision
+  against the next branch's legitimate `:a`. All three are passed over
+  before the names are read, each dialect by its own rules -- on MySQL a
+  backslash escapes the quote after it and a `#` begins a comment, where the
+  standard reading gives a backslash no such power, and a name is quoted
+  with backticks there, brackets on SQL Server, double quotes elsewhere.
+  Anything unterminated is read as SQL instead, since keeping a name costs
+  at worst a collision report where losing one lets a later branch overwrite
+  the SQL silently.
 
 - [FIX] Naming several tables in one string no longer produces an identifier
   no database has. `from('t1, t2')` was read as a name and its alias and
