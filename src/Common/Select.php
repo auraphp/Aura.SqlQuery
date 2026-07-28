@@ -54,6 +54,16 @@ class Select extends AbstractQuery implements SelectInterface
 
     /**
      *
+     * The last branch of a union when it was supplied as a query of its own,
+     * already rendered; null when this query is building that branch itself.
+     *
+     * @var string|null
+     *
+     */
+    protected $union_tail = null;
+
+    /**
+     *
      * Is this a SELECT FOR UPDATE?
      *
      * @var
@@ -155,7 +165,61 @@ class Select extends AbstractQuery implements SelectInterface
         if (! empty($this->union)) {
             $union = implode(PHP_EOL, $this->union) . PHP_EOL;
         }
+
+        if ($this->union_tail !== null) {
+            $this->assertNoBranchAfterUnionTail();
+            return $union . $this->union_tail;
+        }
+
         return $union . $this->build();
+    }
+
+    /**
+     *
+     * Reports properties set on this query after a branch was supplied whole,
+     * which the union has no place to render.
+     *
+     * The supplied branch is the last one, and anything set afterwards can
+     * only mean a further branch -- one this query cannot render, because the
+     * SQL already retained ends at that branch with no UNION to carry on from.
+     * Whether that next branch is UNION or UNION ALL is the caller's to say,
+     * so the fix is to say it, and the alternative is to drop a WHERE, a JOIN,
+     * or a LIMIT from the statement without a word.
+     *
+     * What counts as "set afterwards" is asked of reset(), which is what
+     * union() itself leaves this query in and so is the one description of an
+     * empty branch: every property it clears is compared against a copy that
+     * has just been through it. Naming the clauses here instead would leave
+     * the next one added to the statement unguarded, which is how columns came
+     * to be the only property this checked.
+     *
+     * The bound values are not among them, and are left where they are:
+     * they belong to the union rather than to the branch being built -- that
+     * is what lets the rendered SQL keep its placeholders -- so binding a
+     * fresh value for the branch already rendered is no more a new branch
+     * than reading the statement twice is. A clause that claims a name is
+     * caught as the clause it is.
+     *
+     * @return void
+     *
+     * @throws LogicException when this query holds a branch of its own.
+     *
+     */
+    protected function assertNoBranchAfterUnionTail()
+    {
+        $empty = clone $this;
+        $empty->reset();
+
+        foreach (get_object_vars($empty) as $key => $value) {
+            if ($this->$key === $value) {
+                continue;
+            }
+
+            throw new LogicException(
+                'The query passed to union() is the last branch; '
+                . 'call union() or unionAll() again to add another after it.'
+            );
+        }
     }
 
     /**
@@ -822,14 +886,15 @@ class Select extends AbstractQuery implements SelectInterface
      * Takes the current select properties and retains them, then sets
      * UNION for the next set of properties.
      *
+     * @param SelectInterface|null $select The next branch as a query of its
+     * own; when omitted, this query is reset to build that branch itself.
+     *
      * @return $this
      *
      */
-    public function union()
+    public function union(?SelectInterface $select = null)
     {
-        $this->union[] = $this->build() . PHP_EOL . 'UNION';
-        $this->resetAfterRendering();
-        return $this;
+        return $this->addUnion('UNION', $select);
     }
 
     /**
@@ -837,14 +902,84 @@ class Select extends AbstractQuery implements SelectInterface
      * Takes the current select properties and retains them, then sets
      * UNION ALL for the next set of properties.
      *
+     * @param SelectInterface|null $select The next branch as a query of its
+     * own; when omitted, this query is reset to build that branch itself.
+     *
      * @return $this
      *
      */
-    public function unionAll()
+    public function unionAll(?SelectInterface $select = null)
     {
-        $this->union[] = $this->build() . PHP_EOL . 'UNION ALL';
+        return $this->addUnion('UNION ALL', $select);
+    }
+
+    /**
+     *
+     * Retains the branch being built and opens the next one, either as a
+     * query supplied whole or as this query reset to build it.
+     *
+     * A supplied branch is rendered on the spot rather than kept as an
+     * object. It is a second query with a life of its own, and holding it
+     * would have edits made to it after this call reach back into a union it
+     * was only ever added to once; the SQL is what was asked for.
+     *
+     * It is rendered before this query changes so that a branch that cannot
+     * render -- one with no columns yet -- leaves this query as it was, rather
+     * than having consumed and reset the branch it was building on the way to
+     * throwing.
+     *
+     * @param string $type 'UNION' or 'UNION ALL'.
+     *
+     * @param SelectInterface|null $select The next branch, or null to build
+     * it on this query.
+     *
+     * @return $this
+     *
+     * @throws LogicException when handed this very query.
+     *
+     */
+    protected function addUnion($type, ?SelectInterface $select)
+    {
+        // a query cannot be a branch of itself: it is being rendered into the
+        // union at the moment it would have to stand apart from it, and each
+        // reading of what that means -- the branch before this call, or the
+        // whole union so far -- is a different statement. Say so rather than
+        // pick one; a clone is what this asks for.
+        if ($select === $this) {
+            throw new LogicException(
+                'Cannot union a query with itself; pass a clone of it instead.'
+            );
+        }
+
+        $branch = $select === null ? null : $select->getStatement();
+
+        // the branch being closed is the supplied one when there is one, and
+        // otherwise whatever this query has been building.
+        $this->union[] = $this->unionTailOrBuild() . PHP_EOL . $type;
+        $this->union_tail = null;
         $this->resetAfterRendering();
+
+        if ($branch !== null) {
+            $this->union_tail = $branch;
+            $this->bindValuesFromSelect($select, 'union');
+        }
+
         return $this;
+    }
+
+    /**
+     *
+     * Returns the branch this query currently ends with: one supplied whole,
+     * or the properties being built.
+     *
+     * @return string
+     *
+     */
+    protected function unionTailOrBuild()
+    {
+        return $this->union_tail === null
+            ? $this->build()
+            : $this->union_tail;
     }
 
     /**
@@ -1074,6 +1209,7 @@ class Select extends AbstractQuery implements SelectInterface
     public function resetUnions()
     {
         $this->union = array();
+        $this->union_tail = null;
 
         // the rendered branches are gone, so nothing binds their placeholders
         // any more: release the names they were holding.
