@@ -102,9 +102,15 @@
   backslash escapes the quote after it and a `#` begins a comment, where the
   standard reading gives a backslash no such power, and a name is quoted
   with backticks there, brackets on SQL Server, double quotes elsewhere.
-  Anything unterminated is read as SQL instead, since keeping a name costs
-  at worst a collision report where losing one lets a later branch overwrite
-  the SQL silently.
+
+  The forms read are the ordinary ones, and the reading stops where the
+  dialects part company: a Postgres dollar-quoted or `E''` string, a MySQL
+  string in double quotes, a SQL Server name in double quotes, and a nested
+  block comment are all left as SQL, as is anything unterminated. Each keeps
+  the names it spells, which costs at worst the needless collision report
+  this fix is about, where losing a name the branch does bind would let a
+  later branch overwrite the SQL silently -- so every doubtful reading falls
+  that way on purpose.
 
 - [FIX] Naming several tables in one string no longer produces an identifier
   no database has. `from('t1, t2')` was read as a name and its alias and
