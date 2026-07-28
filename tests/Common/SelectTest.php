@@ -865,6 +865,395 @@ class SelectTest extends AbstractQueryTest
         $this->assertSameSql($expect, $actual);
     }
 
+    public function testUnionWithQuery()
+    {
+        $next = $this->newQuery()->cols(array('c2'))->from('t2');
+
+        $this->query->cols(array('c1'))
+                     ->from('t1')
+                     ->union($next);
+
+        $expect = '
+            SELECT
+                c1
+            FROM
+                <<t1>>
+            UNION
+            SELECT
+                c2
+            FROM
+                <<t2>>
+        ';
+
+        $actual = $this->query->__toString();
+        $this->assertSameSql($expect, $actual);
+    }
+
+    public function testUnionAllWithQuery()
+    {
+        $next = $this->newQuery()->cols(array('c2'))->from('t2');
+
+        $this->query->cols(array('c1'))
+                     ->from('t1')
+                     ->unionAll($next);
+
+        $expect = '
+            SELECT
+                c1
+            FROM
+                <<t1>>
+            UNION ALL
+            SELECT
+                c2
+            FROM
+                <<t2>>
+        ';
+
+        $actual = $this->query->__toString();
+        $this->assertSameSql($expect, $actual);
+    }
+
+    public function testUnionWithQueryChained()
+    {
+        $second = $this->newQuery()->cols(array('c2'))->from('t2');
+        $third = $this->newQuery()->cols(array('c3'))->from('t3');
+
+        $this->query->cols(array('c1'))
+                     ->from('t1')
+                     ->union($second)
+                     ->unionAll($third);
+
+        $expect = '
+            SELECT
+                c1
+            FROM
+                <<t1>>
+            UNION
+            SELECT
+                c2
+            FROM
+                <<t2>>
+            UNION ALL
+            SELECT
+                c3
+            FROM
+                <<t3>>
+        ';
+
+        $actual = $this->query->__toString();
+        $this->assertSameSql($expect, $actual);
+    }
+
+    public function testUnionWithQueryThenBuildNextBranch()
+    {
+        $next = $this->newQuery()->cols(array('c2'))->from('t2');
+
+        $this->query->cols(array('c1'))
+                     ->from('t1')
+                     ->union($next)
+                     ->union()
+                     ->cols(array('c3'))
+                     ->from('t3');
+
+        $expect = '
+            SELECT
+                c1
+            FROM
+                <<t1>>
+            UNION
+            SELECT
+                c2
+            FROM
+                <<t2>>
+            UNION
+            SELECT
+                c3
+            FROM
+                <<t3>>
+        ';
+
+        $actual = $this->query->__toString();
+        $this->assertSameSql($expect, $actual);
+    }
+
+    public function testUnionWithQueryTakesTheValuesItBound()
+    {
+        $next = $this->newQuery()
+            ->cols(array('c2'))
+            ->from('t2')
+            ->where('c2 = :baz', array('baz' => 'dib'));
+
+        $this->query->cols(array('c1'))
+                     ->from('t1')
+                     ->where('c1 = :foo', array('foo' => 'bar'))
+                     ->union($next);
+
+        $expect = array('foo' => 'bar', 'baz' => 'dib');
+        $actual = $this->query->getBindValues();
+        $this->assertSame($expect, $actual);
+    }
+
+    public function testUnionWithQueryRendersItAsItWasPassed()
+    {
+        $next = $this->newQuery()->cols(array('c2'))->from('t2');
+
+        $this->query->cols(array('c1'))->from('t1')->union($next);
+
+        // the branch was rendered when it was passed, so this does not
+        // reach back into the union.
+        $next->where('c2 = 1');
+
+        $expect = '
+            SELECT
+                c1
+            FROM
+                <<t1>>
+            UNION
+            SELECT
+                c2
+            FROM
+                <<t2>>
+        ';
+
+        $actual = $this->query->__toString();
+        $this->assertSameSql($expect, $actual);
+    }
+
+    public function testUnionWithQuerySharingAPlaceholder()
+    {
+        $next = $this->newQuery()
+            ->cols(array('c2'))
+            ->from('t2')
+            ->where('owner_id = :owner_id', array('owner_id' => 88));
+
+        // both branches filter on the one value, as in a union of two views
+        // of the same owner
+        $this->query->cols(array('c1'))
+                     ->from('t1')
+                     ->where('owner_id = :owner_id', array('owner_id' => 88))
+                     ->union($next);
+
+        $expect = array('owner_id' => 88);
+        $actual = $this->query->getBindValues();
+        $this->assertSame($expect, $actual);
+    }
+
+    public function testUnionWithQueryClaimingABoundName()
+    {
+        $next = $this->newQuery()
+            ->cols(array('c2'))
+            ->from('t2')
+            ->where('c2 = :foo', array('foo' => 'dib'));
+
+        $this->query->cols(array('c1'))
+                     ->from('t1')
+                     ->where('c1 = :foo', array('foo' => 'bar'));
+
+        $this->expectException(\Aura\SqlQuery\Exception\LogicException::class);
+        $this->expectExceptionMessage("The placeholder ':foo'");
+        $this->query->union($next);
+    }
+
+    public function testUnionWithQueryThenMoreColumns()
+    {
+        $next = $this->newQuery()->cols(array('c2'))->from('t2');
+
+        $this->query->cols(array('c1'))
+                     ->from('t1')
+                     ->union($next)
+                     ->cols(array('c3'));
+
+        $this->expectException(\Aura\SqlQuery\Exception\LogicException::class);
+        $this->expectExceptionMessage('is the last branch');
+        $this->query->__toString();
+    }
+
+    public static function provideStateAfterUnionTail()
+    {
+        return array(
+            'cols' => array(function ($select) { $select->cols(array('c3')); }),
+            'from' => array(function ($select) { $select->from('t3'); }),
+            'fromRaw' => array(function ($select) { $select->fromRaw('t3'); }),
+            'join' => array(function ($select) { $select->join('LEFT', 't3', 'c1 = c3'); }),
+            'where' => array(function ($select) { $select->where('c1 = 1'); }),
+            'orWhere' => array(function ($select) { $select->orWhere('c1 = 1'); }),
+            'groupBy' => array(function ($select) { $select->groupBy(array('c1')); }),
+            'having' => array(function ($select) { $select->having('COUNT(c1) > 1'); }),
+            'orHaving' => array(function ($select) { $select->orHaving('COUNT(c1) > 1'); }),
+            'orderBy' => array(function ($select) { $select->orderBy(array('c1')); }),
+            'limit' => array(function ($select) { $select->limit(10); }),
+            'offset' => array(function ($select) { $select->offset(10); }),
+            'page' => array(function ($select) { $select->page(2); }),
+            'distinct' => array(function ($select) { $select->distinct(); }),
+            'forUpdate' => array(function ($select) { $select->forUpdate(); }),
+        );
+    }
+
+    /**
+     *
+     * The supplied branch is the last one, and the SQL retained ends at it
+     * with no UNION to carry on from -- so anything set on this query
+     * afterwards has nowhere to render. Every part of the statement is the
+     * same case as the columns: say so rather than drop it in silence.
+     *
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('provideStateAfterUnionTail')]
+    public function testUnionWithQueryThenMoreState($add)
+    {
+        $next = $this->newQuery()->cols(array('c2'))->from('t2');
+
+        $this->query->cols(array('c1'))
+                     ->from('t1')
+                     ->union($next);
+
+        $add($this->query);
+
+        $this->expectException(\Aura\SqlQuery\Exception\LogicException::class);
+        $this->expectExceptionMessage('is the last branch');
+        $this->query->__toString();
+    }
+
+    /**
+     *
+     * Binding values against the branch already rendered is not a branch of
+     * its own, and neither is reading the statement twice.
+     *
+     */
+    public function testUnionWithQueryThenBindValues()
+    {
+        $next = $this->newQuery()
+            ->cols(array('c2'))
+            ->from('t2')
+            ->where('c2 = :c2', array('c2' => 'dib'));
+
+        $this->query->cols(array('c1'))
+                     ->from('t1')
+                     ->union($next);
+
+        $this->query->bindValue('c2', 'zim');
+
+        $expect = '
+            SELECT
+                c1
+            FROM
+                <<t1>>
+            UNION
+            SELECT
+                c2
+            FROM
+                <<t2>>
+            WHERE
+                c2 = :c2
+        ';
+
+        $this->assertSameSql($expect, $this->query->__toString());
+        $this->assertSameSql($expect, $this->query->__toString());
+        $this->assertSame(array('c2' => 'zim'), $this->query->getBindValues());
+    }
+
+    public function testUnionWithItself()
+    {
+        $this->query->cols(array('c1'))->from('t1');
+
+        $this->expectException(\Aura\SqlQuery\Exception\LogicException::class);
+        $this->expectExceptionMessage('Cannot union a query with itself');
+        $this->query->union($this->query);
+    }
+
+    public function testUnionWithQueryThatCannotRender()
+    {
+        $next = $this->newQuery()->from('t2');
+
+        $this->query->cols(array('c1'))->from('t1');
+
+        try {
+            $this->query->union($next);
+            $this->fail('Expected an exception for the empty branch.');
+        } catch (\Aura\SqlQuery\Exception $e) {
+            $this->assertStringContainsString('No columns', $e->getMessage());
+        }
+
+        // the branch this query was building was not consumed on the way out
+        $expect = '
+            SELECT
+                c1
+            FROM
+                <<t1>>
+        ';
+
+        $actual = $this->query->__toString();
+        $this->assertSameSql($expect, $actual);
+    }
+
+    public function testResetUnionsAfterUnionWithQuery()
+    {
+        $next = $this->newQuery()->cols(array('c2'))->from('t2');
+
+        $this->query->cols(array('c1'))
+                     ->from('t1')
+                     ->union($next)
+                     ->resetUnions();
+
+        // the supplied branch was union state, and went with the rest of it;
+        // what is left is this query, which union() had reset.
+        $this->query->cols(array('c3'))->from('t3');
+
+        $expect = '
+            SELECT
+                c3
+            FROM
+                <<t3>>
+        ';
+
+        $actual = $this->query->__toString();
+        $this->assertSameSql($expect, $actual);
+    }
+
+    public function testUnionWithQueryInSubSelect()
+    {
+        $next = $this->newQuery()
+            ->cols(array('amount'))
+            ->from('t2')
+            ->where('owner_id = :owner_id', array('owner_id' => 88));
+
+        $branch = $this->newQuery()
+            ->cols(array('amount'))
+            ->from('t1')
+            ->where('owner_id = :owner_id', array('owner_id' => 88));
+
+        $this->query
+            ->cols(array('SUM(amount) AS amount'))
+            ->fromSubSelect($branch->union($next), 't');
+
+        $expect = '
+            SELECT
+                SUM(amount) AS <<amount>>
+            FROM
+                (
+                    SELECT
+                        amount
+                    FROM
+                        <<t1>>
+                    WHERE
+                        owner_id = :owner_id
+                    UNION
+                    SELECT
+                        amount
+                    FROM
+                        <<t2>>
+                    WHERE
+                        owner_id = :owner_id
+                ) AS <<t>>
+        ';
+
+        $actual = $this->query->__toString();
+        $this->assertSameSql($expect, $actual);
+
+        $expect = array('owner_id' => 88);
+        $actual = $this->query->getBindValues();
+        $this->assertSame($expect, $actual);
+    }
+
     public function testAutobind()
     {
         // do these out of order

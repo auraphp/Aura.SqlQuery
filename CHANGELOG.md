@@ -121,6 +121,29 @@
   `cast(col as varchar)`) as a column alias, which produced misquoted
   SQL. Fixes #157.
 
+- [ADD] `union()` and `unionAll()` now accept a Select as the next branch,
+  so branches that differ only in part can be built from one another
+  instead of being spelled out twice on the same query object:
+
+      $select = $queryFactory->newSelect()
+          ->cols(['SUM(amount) AS amount'])
+          ->fromSubSelect($by_owner->union($by_property), 't');
+
+  The values the given query has bound come across with it. Both branches
+  may bind one placeholder name so long as they bind it to the same value,
+  as the two halves of a union already could; two different values throw
+  Aura\SqlQuery\Exception\LogicException, since the rendered statement has
+  only the one placeholder. The branch is rendered when it is passed, so
+  later edits to that query do not reach back into the union, and it is the
+  last branch: call `union()` or `unionAll()` again to add another after
+  it, rather than building one on the query holding the union. Columns, a
+  WHERE, a JOIN, a LIMIT -- anything set on that query afterwards has
+  nowhere to render and throws when the statement is built, instead of
+  being dropped from it in silence. Binding values is unaffected.
+  Passing the query its own object throws rather than guess which reading
+  of a self-union was meant; pass a clone. Called with no argument both
+  methods behave exactly as before. Fixes #189.
+
 - [ADD] Pgsql\Select and Mysql\Select gain `lateralJoinSubSelect()`,
   rendering `JOIN LATERAL` against an aliased sub-select so the
   sub-select can reference columns from the tables to its left. The
