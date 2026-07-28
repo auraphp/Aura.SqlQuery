@@ -279,7 +279,6 @@ class SelectTest extends AbstractQueryTest
         $this->query->from('t1');
     }
 
-
     public function testDuplicateFromAlias()
     {
         $this->query->cols(array('*'));
@@ -1299,6 +1298,148 @@ class SelectTest extends AbstractQueryTest
         $select->where('a = :a', array('a' => 999));
     }
 
+    /**
+     *
+     * Every name a branch could be reading, in the order it is written: the
+     * ones the scan is meant to keep and the ones it is meant to pass over
+     * alike, so that a case can say which it expects.
+     *
+     * @param string $cond The condition to look in.
+     *
+     * @return array
+     *
+     */
+    protected function everyNameIn($cond)
+    {
+        preg_match_all('/:(\w+)/', $cond, $matches);
+        return array_values(array_unique($matches[1]));
+    }
+
+    /**
+     *
+     * Asks which of the names a condition spells the union holds against a
+     * later branch, by binding each one by hand and then having the next
+     * branch bind it to a value of its own: a held name reports the
+     * collision, a free one takes the new value.
+     *
+     * @param array $expect The names expected to be held, in the order they
+     * appear in the condition.
+     *
+     * @param string $cond The condition to render into a union branch.
+     *
+     * @return void
+     *
+     */
+    protected function assertNamesHeld(array $expect, $cond)
+    {
+        $held = array();
+
+        foreach ($this->everyNameIn($cond) as $name) {
+            $select = $this->newQuery()
+                ->cols(array('c1'))
+                ->from('t1')
+                ->where($cond, array());
+            $select->bindValue($name, 'by hand');
+            $select->union()->cols(array('c2'))->from('t2');
+
+            try {
+                $select->where("z = :{$name}", array($name => 'of its own'));
+            } catch (\Aura\SqlQuery\Exception\LogicException $e) {
+                $held[] = $name;
+            }
+        }
+
+        $this->assertSame($expect, $held, "condition: {$cond}");
+    }
+
+    public static function provideNamesHeldFromABranch()
+    {
+        return array(
+            'placeholder' => array(array('a'), 'a = :a'),
+            'literal' => array(array(), "name = ':a'"),
+            'literal either side' => array(array('a'), "x = 'one' AND a = :a AND y = 'two'"),
+            'doubled quote inside' => array(array(), "note = 'it''s :a'"),
+            'doubled quote before' => array(array('a'), "note = 'q''' AND a = :a"),
+            'line comment' => array(array(), 'c1 > 0 -- :a'),
+            'block comment' => array(array(), 'c1 > 0 /* :a */'),
+            'comment then code' => array(array('a'), "c1 > 0 -- :b\nAND a = :a"),
+            'apostrophe in comment' => array(array('a'), "c1 > 0 -- don't\nAND a = :a"),
+            'cast type' => array(array('a'), "c1::text = :a"),
+            'unclosed literal' => array(array('a'), "note = 'unclosed AND a = :a"),
+            'doubled quote leaves it open' => array(array('a'), "note = ':a''"),
+            'unclosed block comment' => array(array('a'), 'c1 > 0 /* unclosed :a'),
+
+            // read no further than the dialects agree. A name kept here is a
+            // needless collision report and nothing worse, which is why these
+            // are left as they are rather than read into the pattern: every
+            // reading added is a chance to swallow a name that is real.
+            'block comment around a comment' => array(array(), 'c1 > 0 /* /* :a */ */'),
+            'gap: nested block comment' => array(array('a'), 'c1 > 0 /* /* q */ :a */'),
+            'gap: quoted identifier' => array(array('a'), 'x = "odd:a name"'),
+        );
+    }
+
+    /**
+     *
+     * What the scan reads and what it passes over, case by case. The names
+     * held are the names the branch is taken to bind; the rest are free for
+     * the next branch to bind as it likes.
+     *
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('provideNamesHeldFromABranch')]
+    public function testNamesHeldFromABranch(array $expect, $cond)
+    {
+        $this->assertNamesHeld($expect, $cond);
+    }
+
+    public function testUnionHoldsAPlaceholderFromAMiddleBranch()
+    {
+        // the branch in the middle is neither the newest nor the first, and
+        // its name is held on the same terms as either
+        $select = $this->query
+            ->cols(array('c1'))
+            ->from('t1')
+            ->where('a = :a', array('a' => 1))
+            ->union()
+            ->cols(array('c2'))
+            ->from('t2')
+            ->where('b = :b', array('b' => 2))
+            ->union()
+            ->cols(array('c3'))
+            ->from('t3')
+            ->where('c = :c', array('c' => 3))
+            ->union()
+            ->cols(array('c4'))
+            ->from('t4');
+
+        $this->expectException(\Aura\SqlQuery\Exception\LogicException::class);
+        $this->expectExceptionMessage("The placeholder ':b'");
+        $select->where('b = :b', array('b' => 999));
+    }
+
+    public function testUnionSharesAMiddleBranchPlaceholderOnTheSameValue()
+    {
+        // held is not taken: a later branch asking for the value the middle
+        // branch already binds is the shared filter a union is often written
+        // for
+        $select = $this->query
+            ->cols(array('c1'))
+            ->from('t1')
+            ->where('a = :a', array('a' => 1))
+            ->union()
+            ->cols(array('c2'))
+            ->from('t2')
+            ->where('b = :b', array('b' => 2))
+            ->union()
+            ->cols(array('c3'))
+            ->from('t3')
+            ->where('b = :b', array('b' => 2));
+
+        $expect = array('a' => 1, 'b' => 2);
+        $actual = $select->getBindValues();
+        $this->assertSame($expect, $actual);
+    }
+
     public function testUnionKeepsTheValuesEveryBranchBound()
     {
         $select = $this->query
@@ -1319,173 +1460,6 @@ class SelectTest extends AbstractQueryTest
         $this->assertSame($expect, $actual);
     }
 
-    public function testUnionLeavesFreeANameOnlySpelledInsideAStringLiteral()
-    {
-        // the branch reads ':a' as text, so it binds nothing by that name and
-        // the next branch is free to use it
-        $select = $this->query
-            ->cols(array('c1'))
-            ->from('t1')
-            ->where("name = ':a'", array());
-        $select->bindValue('a', 'by hand');
-        $select
-            ->union()
-            ->cols(array('c2'))
-            ->from('t2')
-            ->where('a = :a', array('a' => 999));
-
-        $expect = array('a' => 999);
-        $actual = $select->getBindValues();
-        $this->assertSame($expect, $actual);
-    }
-
-    public function testUnionLeavesFreeANameOnlySpelledInsideAComment()
-    {
-        $select = $this->query
-            ->cols(array('c1'))
-            ->from('t1')
-            ->where("c1 > 0 -- filter by :a later", array());
-        $select->bindValue('a', 'by hand');
-        $select
-            ->union()
-            ->cols(array('c2'))
-            ->from('t2')
-            ->where('a = :a', array('a' => 999));
-
-        $expect = array('a' => 999);
-        $actual = $select->getBindValues();
-        $this->assertSame($expect, $actual);
-    }
-
-    public function testUnionLeavesFreeANameOnlySpelledAsACastType()
-    {
-        // the second colon of `c1::text` casts a column to a type; it does
-        // not name a placeholder the branch binds
-        $select = $this->query
-            ->cols(array('c1'))
-            ->from('t1')
-            ->where("c1::text = 'x'", array());
-        $select->bindValue('text', 'by hand');
-        $select
-            ->union()
-            ->cols(array('c2'))
-            ->from('t2')
-            ->where('a = :text', array('text' => 999));
-
-        $expect = array('text' => 999);
-        $actual = $select->getBindValues();
-        $this->assertSame($expect, $actual);
-    }
-
-    public function testUnionHoldsAPlaceholderStandingBesideAStringLiteral()
-    {
-        // the literal is text and the placeholder beside it is not: skipping
-        // the one must not lose the other
-        $select = $this->query
-            ->cols(array('c1'))
-            ->from('t1')
-            ->where("name = 'one' AND a = :a AND note = 'two'", array('a' => 1))
-            ->union()
-            ->cols(array('c2'))
-            ->from('t2');
-
-        $this->expectException(\Aura\SqlQuery\Exception\LogicException::class);
-        $this->expectExceptionMessage("The placeholder ':a'");
-        $select->where('a = :a', array('a' => 999));
-    }
-
-    public function testUnionHoldsAPlaceholderAfterAnApostropheInAComment()
-    {
-        // the apostrophe belongs to the comment, and must not open a literal
-        // that swallows the placeholder the next condition really binds
-        $select = $this->query
-            ->cols(array('c1'))
-            ->from('t1')
-            ->where("c1 > 0 -- don't drop this", array())
-            ->where('a = :a', array('a' => 1))
-            ->union()
-            ->cols(array('c2'))
-            ->from('t2');
-
-        $this->expectException(\Aura\SqlQuery\Exception\LogicException::class);
-        $this->expectExceptionMessage("The placeholder ':a'");
-        $select->where('a = :a', array('a' => 999));
-    }
-
-    public function testUnionHoldsAPlaceholderFollowingAnUnclosedQuote()
-    {
-        // the quote never closes, so there is no telling where the literal
-        // ends; the placeholder after it is held rather than lost to a
-        // literal that may not be one
-        $select = $this->query
-            ->cols(array('c1'))
-            ->from('t1')
-            ->where("note = 'unclosed", array())
-            ->where('a = :a', array('a' => 1))
-            ->union()
-            ->cols(array('c2'))
-            ->from('t2');
-
-        $this->expectException(\Aura\SqlQuery\Exception\LogicException::class);
-        $this->expectExceptionMessage("The placeholder ':a'");
-        $select->where('a = :a', array('a' => 999));
-    }
-
-    public function testUnionHoldsAPlaceholderWhereADoubledQuoteLeavesTheLiteralOpen()
-    {
-        // the doubled quote at the end stands for a quote inside the literal
-        // rather than closing it, leaving nothing closed and the name held
-        $select = $this->query
-            ->cols(array('c1'))
-            ->from('t1')
-            ->where("note = ':a''", array());
-        $select->bindValue('a', 'by hand');
-        $select
-            ->union()
-            ->cols(array('c2'))
-            ->from('t2');
-
-        $this->expectException(\Aura\SqlQuery\Exception\LogicException::class);
-        $this->expectExceptionMessage("The placeholder ':a'");
-        $select->where('a = :a', array('a' => 999));
-    }
-
-    public function testUnionLeavesFreeANameInsideALiteralWithADoubledQuote()
-    {
-        $select = $this->query
-            ->cols(array('c1'))
-            ->from('t1')
-            ->where("note = 'it''s :a'", array());
-        $select->bindValue('a', 'by hand');
-        $select
-            ->union()
-            ->cols(array('c2'))
-            ->from('t2')
-            ->where('a = :a', array('a' => 999));
-
-        $expect = array('a' => 999);
-        $actual = $select->getBindValues();
-        $this->assertSame($expect, $actual);
-    }
-
-    public function testUnionLeavesFreeANameInsideABlockComment()
-    {
-        $select = $this->query
-            ->cols(array('c1'))
-            ->from('t1')
-            ->where("c1 > 0 /* was :a once */", array());
-        $select->bindValue('a', 'by hand');
-        $select
-            ->union()
-            ->cols(array('c2'))
-            ->from('t2')
-            ->where('a = :a', array('a' => 999));
-
-        $expect = array('a' => 999);
-        $actual = $select->getBindValues();
-        $this->assertSame($expect, $actual);
-    }
-
     public function testUnionReadsEachBranchOnItsOwnForUnclosedQuotes()
     {
         // read end to end, the stray quote in the first branch would pair
@@ -1502,22 +1476,6 @@ class SelectTest extends AbstractQueryTest
             ->union()
             ->cols(array('c3'))
             ->from('t3');
-
-        $this->expectException(\Aura\SqlQuery\Exception\LogicException::class);
-        $this->expectExceptionMessage("The placeholder ':a'");
-        $select->where('a = :a', array('a' => 999));
-    }
-
-    public function testUnionHoldsAPlaceholderFollowingAnUnclosedBlockComment()
-    {
-        $select = $this->query
-            ->cols(array('c1'))
-            ->from('t1')
-            ->where("c1 > 0 /* unclosed", array())
-            ->where('a = :a', array('a' => 1))
-            ->union()
-            ->cols(array('c2'))
-            ->from('t2');
 
         $this->expectException(\Aura\SqlQuery\Exception\LogicException::class);
         $this->expectExceptionMessage("The placeholder ':a'");

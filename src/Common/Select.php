@@ -35,6 +35,25 @@ class Select extends AbstractQuery implements SelectInterface
 
     /**
      *
+     * Regex alternatives matching the SQL that spells no placeholder: string
+     * literals and comments, in the forms this dialect reads them.
+     *
+     * A quote inside a literal is written by doubling it, and a comment runs
+     * to the end of its line or to the close of its block. Dialects that read
+     * more than this -- MySQL, whose backslash escapes the quote after it and
+     * whose hash begins a comment -- say so by overriding this; the reading
+     * here is the standard one, so a backslash is an ordinary character and a
+     * literal ends at the next lone quote whatever precedes it.
+     *
+     * @var string
+     *
+     * @see resetAfterRendering()
+     *
+     */
+    protected $text_pattern = "'(?:[^']|'')*+'|--[^\n]*|\/\*.*?\*\/";
+
+    /**
+     *
      * Is this a SELECT FOR UPDATE?
      *
      * @var
@@ -877,10 +896,9 @@ class Select extends AbstractQuery implements SelectInterface
         // a name inside a string literal or a comment is text, not a
         // placeholder: `where("name = ':a'")` binds nothing, and holding :a
         // on the strength of it would report a collision against a name the
-        // next branch is free to bind. The alternatives before the capture
-        // consume those regions so that only the names outside them are
-        // captured; the doubled '' an escaped quote spells is consumed with
-        // them.
+        // next branch is free to bind. The dialect's own alternatives run
+        // before the capture and consume those regions, so that only the
+        // names outside them are captured.
         //
         // Everything doubtful falls the same way: keep the text as SQL. A
         // name kept by mistake costs a needless collision report, where a
@@ -892,7 +910,7 @@ class Select extends AbstractQuery implements SelectInterface
         // Each branch is read on its own for the same reason, so that a stray
         // quote in one cannot pair with a quote in the next and swallow the
         // placeholders between them.
-        $find = "/'(?:[^']|'')*+'|--[^\n]*|\/\*.*?\*\/|(?<!:):(\w+)/s";
+        $find = "/{$this->text_pattern}|(?<!:):(\w+)/s";
         $spelled = array();
         foreach ($this->union as $branch) {
             preg_match_all($find, $branch, $matches);
