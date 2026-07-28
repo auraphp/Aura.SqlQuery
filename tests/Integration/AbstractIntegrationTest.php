@@ -511,6 +511,71 @@ abstract class AbstractIntegrationTest extends TestCase
         // both branches asking for the one cutoff is not a collision
         $this->assertSame(['cutoff' => 200], $select->getBindValues());
 
+        // the statement is valid everywhere, but only a driver that binds a
+        // repeated name once can execute this one; the rest are given the
+        // same union with a name per branch, which is what a caller on such
+        // a driver writes. See bindsARepeatedName().
+        $actual = $this->fetchAll(
+            $this->bindsARepeatedName() ? $select : $this->newUnionWithANamePerBranch()
+        );
+        $this->assertSame(['Anna', 'Clara', 'Donna'], array_column($actual, 'name'));
+    }
+
+    /**
+     * The union above, with each branch binding a name of its own.
+     */
+    private function newUnionWithANamePerBranch()
+    {
+        $low = $this->query_factory->newSelect()
+            ->cols(['name'])
+            ->from('test_employee')
+            ->where('salary < :low_cutoff', ['low_cutoff' => 200]);
+
+        $high = $this->query_factory->newSelect()
+            ->cols(['name'])
+            ->from('test_employee')
+            ->where('salary > :high_cutoff', ['high_cutoff' => 200]);
+
+        return $this->query_factory->newSelect()
+            ->cols(['name'])
+            ->fromSubSelect($low->union($high), 'edges')
+            ->orderBy(['name']);
+    }
+
+    /**
+     * A statement may spell one placeholder name in two places -- the two
+     * halves of a union filtering on one cutoff -- and this library binds it
+     * once. Whether that reaches the server is PDO's affair, not the
+     * statement's: a driver with no named parameters of its own is handed one
+     * marker per occurrence, and one bound value then leaves the second
+     * unfilled. MySQL reports HY093 that way with emulated prepares turned
+     * off, and SQL Server reports 07002 through the ODBC driver, which is why
+     * this is asked of the driver rather than assumed.
+     */
+    protected function bindsARepeatedName(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Pins the answer above, so that a driver that starts binding a repeated
+     * name -- or stops -- is reported here rather than in a union test that
+     * looks like a query builder bug.
+     */
+    public function testRepeatedPlaceholderName()
+    {
+        $select = $this->query_factory->newSelect()
+            ->cols(['name'])
+            ->from('test_employee')
+            ->where('salary < :cutoff OR salary > :cutoff', ['cutoff' => 200])
+            ->orderBy(['name']);
+
+        if (! $this->bindsARepeatedName()) {
+            $this->expectException(\PDOException::class);
+            $this->fetchAll($select);
+            return;
+        }
+
         $actual = $this->fetchAll($select);
         $this->assertSame(['Anna', 'Clara', 'Donna'], array_column($actual, 'name'));
     }

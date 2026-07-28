@@ -377,6 +377,15 @@ as they bind it to the same value; binding one name to two different values
 throws a `LogicException`, since the statement they render into has only one
 `:owner_id` to bind.
 
+Whether that statement can then be *executed* with one bound value is up to
+your driver, since the name is written into both branches. PDO hands a driver
+with no named parameters of its own one marker per spelling, so binding the
+name once leaves the second unfilled: `pdo_sqlsrv` reports `SQLSTATE[07002]`
+and `pdo_mysql` with `ATTR_EMULATE_PREPARES` turned off reports
+`SQLSTATE[HY093]`. MySQL emulating prepares (its default), PostgreSQL and
+SQLite all execute it as written. Where the driver cannot, give each branch a
+name of its own -- `:low_cutoff` and `:high_cutoff` -- and bind both.
+
 A query passed this way is rendered as it was at the time of the call, and
 later changes to it do not reach back into the union. It is also the *last*
 branch: to add another after it, call `union()` or `unionAll()` again, rather

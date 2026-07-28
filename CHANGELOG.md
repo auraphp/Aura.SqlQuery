@@ -155,7 +155,11 @@
   may bind one placeholder name so long as they bind it to the same value,
   as the two halves of a union already could; two different values throw
   Aura\SqlQuery\Exception\LogicException, since the rendered statement has
-  only the one placeholder. The branch is rendered when it is passed, so
+  only the one placeholder. Executing such a statement asks the driver to
+  bind that name at both spellings, which PDO cannot do for a driver with no
+  named parameters of its own -- pdo_sqlsrv reports SQLSTATE 07002, and
+  pdo_mysql with ATTR_EMULATE_PREPARES off reports HY093 -- so give each
+  branch a name of its own there. The branch is rendered when it is passed, so
   later edits to that query do not reach back into the union, and it is the
   last branch: call `union()` or `unionAll()` again to add another after
   it, rather than building one on the query holding the union. Columns, a
