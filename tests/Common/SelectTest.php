@@ -1068,6 +1068,89 @@ class SelectTest extends AbstractQueryTest
         $this->query->__toString();
     }
 
+    public static function provideStateAfterUnionTail()
+    {
+        return array(
+            'cols' => array(function ($select) { $select->cols(array('c3')); }),
+            'from' => array(function ($select) { $select->from('t3'); }),
+            'fromRaw' => array(function ($select) { $select->fromRaw('t3'); }),
+            'join' => array(function ($select) { $select->join('LEFT', 't3', 'c1 = c3'); }),
+            'where' => array(function ($select) { $select->where('c1 = 1'); }),
+            'orWhere' => array(function ($select) { $select->orWhere('c1 = 1'); }),
+            'groupBy' => array(function ($select) { $select->groupBy(array('c1')); }),
+            'having' => array(function ($select) { $select->having('COUNT(c1) > 1'); }),
+            'orHaving' => array(function ($select) { $select->orHaving('COUNT(c1) > 1'); }),
+            'orderBy' => array(function ($select) { $select->orderBy(array('c1')); }),
+            'limit' => array(function ($select) { $select->limit(10); }),
+            'offset' => array(function ($select) { $select->offset(10); }),
+            'page' => array(function ($select) { $select->page(2); }),
+            'distinct' => array(function ($select) { $select->distinct(); }),
+            'forUpdate' => array(function ($select) { $select->forUpdate(); }),
+        );
+    }
+
+    /**
+     *
+     * The supplied branch is the last one, and the SQL retained ends at it
+     * with no UNION to carry on from -- so anything set on this query
+     * afterwards has nowhere to render. Every part of the statement is the
+     * same case as the columns: say so rather than drop it in silence.
+     *
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('provideStateAfterUnionTail')]
+    public function testUnionWithQueryThenMoreState($add)
+    {
+        $next = $this->newQuery()->cols(array('c2'))->from('t2');
+
+        $this->query->cols(array('c1'))
+                     ->from('t1')
+                     ->union($next);
+
+        $add($this->query);
+
+        $this->expectException(\Aura\SqlQuery\Exception\LogicException::class);
+        $this->expectExceptionMessage('is the last branch');
+        $this->query->__toString();
+    }
+
+    /**
+     *
+     * Binding values against the branch already rendered is not a branch of
+     * its own, and neither is reading the statement twice.
+     *
+     */
+    public function testUnionWithQueryThenBindValues()
+    {
+        $next = $this->newQuery()
+            ->cols(array('c2'))
+            ->from('t2')
+            ->where('c2 = :c2', array('c2' => 'dib'));
+
+        $this->query->cols(array('c1'))
+                     ->from('t1')
+                     ->union($next);
+
+        $this->query->bindValue('c2', 'zim');
+
+        $expect = '
+            SELECT
+                c1
+            FROM
+                <<t1>>
+            UNION
+            SELECT
+                c2
+            FROM
+                <<t2>>
+            WHERE
+                c2 = :c2
+        ';
+
+        $this->assertSameSql($expect, $this->query->__toString());
+        $this->assertSameSql($expect, $this->query->__toString());
+        $this->assertSame(array('c2' => 'zim'), $this->query->getBindValues());
+    }
+
     public function testUnionWithItself()
     {
         $this->query->cols(array('c1'))->from('t1');

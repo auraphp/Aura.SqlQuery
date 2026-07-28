@@ -160,21 +160,42 @@ class Select extends AbstractQuery implements SelectInterface
      * Reports properties set on this query after a branch was supplied whole,
      * which the union has no place to render.
      *
-     * The supplied branch is the last one, and columns set afterwards can only
-     * mean a further branch -- one this query cannot render, because the SQL
-     * already retained ends at that branch with no UNION to carry on from.
+     * The supplied branch is the last one, and anything set afterwards can
+     * only mean a further branch -- one this query cannot render, because the
+     * SQL already retained ends at that branch with no UNION to carry on from.
      * Whether that next branch is UNION or UNION ALL is the caller's to say,
-     * so the fix is to say it, and the alternative is to drop the columns from
-     * the statement without a word.
+     * so the fix is to say it, and the alternative is to drop a WHERE, a JOIN,
+     * or a LIMIT from the statement without a word.
+     *
+     * What counts as "set afterwards" is asked of reset(), which is what
+     * union() itself leaves this query in and so is the one description of an
+     * empty branch: every property it clears is compared against a copy that
+     * has just been through it. Naming the clauses here instead would leave
+     * the next one added to the statement unguarded, which is how columns came
+     * to be the only property this checked.
+     *
+     * The bound values are not among them, and are left where they are:
+     * they belong to the union rather than to the branch being built -- that
+     * is what lets the rendered SQL keep its placeholders -- so binding a
+     * fresh value for the branch already rendered is no more a new branch
+     * than reading the statement twice is. A clause that claims a name is
+     * caught as the clause it is.
      *
      * @return void
      *
-     * @throws LogicException when this query holds columns of its own.
+     * @throws LogicException when this query holds a branch of its own.
      *
      */
     protected function assertNoBranchAfterUnionTail()
     {
-        if (! empty($this->cols)) {
+        $empty = clone $this;
+        $empty->reset();
+
+        foreach (get_object_vars($empty) as $key => $value) {
+            if ($this->$key === $value) {
+                continue;
+            }
+
             throw new LogicException(
                 'The query passed to union() is the last branch; '
                 . 'call union() or unionAll() again to add another after it.'

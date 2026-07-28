@@ -380,7 +380,11 @@ throws a `LogicException`, since the statement they render into has only one
 A query passed this way is rendered as it was at the time of the call, and
 later changes to it do not reach back into the union. It is also the *last*
 branch: to add another after it, call `union()` or `unionAll()` again, rather
-than adding columns to the query holding the union.
+than building one on the query holding the union. Columns, a `WHERE`, a `JOIN`,
+a `LIMIT` -- anything set on that query after the branch is passed has nowhere
+to render, and throws a `LogicException` when the statement is built rather
+than disappearing from it. Binding values is unaffected: they belong to the
+union, so the branch already rendered can still be given fresh ones.
 
 ## Flags
 

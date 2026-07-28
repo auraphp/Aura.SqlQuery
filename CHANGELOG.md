@@ -136,7 +136,10 @@
   only the one placeholder. The branch is rendered when it is passed, so
   later edits to that query do not reach back into the union, and it is the
   last branch: call `union()` or `unionAll()` again to add another after
-  it, rather than adding columns to the query holding the union.
+  it, rather than building one on the query holding the union. Columns, a
+  WHERE, a JOIN, a LIMIT -- anything set on that query afterwards has
+  nowhere to render and throws when the statement is built, instead of
+  being dropped from it in silence. Binding values is unaffected.
   Passing the query its own object throws rather than guess which reading
   of a self-union was meant; pass a clone. Called with no argument both
   methods behave exactly as before. Fixes #189.
