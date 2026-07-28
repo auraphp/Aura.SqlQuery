@@ -295,20 +295,26 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * Takes the current select properties and retains them, then sets
      * UNION for the next set of properties.
      *
+     * @param SelectInterface|null $select The next branch as a query of its
+     * own; when omitted, this query is reset to build that branch itself.
+     *
      * @return $this
      *
      */
-    public function union();
+    public function union(?SelectInterface $select = null);
 
     /**
      *
      * Takes the current select properties and retains them, then sets
      * UNION ALL for the next set of properties.
      *
+     * @param SelectInterface|null $select The next branch as a query of its
+     * own; when omitted, this query is reset to build that branch itself.
+     *
      * @return $this
      *
      */
-    public function unionAll();
+    public function unionAll(?SelectInterface $select = null);
 
     /**
      *
