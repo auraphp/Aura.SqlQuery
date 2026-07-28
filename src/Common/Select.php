@@ -21,6 +21,7 @@ use Aura\SqlQuery\Exception\LogicException;
 class Select extends AbstractQuery implements SelectInterface
 {
     use WhereTrait;
+    use TableListTrait;
     use LimitOffsetTrait { limit as setLimit; offset as setOffset; }
 
     /**
@@ -443,15 +444,32 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * Adds a FROM element to the query; quotes the table name automatically.
      *
-     * @param string $spec The table specification; "foo" or "foo AS bar".
+     * Several tables may be named at once, comma-separated, which is the
+     * same list as calling this once per table -- each is quoted and
+     * reference-checked on its own. Passing the list as one string used to
+     * quote it whole, giving `"foo," "bar"`; see #160.
+     *
+     * @param string $spec The table specification; "foo", "foo AS bar", or
+     * a comma-separated list of either.
      *
      * @return $this
      *
      */
     public function from($spec)
     {
-        $this->addTableRef('FROM', $spec);
-        return $this->addFrom($this->quoter->quoteName($spec));
+        $names = $this->splitNamesList($spec);
+
+        // an empty spec is nobody's list; leave it to quoteName() as before
+        if (empty($names)) {
+            $names = array($spec);
+        }
+
+        foreach ($names as $name) {
+            $this->addTableRef('FROM', $name);
+            $this->addFrom($this->quoter->quoteName($name));
+        }
+
+        return $this;
     }
 
     /**

@@ -85,6 +85,15 @@ class Quoter implements QuoterInterface
     public function quoteName($spec)
     {
         $spec = trim($spec);
+
+        // issue #183: leave an identifier the caller already quoted as they
+        // wrote it, the way quoteNamesIn() does for expressions. The test is
+        // against this dialect's own quotes, so `"odd,name"` is a finished
+        // identifier on PostgreSQL and still a name to wrap on MySQL.
+        if ($this->isQuotedName($spec)) {
+            return $spec;
+        }
+
         $seps = array(' AS ', ' ', '.');
         foreach ($seps as $sep) {
             $pos = strripos($spec, $sep);
