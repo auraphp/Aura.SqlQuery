@@ -1118,6 +1118,34 @@ class SelectTest extends AbstractQueryTest
      * its own, and neither is reading the statement twice.
      *
      */
+    /**
+     *
+     * A branch supplied whole holds its placeholders on the same terms as one
+     * built here. Its names arrive with the query that bound them, and once a
+     * further union() closes it the SQL joins the branches already retained
+     * and is read for names like any other -- so a third branch asking for
+     * :b with a value of its own is the collision it would be anywhere else.
+     *
+     */
+    public function testUnionWithQueryThenAnotherBranchClaimingItsPlaceholder()
+    {
+        $next = $this->newQuery()
+            ->cols(array('c2'))
+            ->from('t2')
+            ->where('b = :b', array('b' => 2));
+
+        $this->query->cols(array('c1'))
+                     ->from('t1')
+                     ->union($next)
+                     ->union()
+                     ->cols(array('c3'))
+                     ->from('t3');
+
+        $this->expectException(\Aura\SqlQuery\Exception\LogicException::class);
+        $this->expectExceptionMessage("The placeholder ':b'");
+        $this->query->where('b = :b', array('b' => 999));
+    }
+
     public function testUnionWithQueryThenBindValues()
     {
         $next = $this->newQuery()
