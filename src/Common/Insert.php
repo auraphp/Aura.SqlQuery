@@ -507,6 +507,27 @@ class Insert extends AbstractDmlQuery implements InsertInterface
 
     /**
      *
+     * Clears the banked bulk values along with the rest, so the names they
+     * held are free to claim again. Leaving the banked sources behind would
+     * refuse a name nothing is bound to any more.
+     *
+     * The rows themselves stay. `$col_values_bulk` is structure rather than
+     * bound values -- the non-bulk path keeps `$col_values` the same way --
+     * so the statement goes on spelling every placeholder with nothing bound
+     * to it, which is what this method means everywhere else.
+     *
+     * @return $this
+     *
+     */
+    public function resetBindValues()
+    {
+        $this->bind_values_bulk = array();
+        $this->bind_sources_bulk = array();
+        return parent::resetBindValues();
+    }
+
+    /**
+     *
      * Adds the banked bulk names to the collision check. They are not in
      * `$bind_values`, so the inherited check cannot see them, yet they win
      * the merge in getBindValues() and would silently discard whatever a

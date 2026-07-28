@@ -1071,6 +1071,57 @@ class CollisionTest extends TestCase
 
     /**
      *
+     * resetBindValues() clears the values a query has bound, banked bulk ones
+     * included, so the names they held are free again. Leaving the banked
+     * sources behind would refuse a name nothing is bound to any more.
+     *
+     */
+    public function testResetBindValuesFreesTheBankedBulkNames()
+    {
+        $insert = $this->newFactory('pgsql')->newInsert();
+        $insert->into('t')
+               ->cols(array('status' => 'row0'))
+               ->addRow(array('status' => 'row1'));
+        $insert->getStatement();
+
+        $insert->resetBindValues();
+
+        // no collision, because nothing is holding :status_0 now
+        $insert->onConflict('id')
+               ->doUpdateCol('status')
+               ->doUpdateWhere('t.note = :status_0', array('status_0' => 'fresh'));
+
+        $values = $insert->getBindValues();
+        $this->assertSame('fresh', $values['status_0']);
+        $this->assertArrayNotHasKey('status_1', $values);
+    }
+
+    /**
+     *
+     * The reset takes the values and leaves the rows. Columns are structure,
+     * not bound values -- the non-bulk path keeps col_values the same way, so
+     * the statement still spells every placeholder and simply has nothing
+     * bound to them, which is what resetBindValues() means everywhere else.
+     *
+     */
+    public function testResetBindValuesKeepsTheBulkRows()
+    {
+        $insert = $this->newFactory('pgsql')->newInsert();
+        $insert->into('t')
+               ->cols(array('status' => 'row0'))
+               ->addRow(array('status' => 'row1'));
+        $insert->getStatement();
+
+        $insert->resetBindValues();
+
+        $this->assertSame(array(), $insert->getBindValues());
+        $statement = $insert->getStatement();
+        $this->assertStringContainsString(':status_0', $statement);
+        $this->assertStringContainsString(':status_1', $statement);
+    }
+
+    /**
+     *
      * A row still being built holds its own column names, and one of them may
      * be spelled the same as a name an earlier row banked -- column `a_1`
      * against the `a_1` that column `a` banked in row 1. Asking for the bind

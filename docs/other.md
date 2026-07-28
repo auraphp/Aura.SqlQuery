@@ -102,7 +102,10 @@ generated names are reserved in the same way, so binding one from another part
 of the query throws:
 
 ```php
-$insert = $queryFactory->newInsert();
+// onConflict() is PostgreSQL and SQLite only, so this example needs one of
+// those factories rather than the shared one used elsewhere on this page
+$pgsqlFactory = new \Aura\SqlQuery\QueryFactory('pgsql');
+$insert = $pgsqlFactory->newInsert();
 
 try {
     $insert
