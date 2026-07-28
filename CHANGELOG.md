@@ -92,7 +92,7 @@
   above exists to prevent, arriving one branch later. The claims are
   rebuilt from the retained SQL on each `union()`, and only the newest
   branch was being read. Two-branch unions were unaffected. As elsewhere,
-  branches may share a name so long as they share its value.
+  branches may share a name so long as they share its value. Fixes #248.
 
 - [FIX] Naming several tables in one string no longer produces an identifier
   no database has. `from('t1, t2')` was read as a name and its alias and
