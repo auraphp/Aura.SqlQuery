@@ -874,13 +874,30 @@ class Select extends AbstractQuery implements SelectInterface
     {
         $this->reset();
 
-        // a name inside a string literal is data, not a placeholder, so this
-        // can claim a name the branch does not really bind. That costs a
-        // needless collision report, where missing a name the branch *does*
-        // bind would let a later branch overwrite it silently.
-        $rendered = implode(PHP_EOL, $this->union);
-        preg_match_all('/(?<!:):(\w+)/', $rendered, $matches);
-        $spelled = array_flip($matches[1]);
+        // a name inside a string literal or a comment is text, not a
+        // placeholder: `where("name = ':a'")` binds nothing, and holding :a
+        // on the strength of it would report a collision against a name the
+        // next branch is free to bind. The alternatives before the capture
+        // consume those regions so that only the names outside them are
+        // captured; the doubled '' an escaped quote spells is consumed with
+        // them.
+        //
+        // Everything doubtful falls the same way: keep the text as SQL. A
+        // name kept by mistake costs a needless collision report, where a
+        // name lost inside a region wrongly read as text would let a later
+        // branch bind it and silently overwrite what the rendered SQL needs.
+        // An unterminated literal or comment therefore matches nothing and is
+        // read straight through, the possessive quantifier holding the
+        // literal to that reading instead of backtracking onto a shorter one.
+        // Each branch is read on its own for the same reason, so that a stray
+        // quote in one cannot pair with a quote in the next and swallow the
+        // placeholders between them.
+        $find = "/'(?:[^']|'')*+'|--[^\n]*|\/\*.*?\*\/|(?<!:):(\w+)/s";
+        $spelled = array();
+        foreach ($this->union as $branch) {
+            preg_match_all($find, $branch, $matches);
+            $spelled += array_flip(array_filter($matches[1], 'strlen'));
+        }
 
         $this->bind_sources = array();
         foreach (array_keys($this->bind_values) as $name) {
