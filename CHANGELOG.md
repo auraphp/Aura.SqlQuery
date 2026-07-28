@@ -84,6 +84,16 @@
   conditions. Part of #241; the remaining half of that issue, bulk
   placeholders bypassing collision tracking, is still open.
 
+- [FIX] A union of three or more branches now holds the placeholder names
+  from every branch, not just the one most recently retained. A third
+  branch could bind `:a` to a value of its own while the first branch's
+  rendered SQL still read `a = :a`, overwriting what that branch needed
+  with nothing reported -- the silent overwrite the placeholder tracking
+  above exists to prevent, arriving one branch later. The claims are
+  rebuilt from the retained SQL on each `union()`, and only the newest
+  branch was being read. Two-branch unions were unaffected. As elsewhere,
+  branches may share a name so long as they share its value.
+
 - [FIX] Naming several tables in one string no longer produces an identifier
   no database has. `from('t1, t2')` was read as a name and its alias and
   quoted whole, giving `"t1," "t2"`; a Select now builds the list, quoting
