@@ -251,6 +251,28 @@ class PgsqlIntegrationTest extends AbstractIntegrationTest
 
     /**
      *
+     * A bulk insert renames its placeholders to `<name>_<row>`. A condition
+     * binding one of those generated names used to be discarded silently, and
+     * the statement ran against the row value instead -- well-formed SQL
+     * asking the wrong question, which is why it needs a real server to show
+     * it would have run at all. It is refused now.
+     *
+     */
+    public function testBulkInsertRefusesAConditionOnABankedName()
+    {
+        $insert = $this->query_factory->newInsert()
+            ->into('test_dept')
+            ->cols(['id' => 1, 'name' => 'row0'])
+            ->addRow(['id' => 2, 'name' => 'row1']);
+
+        $this->expectException(\Aura\SqlQuery\Exception\LogicException::class);
+        $insert->onConflict('id')
+            ->doUpdateCol('name')
+            ->doUpdateWhere('test_dept.name != :name_0', ['name_0' => 'from the condition']);
+    }
+
+    /**
+     *
      * A bulk insert whose rows collide with existing keys: the DO UPDATE
      * value and its WHERE condition are bound once for the whole statement,
      * not per row. Building the statement finishes the last row, and clearing

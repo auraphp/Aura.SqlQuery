@@ -61,6 +61,19 @@
   `DB_MYSQL_DSN` / `DB_PGSQL_DSN` / `DB_SQLSRV_DSN` are set; see
   CONTRIBUTING.md.
 
+- [BRK] The placeholder names a bulk insert generates are now tracked like
+  any others. Each row's placeholders are renamed `<name>_<row>`, and those
+  banked names were invisible to the collision check while still winning the
+  merge in getBindValues() -- so after
+  `cols(['status' => ...])->addRow([...])`, a condition binding `:status_0`
+  had its value silently replaced by row 0's, and the statement ran against
+  the wrong one. Either order now throws
+  Aura\SqlQuery\Exception\LogicException; bind the condition under a name no
+  row can generate. Columns of the row being built are exempt, since a column
+  named `a_1` alongside `a` is renamed out of the way before the merge.
+  Binding by hand with bindValue() is unaffected and now correctly overwrites
+  a row's value, where before the banked value won regardless. Fixes #241.
+
 - [FIX] A bulk insert combined with an upsert no longer loses the upsert's
   bound values. Finishing a row cleared every bound value, not just that
   row's, and building the statement finishes the last row -- so

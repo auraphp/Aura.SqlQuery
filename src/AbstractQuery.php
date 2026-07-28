@@ -69,6 +69,7 @@ abstract class AbstractQuery
         'union' => 'a rendered UNION branch',
         'conflict' => 'doUpdateCol()',
         'duplicate_key' => 'onDuplicateKeyUpdateCol()',
+        'bulk_col' => 'a bulk-insert row',
     );
 
     /**
