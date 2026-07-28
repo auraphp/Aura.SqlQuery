@@ -488,6 +488,33 @@ abstract class AbstractIntegrationTest extends TestCase
         $this->assertSame([1, 2], $dept_ids);
     }
 
+    public function testSelectUnionWithQuery()
+    {
+        // issue #189: the branches differ only in the condition, so build the
+        // second from the first rather than spelling it out again
+        $low = $this->query_factory->newSelect()
+            ->cols(['name'])
+            ->from('test_employee')
+            ->where('salary < :cutoff', ['cutoff' => 200]);
+
+        $high = clone $low;
+        $high->resetWhere()->where('salary > :cutoff', ['cutoff' => 200]);
+
+        $select = $this->query_factory->newSelect()
+            ->cols(['name'])
+            ->fromSubSelect($low->union($high), 'edges')
+            ->orderBy(['name']);
+
+        $this->assertStatementContains('UNION', $select);
+
+        // the branch supplied to union() brought its bound value with it, and
+        // both branches asking for the one cutoff is not a collision
+        $this->assertSame(['cutoff' => 200], $select->getBindValues());
+
+        $actual = $this->fetchAll($select);
+        $this->assertSame(['Anna', 'Clara', 'Donna'], array_column($actual, 'name'));
+    }
+
     public function testSelectCastExpression()
     {
         // regression for #157: the quoter must not mangle a CAST() type name

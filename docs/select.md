@@ -295,7 +295,92 @@ mark placeholder in the condition clause.
 ```php
     ->union()                       // UNION with a followup SELECT
     ->unionAll()                    // UNION ALL with a followup SELECT
+    ->union($select)                // UNION with $select as the next branch
+    ->unionAll($select)             // UNION ALL with $select as the next branch
 ```
+
+Called with no argument, `union()` keeps the SELECT built so far as a branch of
+the union and resets the query, so that the calls after it build the next
+branch:
+
+```php
+$select = $queryFactory->newSelect();
+
+$select
+    ->cols(['c1'])
+    ->from('t1')
+    ->union()
+    ->cols(['c2'])
+    ->from('t2');
+```
+
+```sql
+SELECT
+    c1
+FROM
+    "t1"
+UNION
+SELECT
+    c2
+FROM
+    "t2"
+```
+
+Called with a query, that query becomes the next branch, which is convenient
+when the branches are alike enough to build one from the other:
+
+```php
+$by_owner = $queryFactory->newSelect()
+    ->cols(['amount'])
+    ->from('transactions AS t');
+
+// the branches differ only in how they reach the owner
+$by_property = clone $by_owner;
+
+$by_owner->where('t.owner_id = :owner_id', ['owner_id' => 88]);
+
+$by_property
+    ->join('INNER', 'properties AS p', 'p.property_id = t.property_id')
+    ->where('p.owner_id = :owner_id', ['owner_id' => 88]);
+
+$select = $queryFactory->newSelect()
+    ->cols(['SUM(amount) AS amount'])
+    ->fromSubSelect($by_owner->union($by_property), 't');
+```
+
+```sql
+SELECT
+    SUM(amount) AS "amount"
+FROM
+    (
+        SELECT
+            amount
+        FROM
+            "transactions" AS "t"
+        WHERE
+            "t"."owner_id" = :owner_id
+        UNION
+        SELECT
+            amount
+        FROM
+            "transactions" AS "t"
+        INNER JOIN "properties" AS "p" ON "p"."property_id" = "t"."property_id"
+        WHERE
+            "p"."owner_id" = :owner_id
+    ) AS "t"
+```
+
+The values the given query has bound come across with it, so the union carries
+them whether it is issued directly or nested in a larger query as above. Both
+branches may bind the same placeholder name, as `:owner_id` does here, as long
+as they bind it to the same value; binding one name to two different values
+throws a `LogicException`, since the statement they render into has only one
+`:owner_id` to bind.
+
+A query passed this way is rendered as it was at the time of the call, and
+later changes to it do not reach back into the union. It is also the *last*
+branch: to add another after it, call `union()` or `unionAll()` again, rather
+than adding columns to the query holding the union.
 
 ## Flags
 
