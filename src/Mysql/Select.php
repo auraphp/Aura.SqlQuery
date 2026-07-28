@@ -23,6 +23,26 @@ class Select extends Common\Select
 
     /**
      *
+     * Regex alternatives matching the SQL that spells no placeholder, in the
+     * forms MySQL reads them.
+     *
+     * Three readings differ from the standard. A backslash escapes the
+     * character after it, so `'it\'s :a'` is one literal and the name inside
+     * it is text rather than SQL the standard reading would leave over. A
+     * hash begins a comment, which runs to the end of its line as `--` does.
+     * And the dashes need whitespace after them to begin one at all, so
+     * `c1 > 0--:a` is an operator and a placeholder here, where elsewhere it
+     * is a comment; reading it as one would drop a name the branch binds.
+     *
+     * @var string
+     *
+     * @see Common\Select::$text_pattern
+     *
+     */
+    protected $text_pattern = "'(?:[^'\\\\]|''|\\\\.)*+'|--(?:[ \t\r\n][^\n]*|$)|#[^\n]*|\/\*.*?\*\/";
+
+    /**
+     *
      * Does this join type reject an ON clause outright?
      *
      * MySQL treats CROSS JOIN and INNER JOIN as synonyms and accepts an ON

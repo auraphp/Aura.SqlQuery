@@ -155,4 +155,25 @@ class SelectTest extends Common\SelectTest
         $expect = sprintf($this->expected_sql_with_flag, 'SQL_BUFFER_RESULT');
         $this->assertSameSql($expect, $actual);
     }
+
+    public static function provideNamesHeldFromABranch()
+    {
+        return array_merge(Common\SelectTest::provideNamesHeldFromABranch(), array(
+            'backslash escape' => array(array(), "note = 'it\\'s :a'"),
+            'backslash before a backslash' => array(array('a'), "note = 'ends\\\\' AND a = :a"),
+            'hash comment' => array(array(), 'c1 > 0 # :a'),
+            'hash after a literal' => array(array(), "note = 'x' # :a"),
+
+            // MySQL wants whitespace after the dashes before it reads them as
+            // a comment, so this is an operator and a placeholder
+            'no space after the dashes' => array(array('a'), 'c1 > 0--:a'),
+
+            // read no further than this. A double-quoted string is a string
+            // here and an identifier under ANSI_QUOTES, and keeping the name
+            // costs a needless collision report where reading it as a string
+            // would swallow a real placeholder in every ANSI_QUOTES query.
+            'gap: double-quoted string' => array(array('a'), 'x = ":a"'),
+        ));
+    }
+
 }

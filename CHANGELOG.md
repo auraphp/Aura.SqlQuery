@@ -84,6 +84,28 @@
   conditions. Part of #241; the remaining half of that issue, bulk
   placeholders bypassing collision tracking, is still open.
 
+- [FIX] A union of three or more branches now holds the placeholder names
+  from every branch, not just the one most recently retained. A third
+  branch could bind `:a` to a value of its own while the first branch's
+  rendered SQL still read `a = :a`, overwriting what that branch needed
+  with nothing reported -- the silent overwrite the placeholder tracking
+  above exists to prevent, arriving one branch later. The claims are
+  rebuilt from the retained SQL on each `union()`, and only the newest
+  branch was being read. Two-branch unions were unaffected. As elsewhere,
+  branches may share a name so long as they share its value. Fixes #248.
+
+- [FIX] A union branch no longer holds a placeholder name that only its
+  string literals, comments or quoted identifiers spell. `where("name =
+  ':a'")` binds nothing by that name, and holding it reported a collision
+  against the next branch's legitimate `:a`. All three are passed over
+  before the names are read, each dialect by its own rules -- on MySQL a
+  backslash escapes the quote after it and a `#` begins a comment, where the
+  standard reading gives a backslash no such power, and a name is quoted
+  with backticks there, brackets on SQL Server, double quotes elsewhere.
+  Anything unterminated is read as SQL instead, since keeping a name costs
+  at worst a collision report where losing one lets a later branch overwrite
+  the SQL silently.
+
 - [FIX] Naming several tables in one string no longer produces an identifier
   no database has. `from('t1, t2')` was read as a name and its alias and
   quoted whole, giving `"t1," "t2"`; a Select now builds the list, quoting
@@ -133,7 +155,11 @@
   may bind one placeholder name so long as they bind it to the same value,
   as the two halves of a union already could; two different values throw
   Aura\SqlQuery\Exception\LogicException, since the rendered statement has
-  only the one placeholder. The branch is rendered when it is passed, so
+  only the one placeholder. Executing such a statement asks the driver to
+  bind that name at both spellings, which PDO cannot do for a driver with no
+  named parameters of its own -- pdo_sqlsrv reports SQLSTATE 07002, and
+  pdo_mysql with ATTR_EMULATE_PREPARES off reports HY093 -- so give each
+  branch a name of its own there. The branch is rendered when it is passed, so
   later edits to that query do not reach back into the union, and it is the
   last branch: call `union()` or `unionAll()` again to add another after
   it, rather than building one on the query holding the union. Columns, a

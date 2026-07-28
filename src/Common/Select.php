@@ -35,6 +35,25 @@ class Select extends AbstractQuery implements SelectInterface
 
     /**
      *
+     * Regex alternatives matching the SQL that spells no placeholder: string
+     * literals and comments, in the forms this dialect reads them.
+     *
+     * A quote inside a literal is written by doubling it, and a comment runs
+     * to the end of its line or to the close of its block. Dialects that read
+     * more than this -- MySQL, whose backslash escapes the quote after it and
+     * whose hash begins a comment -- say so by overriding this; the reading
+     * here is the standard one, so a backslash is an ordinary character and a
+     * literal ends at the next lone quote whatever precedes it.
+     *
+     * @var string
+     *
+     * @see resetAfterRendering()
+     *
+     */
+    protected $text_pattern = "'(?:[^']|'')*+'|--[^\n]*|\/\*.*?\*\/";
+
+    /**
+     *
      * The last branch of a union when it was supplied as a query of its own,
      * already rendered; null when this query is building that branch itself.
      *
@@ -995,6 +1014,13 @@ class Select extends AbstractQuery implements SelectInterface
      * the strength of being bound at all -- the alternative is to release a
      * name the rendered SQL is certainly using.
      *
+     * Every branch retained so far is scanned, not just the one this call
+     * rendered. The claims are rebuilt from nothing each time, so reading only
+     * the newest branch would hand back every name the earlier ones spell, and
+     * a third branch could then bind :a to a value of its own while the first
+     * branch's SQL still reads `a = :a` -- the silent overwrite this whole
+     * method exists to prevent, arriving one branch later.
+     *
      * @return null
      *
      */
@@ -1002,12 +1028,30 @@ class Select extends AbstractQuery implements SelectInterface
     {
         $this->reset();
 
-        // a name inside a string literal is data, not a placeholder, so this
-        // can claim a name the branch does not really bind. That costs a
-        // needless collision report, where missing a name the branch *does*
-        // bind would let a later branch overwrite it silently.
-        preg_match_all('/(?<!:):(\w+)/', end($this->union), $matches);
-        $spelled = array_flip($matches[1]);
+        // a name inside a string literal, a comment, or a quoted identifier
+        // is text, not a placeholder: `where("name = ':a'")` binds nothing,
+        // and holding :a on the strength of it would report a collision
+        // against a name the next branch is free to bind. The dialect's own
+        // alternatives run before the capture and consume those regions, so
+        // that only the names outside them are captured.
+        //
+        // Everything doubtful falls the same way: keep the text as SQL. A
+        // name kept by mistake costs a needless collision report, where a
+        // name lost inside a region wrongly read as text would let a later
+        // branch bind it and silently overwrite what the rendered SQL needs.
+        // An unterminated literal or comment therefore matches nothing and is
+        // read straight through, the possessive quantifier holding the
+        // literal to that reading instead of backtracking onto a shorter one.
+        // Each branch is read on its own for the same reason, so that a stray
+        // quote in one cannot pair with a quote in the next and swallow the
+        // placeholders between them.
+        $find = "/{$this->getQuotedNamePattern()}|{$this->text_pattern}"
+              . "|(?<!:):(\w+)/s";
+        $spelled = array();
+        foreach ($this->union as $branch) {
+            preg_match_all($find, $branch, $matches);
+            $spelled += array_flip(array_filter($matches[1], 'strlen'));
+        }
 
         $this->bind_sources = array();
         foreach (array_keys($this->bind_values) as $name) {
@@ -1020,6 +1064,31 @@ class Select extends AbstractQuery implements SelectInterface
         // branch just rendered was sharing: that clause is SQL now, so there
         // is no live claimant left to hand a name back to.
         $this->bind_shared = array();
+    }
+
+    /**
+     *
+     * A regex alternative matching a quoted identifier, in the quoting this
+     * dialect writes: backticks on MySQL, brackets on SQL Server, double
+     * quotes elsewhere.
+     *
+     * A colon inside one is part of the name and no placeholder can stand
+     * there, so a scan for placeholder names must read past it. The quoting
+     * comes from the quoter rather than being spelled here, so that what is
+     * read back is what the builder wrote; the closing quote doubled is how a
+     * name containing one is written, and the name runs on past it.
+     *
+     * @return string
+     *
+     * @see resetAfterRendering()
+     *
+     */
+    protected function getQuotedNamePattern()
+    {
+        $prefix = preg_quote($this->getQuoteNamePrefix(), '/');
+        $suffix = preg_quote($this->getQuoteNameSuffix(), '/');
+
+        return "{$prefix}(?:[^{$suffix}]|{$suffix}{$suffix})*+{$suffix}";
     }
 
     /**

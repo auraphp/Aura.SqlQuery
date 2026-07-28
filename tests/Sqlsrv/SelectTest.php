@@ -7,6 +7,17 @@ class SelectTest extends Common\SelectTest
 {
     protected $db_type = 'sqlsrv';
 
+    public static function provideNamesHeldFromABranch()
+    {
+        return array_merge(Common\SelectTest::provideNamesHeldFromABranch(), array(
+            // read no further than this. SQL Server names quoted with double
+            // quotes are legal under QUOTED_IDENTIFIER, but the brackets are
+            // what this builder writes, so a name kept inside a double-quoted
+            // one is a needless collision report and nothing worse.
+            'gap: double-quoted identifier' => array(array('a'), 'x = "odd:a name"'),
+        ));
+    }
+
     public function testLimitOffset()
     {
         $this->query->cols(array('*'));

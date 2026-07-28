@@ -23,6 +23,21 @@ class SqlsrvIntegrationTest extends AbstractIntegrationTest
 {
     protected string $db_type = 'sqlsrv';
 
+    /**
+     * The driver has no named parameters of its own, so PDO hands it one
+     * marker per occurrence and a name spelled twice arrives as two
+     * parameters; binding it once leaves the second unfilled, which the ODBC
+     * driver reports as SQLSTATE 07002, "COUNT field incorrect". The other
+     * dialects tested here each answer the question their own way -- MySQL by
+     * emulating prepares and substituting the value at both spellings,
+     * PostgreSQL by numbering a repeated name once, SQLite by binding names
+     * natively -- so only this one has to bind a name per branch.
+     */
+    protected function bindsARepeatedName(): bool
+    {
+        return false;
+    }
+
     protected function newPdo(): PDO
     {
         $dsn = getenv('DB_SQLSRV_DSN');
