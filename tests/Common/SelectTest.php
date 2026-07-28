@@ -1277,6 +1277,48 @@ class SelectTest extends AbstractQueryTest
         $this->assertSameSql($expected, $actual);
     }
 
+    public function testUnionHoldsPlaceholdersFromEveryBranch()
+    {
+        // the third branch asks for a name the first one still spells, with a
+        // value of its own: the first branch cannot be re-read, so this is the
+        // collision a union of two branches already reports
+        $select = $this->query
+            ->cols(array('c1'))
+            ->from('t1')
+            ->where('a = :a', array('a' => 1))
+            ->union()
+            ->cols(array('c2'))
+            ->from('t2')
+            ->where('b = :b', array('b' => 2))
+            ->union()
+            ->cols(array('c3'))
+            ->from('t3');
+
+        $this->expectException(\Aura\SqlQuery\Exception\LogicException::class);
+        $this->expectExceptionMessage("The placeholder ':a'");
+        $select->where('a = :a', array('a' => 999));
+    }
+
+    public function testUnionKeepsTheValuesEveryBranchBound()
+    {
+        $select = $this->query
+            ->cols(array('c1'))
+            ->from('t1')
+            ->where('a = :a', array('a' => 1))
+            ->union()
+            ->cols(array('c2'))
+            ->from('t2')
+            ->where('b = :b', array('b' => 2))
+            ->union()
+            ->cols(array('c3'))
+            ->from('t3')
+            ->where('c = :c', array('c' => 3));
+
+        $expect = array('a' => 1, 'b' => 2, 'c' => 3);
+        $actual = $select->getBindValues();
+        $this->assertSame($expect, $actual);
+    }
+
     public function testResetUnion()
     {
         $select = $this->query

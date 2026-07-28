@@ -860,6 +860,13 @@ class Select extends AbstractQuery implements SelectInterface
      * the strength of being bound at all -- the alternative is to release a
      * name the rendered SQL is certainly using.
      *
+     * Every branch retained so far is scanned, not just the one this call
+     * rendered. The claims are rebuilt from nothing each time, so reading only
+     * the newest branch would hand back every name the earlier ones spell, and
+     * a third branch could then bind :a to a value of its own while the first
+     * branch's SQL still reads `a = :a` -- the silent overwrite this whole
+     * method exists to prevent, arriving one branch later.
+     *
      * @return null
      *
      */
@@ -871,7 +878,8 @@ class Select extends AbstractQuery implements SelectInterface
         // can claim a name the branch does not really bind. That costs a
         // needless collision report, where missing a name the branch *does*
         // bind would let a later branch overwrite it silently.
-        preg_match_all('/(?<!:):(\w+)/', end($this->union), $matches);
+        $rendered = implode(PHP_EOL, $this->union);
+        preg_match_all('/(?<!:):(\w+)/', $rendered, $matches);
         $spelled = array_flip($matches[1]);
 
         $this->bind_sources = array();
