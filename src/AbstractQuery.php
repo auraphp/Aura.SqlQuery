@@ -231,34 +231,17 @@ abstract class AbstractQuery
     }
 
     /**
+     * Binds a value to a placeholder and records its query-clause ownership.
      *
-     * Binds a single value, recording which part of the query asked for it.
-     *
-     * Two different parts of a query claiming the same placeholder name is a
-     * mistake: only one value can survive in the flat bind array, so the
-     * other is silently discarded and the statement runs with the wrong data.
-     * Throw instead of losing it -- even when the two values happen to agree
-     * today, since either part may revise its value afterwards and there is
-     * nothing to re-check it against.
-     *
-     * A null source means the caller bound the value by hand, which may
-     * always overwrite: rebinding before execution, and reusing a query
-     * object with fresh values, are both legitimate.
-     *
-     * @param string $name The placeholder name or number.
-     *
-     * @param mixed $value The value to bind to the placeholder.
-     *
-     * @param string|null $source The part of the query binding the value:
-     * 'col', 'where', 'having', 'join', 'cond' for a condition with no
-     * clause of its own, 'conflict', 'duplicate_key', 'union', 'with', or
-     * null when bound by hand.
+     * @param string|int $name The placeholder name or position.
+     * @param mixed $value The value to bind.
+     * @param string|null $source The query clause that owns the placeholder, or
+     * null when binding manually.
      *
      * @return $this
      *
-     * @throws Exception\LogicException when two different parts of the query
-     * claim one placeholder name.
-     *
+     * @throws Exception\LogicException If incompatible query clauses claim the
+     * same placeholder.
      */
     protected function bindValueFrom($name, $value, $source)
     {

@@ -102,13 +102,10 @@ class SelectBuilder extends AbstractBuilder
     }
 
     /**
+     * Builds the FOR UPDATE clause of a SELECT statement.
      *
-     * Builds the FOR UPDATE portion of the SELECT.
-     *
-     * @param bool $for_update True if FOR UPDATE, false if not.
-     *
-     * @return string
-     *
+     * @param bool $for_update Whether to include the FOR UPDATE clause.
+     * @return string The FOR UPDATE clause, or an empty string when it is not requested.
      */
     public function buildForUpdate($for_update)
     {
@@ -120,15 +117,11 @@ class SelectBuilder extends AbstractBuilder
     }
 
     /**
+     * Builds a common table expression clause.
      *
-     * Builds the WITH clause.
-     *
-     * @param array $with The CTE elements.
-     *
-     * @param bool $recursive True if recursive, false if not.
-     *
-     * @return string
-     *
+     * @param array $with CTE definitions to include in the clause.
+     * @param bool $recursive Whether to use the recursive CTE keyword when supported.
+     * @return string The formatted WITH clause, or an empty string when no CTEs are provided.
      */
     public function buildWith(array $with, $recursive = false)
     {
@@ -144,11 +137,9 @@ class SelectBuilder extends AbstractBuilder
     }
 
     /**
+     * Determines whether the SQL dialect supports the `RECURSIVE` keyword in a `WITH` clause.
      *
-     * Does this dialect allow the RECURSIVE keyword in WITH?
-     *
-     * @return bool
-     *
+     * @return bool `true` if the keyword is supported, `false` otherwise.
      */
     protected function allowsRecursiveKeyword()
     {

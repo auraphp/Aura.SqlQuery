@@ -39,53 +39,24 @@ trait WithTrait
     protected $with_recursive = false;
 
     /**
-     *
-     * Renders a sub-SELECT and takes over the values it bound.
-     *
-     * Declared here because it is not part of AbstractQuery: it belongs to
-     * Select, which is the only query this trait can be mixed into today.
-     * Using the trait on a query without it is a fatal error at the call
-     * rather than a silent one, and adding CTEs to INSERT, UPDATE or DELETE
-     * means giving them this first.
-     *
-     * @param string|SelectInterface $spec A sub-SELECT specification.
-     *
-     * @param string $indent Indent each line with this string.
-     *
-     * @param string $source The part of this query the sub-select is being
-     * rendered into, which claims the names it binds.
-     *
-     * @return string
-     *
-     */
+ * Renders a sub-SELECT specification and adopts its parameter bindings.
+ *
+ * @param mixed $spec The sub-SELECT specification.
+ * @param string $indent The indentation to apply to rendered lines.
+ * @param string $source The query section that owns the rendered bindings.
+ * @return string The rendered sub-SELECT.
+ */
     abstract protected function subSelect($spec, $indent, $source = 'table');
 
     /**
-     *
      * Adds a common table expression (CTE) to the query.
      *
-     * The CTE is rendered on the spot rather than kept as an object, as a
-     * union branch is and for the same reason: it is a second query with a
-     * life of its own, and holding it would have edits made to it after this
-     * call reach back into a statement it was only ever added to once.
-     *
-     * The names it binds pass to 'with', which belongs to the statement
-     * rather than to any one clause of it -- a CTE is written once at the
-     * top and every branch of a union below may name it.
-     *
      * @param string $name The CTE name.
-     *
      * @param string|SelectInterface $spec The CTE specification.
-     *
-     * @param array $cols Optional column list for the CTE.
-     *
+     * @param array $cols Optional column names for the CTE.
      * @return $this
-     *
-     * @throws InvalidArgumentException when the CTE has no name.
-     *
-     * @throws LogicException when handed this very query, or when the name
-     * is already taken.
-     *
+     * @throws InvalidArgumentException If the CTE name is empty.
+     * @throws LogicException If the query is used as its own CTE or the name is already defined.
      */
     public function with($name, $spec, array $cols = array())
     {
@@ -147,22 +118,12 @@ trait WithTrait
     }
 
     /**
-     *
      * Adds a recursive common table expression (CTE) to the query.
      *
-     * RECURSIVE is written once for the whole clause rather than per CTE,
-     * which is what standard SQL spells: `WITH RECURSIVE a AS (...), b AS
-     * (...)`, where a non-recursive member is still legal. So one recursive
-     * CTE makes the clause recursive and the others are unaffected.
-     *
      * @param string $name The CTE name.
-     *
      * @param string|SelectInterface $spec The CTE specification.
-     *
-     * @param array $cols Optional column list for the CTE.
-     *
-     * @return $this
-     *
+     * @param array $cols Optional column names for the CTE.
+     * @return $this The query instance.
      */
     public function withRecursive($name, $spec, array $cols = array())
     {
@@ -174,11 +135,9 @@ trait WithTrait
     }
 
     /**
+     * Determines whether the query defines any common table expressions.
      *
-     * Does the query define any common table expressions?
-     *
-     * @return bool
-     *
+     * @return bool `true` if one or more common table expressions are defined, `false` otherwise.
      */
     public function hasWith()
     {
@@ -186,11 +145,9 @@ trait WithTrait
     }
 
     /**
+     * Resets all common table expressions and the recursive flag.
      *
-     * Resets the WITH clause.
-     *
-     * @return $this
-     *
+     * @return $this The query builder instance.
      */
     public function resetWith()
     {

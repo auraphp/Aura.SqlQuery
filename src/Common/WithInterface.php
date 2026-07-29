@@ -18,50 +18,36 @@ namespace Aura\SqlQuery\Common;
 interface WithInterface
 {
     /**
-     *
-     * Adds a common table expression (CTE) to the query.
-     *
-     * @param string $name The CTE name.
-     *
-     * @param string|SelectInterface $spec The CTE specification.
-     *
-     * @param array $cols Optional column list for the CTE.
-     *
-     * @return $this
-     *
-     */
+ * Adds a non-recursive common table expression (CTE) to the query.
+ *
+ * @param string $name The CTE name.
+ * @param string|SelectInterface $spec The CTE specification.
+ * @param array $cols The optional CTE column list.
+ * @return $this The query instance.
+ */
     public function with($name, $spec, array $cols = array());
 
     /**
-     *
-     * Adds a recursive common table expression (CTE) to the query.
-     *
-     * @param string $name The CTE name.
-     *
-     * @param string|SelectInterface $spec The CTE specification.
-     *
-     * @param array $cols Optional column list for the CTE.
-     *
-     * @return $this
-     *
-     */
+ * Adds a recursive common table expression (CTE) to the query.
+ *
+ * @param string $name The CTE name.
+ * @param string|SelectInterface $spec The CTE specification.
+ * @param array $cols The optional CTE column list.
+ * @return $this The query instance.
+ */
     public function withRecursive($name, $spec, array $cols = array());
 
     /**
-     *
-     * Does the query define any common table expressions?
-     *
-     * @return bool
-     *
-     */
+ * Determines whether the query defines any common table expressions.
+ *
+ * @return bool `true` if the query defines one or more common table expressions, `false` otherwise.
+ */
     public function hasWith();
 
     /**
-     *
-     * Resets the WITH clause.
-     *
-     * @return $this
-     *
-     */
+ * Clears all common table expressions from the query's WITH clause.
+ *
+ * @return $this The query instance.
+ */
     public function resetWith();
 }

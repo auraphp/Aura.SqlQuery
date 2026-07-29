@@ -38,17 +38,12 @@ class SelectBuilder extends Common\SelectBuilder
     }
 
     /**
+     * Applies SQL Server-compatible limit and offset clauses to a SQL statement.
      *
-     * Modify the statement applying limit/offset equivalent portions to it.
-     *
-     * @param string $stm The SQL statement.
-     *
-     * @param int $limit The LIMIT value.
-     *
-     * @param int $offset The OFFSET value.
-     *
-     * @return string
-     *
+     * @param string $stm The SQL statement to modify.
+     * @param int $limit The maximum number of rows to return.
+     * @param int $offset The number of rows to skip.
+     * @return string The statement with the applicable limit and offset clauses.
      */
     public function applyLimit($stm, $limit, $offset)
     {
@@ -73,11 +68,9 @@ class SelectBuilder extends Common\SelectBuilder
     }
 
     /**
+     * Determines whether SQL Server CTEs may include the `RECURSIVE` keyword.
      *
-     * SQL Server does not support the RECURSIVE keyword in CTE.
-     *
-     * @return bool
-     *
+     * @return bool `true` if the keyword is supported, `false` otherwise.
      */
     protected function allowsRecursiveKeyword()
     {

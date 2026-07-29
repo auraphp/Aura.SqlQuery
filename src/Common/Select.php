@@ -154,11 +154,9 @@ class Select extends AbstractQuery implements SelectInterface
     protected $table_refs = array();
 
     /**
+     * Builds the complete SQL statement, including any common table expressions and UNION branches.
      *
-     * Returns this query object as an SQL statement string.
-     *
-     * @return string An SQL statement string.
-     *
+     * @return string The rendered SQL statement.
      */
     public function getStatement()
     {
@@ -923,29 +921,12 @@ class Select extends AbstractQuery implements SelectInterface
     }
 
     /**
+     * Adds a UNION branch and prepares the query for the next branch.
      *
-     * Retains the branch being built and opens the next one, either as a
-     * query supplied whole or as this query reset to build it.
-     *
-     * A supplied branch is rendered on the spot rather than kept as an
-     * object. It is a second query with a life of its own, and holding it
-     * would have edits made to it after this call reach back into a union it
-     * was only ever added to once; the SQL is what was asked for.
-     *
-     * It is rendered before this query changes so that a branch that cannot
-     * render -- one with no columns yet -- leaves this query as it was, rather
-     * than having consumed and reset the branch it was building on the way to
-     * throwing.
-     *
-     * @param string $type 'UNION' or 'UNION ALL'.
-     *
-     * @param SelectInterface|null $select The next branch, or null to build
-     * it on this query.
-     *
+     * @param string $type The UNION operator, such as `UNION` or `UNION ALL`.
+     * @param SelectInterface|null $select The branch to add, or null to build the next branch on this query.
      * @return $this
-     *
-     * @throws LogicException when handed this very query.
-     *
+     * @throws LogicException If the query is unioned with itself or the supplied branch defines a WITH clause.
      */
     protected function addUnion($type, ?SelectInterface $select)
     {
@@ -1004,46 +985,8 @@ class Select extends AbstractQuery implements SelectInterface
     }
 
     /**
-     *
-     * Clears the current select properties after its SQL has been rendered
-     * and retained, keeping the placeholder names that SQL still binds.
-     *
-     * A clause reset frees the names it claimed, which is right while the
-     * query is still being built. It is wrong here: union() has already
-     * turned the current branch into SQL, placeholders and all, and that SQL
-     * keeps binding those names. Left free, the next branch could claim :id
-     * for a different value and overwrite the one the rendered branch needs,
-     * with nothing to report the clash. The names pass to the union itself
-     * rather than staying with their clause, so that a resetWhere() in the
-     * next branch cannot free them either.
-     *
-     * The names come from the rendered SQL rather than from the query parts
-     * that bound them. A hand-bound value has no claimant -- that is what lets
-     * it overwrite -- but the rendered SQL can just as well be written around
-     * it, as `where('id = :id')` with the value supplied by bindValue(), and a
-     * later clause binding :id would overwrite what that SQL needs. Scanning
-     * the SQL catches that name along with every other one it spells.
-     *
-     * It also stops short of the names that SQL does *not* spell. A clause
-     * reset frees a name but keeps its value, so a placeholder dropped before
-     * the union is still bound while appearing nowhere in the branch: nothing
-     * there can bind it, the union has no claim to stake, and the next branch
-     * is free to use the name for a value of its own.
-     *
-     * A positional placeholder is the one name the scan cannot find, since it
-     * keeps its `?` in the statement and is bound by number. Those are held on
-     * the strength of being bound at all -- the alternative is to release a
-     * name the rendered SQL is certainly using.
-     *
-     * Every branch retained so far is scanned, not just the one this call
-     * rendered. The claims are rebuilt from nothing each time, so reading only
-     * the newest branch would hand back every name the earlier ones spell, and
-     * a third branch could then bind :a to a value of its own while the first
-     * branch's SQL still reads `a = :a` -- the silent overwrite this whole
-     * method exists to prevent, arriving one branch later.
-     *
-     * @return null
-     *
+     * Resets the current branch after rendering it while preserving bind ownership
+     * for placeholders used by retained UNION branches and common table expressions.
      */
     protected function resetAfterRendering()
     {
