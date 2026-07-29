@@ -300,6 +300,9 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @return $this
      *
+     * @throws \Aura\SqlQuery\Exception\LogicException when handed this very
+     * query, or a branch defining a WITH clause of its own.
+     *
      */
     public function union(?SelectInterface $select = null);
 
@@ -312,6 +315,9 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * own; when omitted, this query is reset to build that branch itself.
      *
      * @return $this
+     *
+     * @throws \Aura\SqlQuery\Exception\LogicException when handed this very
+     * query, or a branch defining a WITH clause of its own.
      *
      */
     public function unionAll(?SelectInterface $select = null);
