@@ -23,6 +23,7 @@ class Select extends AbstractQuery implements SelectInterface
     use WhereTrait;
     use TableListTrait;
     use LimitOffsetTrait { limit as setLimit; offset as setOffset; }
+    use WithTrait;
 
     /**
      *
@@ -161,6 +162,14 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function getStatement()
     {
+        // the WITH clause belongs to the statement, not to a branch of it:
+        // it is written once, at the top, and every branch of the union
+        // below may name the CTEs it defines. It is prefixed here rather
+        // than in build() for that reason, and because build() is what the
+        // dialects post-process -- SQL Server injects its TOP by matching
+        // SELECT at the head of the string a branch renders to.
+        $with = $this->builder->buildWith($this->with, $this->with_recursive);
+
         $union = '';
         if (! empty($this->union)) {
             $union = implode(PHP_EOL, $this->union) . PHP_EOL;
@@ -168,10 +177,10 @@ class Select extends AbstractQuery implements SelectInterface
 
         if ($this->union_tail !== null) {
             $this->assertNoBranchAfterUnionTail();
-            return $union . $this->union_tail;
+            return $with . $union . $this->union_tail;
         }
 
-        return $union . $this->build();
+        return $with . $union . $this->build();
     }
 
     /**
@@ -951,6 +960,18 @@ class Select extends AbstractQuery implements SelectInterface
             );
         }
 
+        // a branch cannot bring a WITH clause of its own: the clause opens a
+        // statement and there is no statement here for it to open, so it
+        // would render as `UNION WITH ... SELECT`, which no dialect reads.
+        // The CTE goes on the query the union belongs to, where every branch
+        // may name it.
+        if ($select instanceof WithInterface && $select->hasWith()) {
+            throw new LogicException(
+                'The query passed to union() defines its own WITH clause; '
+                . 'define the CTE on the query the union belongs to instead.'
+            );
+        }
+
         $branch = $select === null ? null : $select->getStatement();
 
         // the branch being closed is the supplied one when there is one, and
@@ -1026,6 +1047,26 @@ class Select extends AbstractQuery implements SelectInterface
      */
     protected function resetAfterRendering()
     {
+        // A CTE belongs to the statement rather than to the branch, so its
+        // claims outlive the branch this call renders, and they are not
+        // among what the scan below can find: a CTE's SQL is written at the
+        // top of the statement, not into $this->union. Rebuilt from nothing,
+        // every name a CTE binds would be handed back, and the next branch
+        // could then bind one to a value of its own with nothing to report
+        // the clash -- the CTE running against the wrong data, which is the
+        // silent overwrite this method exists to prevent.
+        //
+        // A CTE holding a name as the second claimant counts the same. The
+        // shared list is cleared below, so a CTE sharing a name with the
+        // union -- both wanting the one tenant id -- would otherwise have
+        // nothing left recording its claim at all.
+        $with_names = array_keys($this->bind_sources, 'with', true);
+        foreach ($this->bind_shared as $shared_name => $shared_source) {
+            if ($shared_source === 'with') {
+                $with_names[] = $shared_name;
+            }
+        }
+
         $this->reset();
 
         // a name inside a string literal, a comment, or a quoted identifier
@@ -1060,10 +1101,26 @@ class Select extends AbstractQuery implements SelectInterface
             }
         }
 
-        // every name now belongs to the union, including any a clause of the
-        // branch just rendered was sharing: that clause is SQL now, so there
-        // is no live claimant left to hand a name back to.
+        // every name now belongs to the union or to a CTE, including any a
+        // clause of the branch just rendered was sharing: that clause is SQL
+        // now, so there is no live claimant left to hand a name back to.
         $this->bind_shared = array();
+
+        // put the CTEs' claims back after the union's. A name only a CTE
+        // binds passes to it outright; one the union spells as well is held
+        // by both, and recording the CTE as the second claimant is what lets
+        // either reset hand the name to the other. Overwriting the union's
+        // claim instead would leave resetWith() freeing a name the retained
+        // branch still binds -- the same silent overwrite, the other way
+        // round.
+        foreach ($with_names as $name) {
+            if (isset($this->bind_sources[$name])) {
+                $this->bind_shared[$name] = 'with';
+                continue;
+            }
+
+            $this->bind_sources[$name] = 'with';
+        }
     }
 
     /**

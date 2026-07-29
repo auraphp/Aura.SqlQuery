@@ -580,6 +580,56 @@ abstract class AbstractIntegrationTest extends TestCase
         $this->assertSame(['Anna', 'Clara', 'Donna'], array_column($actual, 'name'));
     }
 
+    /**
+     * A CTE against a real server: the WITH clause has to open the statement,
+     * the CTE name has to be usable as an ordinary table below it, and the
+     * value the sub-select bound has to survive the trip. See #130.
+     */
+    public function testSelectWithCte()
+    {
+        $earners = $this->query_factory->newSelect()
+            ->cols(['name', 'salary'])
+            ->from('test_employee')
+            ->where('salary >= :cutoff', ['cutoff' => 200]);
+
+        $select = $this->query_factory->newSelect()
+            ->with('well_paid', $earners)
+            ->cols(['name'])
+            ->from('well_paid')
+            ->orderBy(['name']);
+
+        $this->assertStatementContains('WITH <<well_paid>> AS (', $select);
+        $this->assertSame(['cutoff' => 200], $select->getBindValues());
+
+        $actual = $this->fetchAll($select);
+        $this->assertSame(['Betty', 'Clara', 'Donna'], array_column($actual, 'name'));
+    }
+
+    /**
+     * A recursive CTE, which is where the dialects disagree: every server
+     * here but SQL Server wants the RECURSIVE keyword, and SQL Server rejects
+     * it. Counting to three is the smallest thing that needs the recursion,
+     * so a server that ignored the clause could not pass this.
+     */
+    public function testSelectWithRecursiveCte()
+    {
+        $counter = $this->query_factory->newSelect()
+            ->cols(['1 AS n'])
+            ->unionAll()
+            ->cols(['n + 1'])
+            ->from('counter')
+            ->where('n < :stop', ['stop' => 3]);
+
+        $select = $this->query_factory->newSelect()
+            ->withRecursive('counter', $counter, ['n'])
+            ->cols(['n'])
+            ->from('counter')
+            ->orderBy(['n']);
+
+        $actual = $this->fetchAll($select);
+        $this->assertSame([1, 2, 3], array_map('intval', array_column($actual, 'n')));
+    }
+
     public function testSelectCastExpression()
     {
         // regression for #157: the quoter must not mangle a CAST() type name

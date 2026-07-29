@@ -395,6 +395,109 @@ to render, and throws a `LogicException` when the statement is built rather
 than disappearing from it. Binding values is unaffected: they belong to the
 union, so the branch already rendered can still be given fresh ones.
 
+## WITH
+
+```php
+    ->with($name, $spec, array $cols = array())  // WITH "name" AS ( ... )
+    ->withRecursive($name, $spec, array $cols = array())  // WITH RECURSIVE "name" AS ( ... )
+```
+
+A common table expression prefixes the whole statement, and the name it
+defines is used below it as an ordinary table would be:
+
+```php
+$sub = $queryFactory->newSelect()
+    ->cols(['c1'])
+    ->from('t1');
+
+$select = $queryFactory->newSelect()
+    ->with('cte', $sub)
+    ->cols(['*'])
+    ->from('cte');
+```
+
+```sql
+WITH "cte" AS (
+    SELECT
+        c1
+    FROM
+        "t1"
+)
+SELECT
+    *
+FROM
+    "cte"
+```
+
+The `$spec` is either a _Select_ object or a raw SQL string. A _Select_ is
+rendered on the spot, exactly as a branch passed to `union()` is: it is a
+query with a life of its own, and editing it afterwards does not reach back
+into the statement it was added to. The values it bound come along with it.
+
+Several CTEs may be defined, and a later one may name an earlier one. They are
+written in the order they were added, under a single `WITH`; a name used twice
+throws a `LogicException` rather than replacing the CTE already defined.
+
+`withRecursive()` writes `WITH RECURSIVE`, which the recursive member needs in
+order to name the CTE inside its own definition. RECURSIVE belongs to the
+clause rather than to one CTE, so a statement mixing recursive and plain
+members spells it once:
+
+```php
+$counter = $queryFactory->newSelect()
+    ->cols(['1 AS n'])
+    ->unionAll()
+    ->cols(['n + 1'])
+    ->from('counter')
+    ->where('n < :stop', ['stop' => 3]);
+
+$select = $queryFactory->newSelect()
+    ->withRecursive('counter', $counter, ['n'])
+    ->cols(['n'])
+    ->from('counter');
+```
+
+```sql
+WITH RECURSIVE "counter" ("n") AS (
+    SELECT
+        1 AS "n"
+    UNION ALL
+    SELECT
+        n + 1
+    FROM
+        "counter"
+    WHERE
+        n < :stop
+)
+SELECT
+    n
+FROM
+    "counter"
+```
+
+SQL Server is the exception: it infers the recursion and rejects the keyword,
+so `withRecursive()` there renders a plain `WITH`. The same PHP is valid on
+every dialect.
+
+A CTE belongs to the statement rather than to a branch of it, so it survives
+`union()` and is written once above every branch. A branch passed to `union()`
+may not bring a `WITH` clause of its own, since the clause opens a statement
+and a branch is not one; define the CTE on the query the union belongs to,
+where every branch may name it.
+
+The placeholder names a CTE binds stay claimed for as long as it is defined.
+One other clause may ask for a name if it wants the value already bound --
+in either order, since a CTE is written at the top of the statement whenever
+`with()` is called. Asking for a different value throws rather than
+overwriting what the CTE needs, and so does a second clause asking for the
+same name, whatever value it wants. `resetWith()` releases the names along
+with the clause, except any that a rendered union branch is also spelling.
+
+A sub-select may carry a `WITH` of its own -- `fromSubSelect($inner, 'x')`
+where `$inner` defines a CTE renders the clause inside the parentheses. That
+is valid on PostgreSQL, MySQL and SQLite, but SQL Server allows `WITH` only
+at the head of the statement; there, define the CTE on the outer query.
+
 ## Flags
 
 ```php
@@ -428,6 +531,7 @@ find the total number of rows to be paginated over).
 - `resetWhere()`, `resetGroupBy()`, `resetHaving()`, and `resetOrderBy()`
   remove the respective clauses
 - `resetUnions()` removes all `UNION` and `UNION ALL` clauses
+- `resetWith()` removes all Common Table Expressions
 - `resetFlags()` removes all database-engine-specific flags
 - `resetBindValues()` removes all values bound to named placeholders
 
@@ -436,6 +540,7 @@ find the total number of rows to be paginated over).
     public function resetGroupBy()
     public function resetHaving()
     public function resetOrderBy()
+    public function resetWith()
 
 ## Issuing The Query
 

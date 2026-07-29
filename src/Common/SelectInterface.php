@@ -17,7 +17,7 @@ use Aura\SqlQuery\QueryInterface;
  * @package Aura.SqlQuery
  *
  */
-interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterface, LimitOffsetInterface
+interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterface, LimitOffsetInterface, WithInterface
 {
     /**
      *

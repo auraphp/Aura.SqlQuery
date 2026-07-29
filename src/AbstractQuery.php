@@ -67,6 +67,7 @@ abstract class AbstractQuery
         'join' => 'a JOIN condition',
         'table' => 'a sub-select in the FROM clause',
         'union' => 'a rendered UNION branch',
+        'with' => 'a common table expression',
         'conflict' => 'doUpdateCol()',
         'duplicate_key' => 'onDuplicateKeyUpdateCol()',
         'bulk_col' => 'a bulk-insert row',
@@ -250,8 +251,8 @@ abstract class AbstractQuery
      *
      * @param string|null $source The part of the query binding the value:
      * 'col', 'where', 'having', 'join', 'cond' for a condition with no
-     * clause of its own, 'conflict', 'duplicate_key', 'union', or null when
-     * bound by hand.
+     * clause of its own, 'conflict', 'duplicate_key', 'union', 'with', or
+     * null when bound by hand.
      *
      * @return $this
      *
@@ -265,28 +266,60 @@ abstract class AbstractQuery
             ? $this->bind_sources[$name]
             : null;
 
-        // A rendered UNION branch owns its placeholders, but a later branch
-        // filtering on the same value -- one tenant id across both halves --
+        // A rendered UNION branch owns its placeholders, and so does a CTE:
+        // both are SQL the statement keeps whole, and neither has a clause
+        // left to hand its names back to. A later clause filtering on the
+        // same value -- one tenant id in the CTE and in the outer WHERE --
         // asks for exactly what is already bound, and nothing is lost by
-        // letting it through. Ownership stays with the union: were it to pass
-        // to the new clause, a later resetWhere() would free a name the
-        // rendered SQL still binds. Record the clause as a second claimant
-        // all the same, so that resetUnions() hands the name over to it
-        // instead of freeing a name this clause is still using.
+        // letting it through. Ownership stays with the union or the CTE:
+        // were it to pass to the clause, a later resetWhere() would free a
+        // name that retained SQL still binds. Record the clause as a second
+        // claimant all the same, so that resetUnions() or resetWith() hands
+        // the name over to it instead of freeing a name it is still using.
+        //
+        // A CTE also shares in the other direction, arriving after the clause
+        // that bound the name. It is written at the top of the statement
+        // whenever the caller reaches with(), so which of the two was called
+        // first says nothing about what the statement means, and making the
+        // order matter would only be a rule to remember.
+        //
+        // A union branch keeps the reading it already had, where the branch
+        // must be the one holding the name first. Widening that is a change
+        // to how union() behaves, wanted or not, and it belongs to union
+        // rather than to the clause being added here.
+        $prior_owns = in_array($prior, array('union', 'with'), true);
+        $source_owns = $source === 'with';
+
         if (
-            $prior === 'union'
+            ($prior_owns || $source_owns)
             && array_key_exists($name, $this->bind_values)
             && $this->bind_values[$name] === $value
         ) {
-            if ($source !== null && $source !== 'union') {
+            $owner = $prior_owns ? $prior : $source;
+            $sharer = $prior_owns ? $source : $prior;
+
+            // a hand-bound value claims nothing, so there is no second
+            // claimant to record: null in bind_shared would name a clause
+            // that does not exist. Nothing reads it as one today, since
+            // removeBindSources() asks isset() and a null entry answers the
+            // same as an absent one -- this keeps the list honest rather
+            // than fixing a behaviour, and is why no test can tell.
+            if ($sharer !== null && $sharer !== $owner) {
                 $shared = isset($this->bind_shared[$name])
                     ? $this->bind_shared[$name]
                     : null;
-                if ($shared !== null && $shared !== $source) {
-                    $this->throwCollision($name, $shared, $source);
+                if ($shared !== null && $shared !== $sharer) {
+                    $this->throwCollision($name, $shared, $sharer);
                 }
-                $this->bind_shared[$name] = $source;
+
+                $this->bind_shared[$name] = $sharer;
             }
+
+            // the owner may be the source arriving now, when a clause held
+            // the name first and a CTE has come for it: the CTE is the SQL
+            // that outlives the clause, so the claim passes to it and the
+            // clause becomes the sharer recorded above.
+            $this->bind_sources[$name] = $owner;
             return $this;
         }
 

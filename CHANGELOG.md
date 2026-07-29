@@ -2,6 +2,32 @@
 
 ## 6.0.0 (unreleased)
 
+- [ADD] SELECT queries take common table expressions, via with() and
+  withRecursive():
+
+        $select->with('well_paid', $earners)
+               ->cols(['name'])
+               ->from('well_paid');
+
+  The CTE is given as a Select or as a raw string, with an optional column
+  list, and a Select is rendered on the spot the way a branch passed to
+  union() is; the values it bound come with it. RECURSIVE belongs to the
+  clause rather than to one CTE, so a statement mixing recursive and plain
+  members spells it once. SQL Server infers the recursion and rejects the
+  keyword, so withRecursive() renders a plain WITH there and the same PHP is
+  valid on every dialect.
+
+  A CTE belongs to the statement rather than to a branch, so it survives the
+  reset union() performs and is written once above every branch. The names it
+  binds stay claimed for as long as it is defined, and one other clause may
+  ask for a name when it wants the value already bound -- in either order,
+  since a CTE is written at the top of the statement whenever with() is
+  called. Asking for a second value still throws, and resetWith() releases
+  the names along with the clause. A branch passed to union() may not bring
+  a WITH clause of its own, which would render as `UNION WITH ... SELECT`;
+  it is reported rather than built. union() is otherwise unchanged.
+  Fixes #130.
+
 - [BRK] Two different parts of one query claiming the same placeholder name
   now throws Aura\SqlQuery\Exception\LogicException instead of silently
   discarding one of the values. The common case is a condition that tests a
