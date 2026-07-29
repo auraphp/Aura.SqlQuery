@@ -2160,4 +2160,403 @@ class SelectTest extends AbstractQueryTest
         $actual = (string) $select->getStatement();
         $this->assertSameSql($expect, $actual);
     }
+
+    protected function withRecursiveKeyword()
+    {
+        return 'WITH RECURSIVE';
+    }
+
+    public function testWith()
+    {
+        $sub = $this->newQuery()->cols(['c1'])->from('t1');
+        $this->query->with('cte', $sub)->cols(['*'])->from('cte');
+        $expect = '
+            WITH <<cte>> AS (
+                SELECT
+                    c1
+                FROM
+                    <<t1>>
+            )
+            SELECT
+                *
+            FROM
+                <<cte>>
+        ';
+        $this->assertSameSql($expect, $this->query->getStatement());
+    }
+
+    public function testWithCols()
+    {
+        $sub = $this->newQuery()->cols(['c1'])->from('t1');
+        $this->query->with('cte', $sub, ['col1'])->cols(['*'])->from('cte');
+        $expect = '
+            WITH <<cte>> (<<col1>>) AS (
+                SELECT
+                    c1
+                FROM
+                    <<t1>>
+            )
+            SELECT
+                *
+            FROM
+                <<cte>>
+        ';
+        $this->assertSameSql($expect, $this->query->getStatement());
+    }
+
+    public function testWithMultiple()
+    {
+        $sub1 = $this->newQuery()->cols(['c1'])->from('t1');
+        $sub2 = $this->newQuery()->cols(['c2'])->from('t2');
+        $this->query
+            ->with('cte1', $sub1)
+            ->with('cte2', $sub2)
+            ->cols(['*'])
+            ->from('cte1')
+            ->join('INNER', 'cte2', 'cte1.c1 = cte2.c2');
+        $expect = '
+            WITH <<cte1>> AS (
+                SELECT
+                    c1
+                FROM
+                    <<t1>>
+            ),
+            <<cte2>> AS (
+                SELECT
+                    c2
+                FROM
+                    <<t2>>
+            )
+            SELECT
+                *
+            FROM
+                <<cte1>>
+                INNER JOIN <<cte2>> ON <<cte1>>.<<c1>> = <<cte2>>.<<c2>>
+        ';
+        $this->assertSameSql($expect, $this->query->getStatement());
+    }
+
+    public function testWithRecursive()
+    {
+        $sub = $this->newQuery()->cols(['c1'])->from('t1');
+        $this->query->withRecursive('cte', $sub)->cols(['*'])->from('cte');
+
+        $keyword = $this->withRecursiveKeyword();
+        $expect = '
+            ' . $keyword . ' <<cte>> AS (
+                SELECT
+                    c1
+                FROM
+                    <<t1>>
+            )
+            SELECT
+                *
+            FROM
+                <<cte>>
+        ';
+        $this->assertSameSql($expect, $this->query->getStatement());
+    }
+
+    public function testWithRecursiveAndPlainMixed()
+    {
+        $sub1 = $this->newQuery()->cols(['c1'])->from('t1');
+        $sub2 = $this->newQuery()->cols(['c2'])->from('t2');
+        $this->query
+            ->with('cte1', $sub1)
+            ->withRecursive('cte2', $sub2)
+            ->cols(['*'])
+            ->from('cte1');
+
+        $keyword = $this->withRecursiveKeyword();
+        $expect = '
+            ' . $keyword . ' <<cte1>> AS (
+                SELECT
+                    c1
+                FROM
+                    <<t1>>
+            ),
+            <<cte2>> AS (
+                SELECT
+                    c2
+                FROM
+                    <<t2>>
+            )
+            SELECT
+                *
+            FROM
+                <<cte1>>
+        ';
+        $this->assertSameSql($expect, $this->query->getStatement());
+    }
+
+    public function testWithReferencingEarlierCte()
+    {
+        $sub1 = $this->newQuery()->cols(['c1'])->from('t1');
+        $sub2 = $this->newQuery()->cols(['c2'])->from('cte1');
+        $this->query
+            ->with('cte1', $sub1)
+            ->with('cte2', $sub2)
+            ->cols(['*'])
+            ->from('cte2');
+        $expect = '
+            WITH <<cte1>> AS (
+                SELECT
+                    c1
+                FROM
+                    <<t1>>
+            ),
+            <<cte2>> AS (
+                SELECT
+                    c2
+                FROM
+                    <<cte1>>
+            )
+            SELECT
+                *
+            FROM
+                <<cte2>>
+        ';
+        $this->assertSameSql($expect, $this->query->getStatement());
+    }
+
+    public function testWithRawStringSpec()
+    {
+        $this->query->with('cte', 'SELECT c1 FROM t1')->cols(['*'])->from('cte');
+        $expect = '
+            WITH <<cte>> AS (
+                SELECT c1 FROM t1
+            )
+            SELECT
+                *
+            FROM
+                <<cte>>
+        ';
+        $this->assertSameSql($expect, $this->query->getStatement());
+    }
+
+    public function testWithIdempotent()
+    {
+        $sub = $this->newQuery()->cols(['c1'])->from('t1');
+        $this->query->with('cte', $sub)->cols(['*'])->from('cte');
+        $stmt1 = $this->query->getStatement();
+        $stmt2 = $this->query->getStatement();
+        $this->assertSame($stmt1, $stmt2);
+    }
+
+    public function testWithSubSelectHasUnion()
+    {
+        $sub1 = $this->newQuery()->cols(['c1'])->from('t1');
+        $sub2 = $this->newQuery()->cols(['c2'])->from('t2');
+        $sub1->union($sub2);
+
+        $this->query->with('cte', $sub1)->cols(['*'])->from('cte');
+
+        $expect = '
+            WITH <<cte>> AS (
+                SELECT
+                    c1
+                FROM
+                    <<t1>>
+                UNION
+                SELECT
+                    c2
+                FROM
+                    <<t2>>
+            )
+            SELECT
+                *
+            FROM
+                <<cte>>
+        ';
+        $this->assertSameSql($expect, $this->query->getStatement());
+    }
+
+    public function testWithEmptyName()
+    {
+        $sub = $this->newQuery()->cols(['c1'])->from('t1');
+        $this->expectException('Aura\SqlQuery\Exception\InvalidArgumentException');
+        $this->query->with('', $sub);
+    }
+
+    public function testWithDuplicateName()
+    {
+        $sub = $this->newQuery()->cols(['c1'])->from('t1');
+        $this->query->with('cte', $sub);
+        $this->expectException('Aura\SqlQuery\Exception\LogicException');
+        $this->query->with('cte', $sub);
+    }
+
+    public function testWithSelfCte()
+    {
+        // the query has columns, so it would render if the guard were gone;
+        // without them it throws 'No columns in the SELECT' instead, and the
+        // test passes whether the guard is there or not.
+        $this->query->cols(['c1'])->from('t1');
+
+        $this->expectException('Aura\SqlQuery\Exception\LogicException');
+        $this->expectExceptionMessage('Cannot use a query as a CTE of itself');
+        $this->query->with('cte', $this->query);
+    }
+
+    /**
+     *
+     * A CTE is statement-level, so it survives the reset union() performs to
+     * open the next branch, and is written once above the whole union.
+     *
+     */
+    public function testWithThenUnion()
+    {
+        $sub = $this->newQuery()->cols(['c1'])->from('t1');
+        $this->query
+            ->with('cte', $sub)
+            ->cols(['*'])
+            ->from('cte')
+            ->union()
+            ->cols(['*'])
+            ->from('t2');
+        $expect = '
+            WITH <<cte>> AS (
+                SELECT
+                    c1
+                FROM
+                    <<t1>>
+            )
+            SELECT
+                *
+            FROM
+                <<cte>>
+            UNION
+            SELECT
+                *
+            FROM
+                <<t2>>
+        ';
+        $this->assertSameSql($expect, $this->query->getStatement());
+    }
+
+    /**
+     *
+     * A CTE added after a branch was supplied whole is not a further branch:
+     * it is the clause the whole union sits under, and it has somewhere to
+     * render. See assertNoBranchAfterUnionTail().
+     *
+     */
+    public function testWithAfterSuppliedUnionTail()
+    {
+        $branch = $this->newQuery()->cols(['c2'])->from('t2');
+        $sub = $this->newQuery()->cols(['c1'])->from('t1');
+
+        $this->query->cols(['*'])->from('cte')->union($branch);
+        $this->query->with('cte', $sub);
+
+        $expect = '
+            WITH <<cte>> AS (
+                SELECT
+                    c1
+                FROM
+                    <<t1>>
+            )
+            SELECT
+                *
+            FROM
+                <<cte>>
+            UNION
+            SELECT
+                c2
+            FROM
+                <<t2>>
+        ';
+        $this->assertSameSql($expect, $this->query->getStatement());
+    }
+
+    public function testResetWith()
+    {
+        $sub = $this->newQuery()->cols(['c1'])->from('t1');
+        $this->query->with('cte', $sub)->cols(['*'])->from('cte');
+        $this->query->resetWith();
+
+        $expect = '
+            SELECT
+                *
+            FROM
+                <<cte>>
+        ';
+        $this->assertSameSql($expect, $this->query->getStatement());
+    }
+
+    /**
+     *
+     * resetWith() clears the recursive flag along with the CTEs, so the next
+     * clause built on the query is not silently made recursive -- which SQL
+     * Server rejects outright and the rest read as a different statement.
+     *
+     */
+    public function testResetWithClearsTheRecursiveFlag()
+    {
+        $sub = $this->newQuery()->cols(['c1'])->from('t1');
+        $this->query->withRecursive('cte', $sub);
+        $this->query->resetWith();
+
+        $this->query->with('plain', $sub)->cols(['*'])->from('plain');
+        $expect = '
+            WITH <<plain>> AS (
+                SELECT
+                    c1
+                FROM
+                    <<t1>>
+            )
+            SELECT
+                *
+            FROM
+                <<plain>>
+        ';
+        $this->assertSameSql($expect, $this->query->getStatement());
+    }
+
+    /**
+     *
+     * A WITH clause opens a statement, and a union branch is not one: the
+     * branch would render as `UNION WITH ... SELECT`, which no dialect reads.
+     *
+     */
+    public function testUnionBranchCannotBringItsOwnWith()
+    {
+        $cte = $this->newQuery()->cols(['c1'])->from('t1');
+        $branch = $this->newQuery()->with('bcte', $cte)->cols(['*'])->from('bcte');
+
+        $this->query->cols(['*'])->from('a');
+
+        $this->expectException('Aura\SqlQuery\Exception\LogicException');
+        $this->expectExceptionMessage('defines its own WITH clause');
+        $this->query->union($branch);
+    }
+
+    /**
+     *
+     * A CTE whose values collide with a clause of this query leaves nothing
+     * behind: the names it bound before the collision are released with it,
+     * rather than being held for a CTE the query does not have.
+     *
+     */
+    public function testWithLeavesNoBindsBehindWhenItThrows()
+    {
+        $sub = $this->newQuery()
+            ->cols(['c1'])
+            ->from('t1')
+            ->where('a = :a AND b = :b', ['a' => 1, 'b' => 2]);
+
+        $this->query->cols(['*'])->from('t2')->where('b = :b', ['b' => 99]);
+
+        try {
+            $this->query->with('cte', $sub);
+            $this->fail('Expected the colliding placeholder to be reported.');
+        } catch (\Aura\SqlQuery\Exception\LogicException $e) {
+            // the CTE's own :a is not left bound to a clause that never took
+            $this->assertSame(['b' => 99], $this->query->getBindValues());
+        }
+
+        // and :a is free for whatever wants it next
+        $this->query->having('a = :a', ['a' => 42]);
+        $this->assertSame(['b' => 99, 'a' => 42], $this->query->getBindValues());
+    }
 }

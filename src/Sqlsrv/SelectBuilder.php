@@ -71,4 +71,16 @@ class SelectBuilder extends Common\SelectBuilder
         return $stm . PHP_EOL . "OFFSET {$offset} ROWS "
                     . "FETCH NEXT {$limit} ROWS ONLY";
     }
+
+    /**
+     *
+     * SQL Server does not support the RECURSIVE keyword in CTE.
+     *
+     * @return bool
+     *
+     */
+    protected function allowsRecursiveKeyword()
+    {
+        return false;
+    }
 }

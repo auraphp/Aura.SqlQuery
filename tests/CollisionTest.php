@@ -1178,4 +1178,288 @@ class CollisionTest extends TestCase
             $insert->getBindValues()
         );
     }
+
+    /**
+     *
+     * A union added after a CTE must keep the CTE's claims. If a subsequent
+     * clause or branch tries to rebind one to a different value, it must throw
+     * a collision.
+     *
+     */
+    public function testUnionAfterWithKeepsCteClaimsAndThrowsOnConflict()
+    {
+        $sub = $this->query_factory->newSelect();
+        $sub->cols(['c1'])->from('t1')->where('id = :id', ['id' => 1]);
+
+        $select = $this->query_factory->newSelect();
+        $select->with('cte', $sub);
+
+        // Render the CTE branch into a union branch
+        $select->cols(['*'])->from('cte')->union();
+
+        $this->expectException(Exception\LogicException::class);
+        $select->cols(['*'])->from('t2')->where('id = :id', ['id' => 2]);
+    }
+
+    /**
+     *
+     * A CTE's claim belongs to the statement, not to a branch. So resetting
+     * unions must not free a CTE's name, but resetWith() must.
+     *
+     */
+    public function testCteClaimsSurviveResetUnionsButResetWithFreesThem()
+    {
+        $sub = $this->query_factory->newSelect();
+        $sub->cols(['c1'])->from('t1')->where('id = :id', ['id' => 1]);
+
+        $select = $this->query_factory->newSelect();
+        $select->with('cte', $sub);
+
+        // Render the CTE branch into a union branch
+        $select->cols(['*'])->from('cte')->union();
+
+        // Reset unions
+        $select->resetUnions();
+
+        // The CTE's claim on :id should still be active, so a conflicting rebind throws
+        try {
+            $select->where('id = :id', ['id' => 2]);
+            $this->fail('Expected collision since CTE claim should survive resetUnions()');
+        } catch (Exception\LogicException $e) {
+            // expected
+        }
+
+        // Reset with
+        $select->resetWith();
+
+        // Now we should be able to bind it to a different value without collision
+        $select->where('id = :id', ['id' => 2]);
+        $this->assertSame(['id' => 2], $select->getBindValues());
+    }
+
+    /**
+     *
+     * A rendered branch may spell a name the CTE binds, when a clause of that
+     * branch was sharing it. The CTE is the live claimant, so the name must
+     * come out of the reset labelled 'with' rather than 'union': labelled the
+     * other way, resetUnions() frees a name the CTE still binds, and the next
+     * clause may then bind it to a value of its own with nothing to report
+     * the clash. This is what fixes the order the claims are restored in.
+     *
+     */
+    public function testCteKeepsAClaimARenderedBranchAlsoSpells()
+    {
+        $sub = $this->query_factory->newSelect();
+        $sub->cols(['c1'])->from('t1')->where('id = :id', ['id' => 1]);
+
+        $select = $this->query_factory->newSelect();
+        $select->with('cte', $sub)
+               ->cols(['*'])
+               ->from('cte')
+               ->where('id = :id', ['id' => 1])
+               ->union()
+               ->cols(['*'])
+               ->from('t2');
+
+        // the union is gone; the CTE is not, and it still binds :id
+        $select->resetUnions();
+
+        $this->expectException(Exception\LogicException::class);
+        $select->where('id = :id', ['id' => 2]);
+    }
+
+    /**
+     *
+     * The union may hold a name a CTE only shares. The shared list does not
+     * survive the render, so a CTE recorded there and nowhere else would come
+     * out of the next union() holding nothing, and the branch after that
+     * could rebind the name the CTE is still spelling.
+     *
+     */
+    public function testCteKeepsAClaimItOnlySharesWithTheUnion()
+    {
+        $sub = $this->query_factory->newSelect();
+        $sub->cols(['c1'])->from('t1')->where('id = :id', ['id' => 1]);
+
+        $select = $this->query_factory->newSelect();
+        $select->cols(['*'])->from('a')->where('id = :id', ['id' => 1])->union();
+
+        // the union holds :id already, so the CTE comes in as the sharer
+        $select->with('cte', $sub);
+
+        $select->cols(['*'])->from('b')->union();
+        $select->resetUnions();
+
+        $this->expectException(Exception\LogicException::class);
+        $select->where('id = :id', ['id' => 999]);
+    }
+
+    /**
+     *
+     * And the mirror: a name the CTE holds which a rendered branch also
+     * spells belongs to both, so resetWith() hands it to the union rather
+     * than freeing it. Freed, the branch would go on reading a placeholder
+     * the next clause is at liberty to rebind.
+     *
+     */
+    public function testResetWithHandsBackANameARenderedBranchSpells()
+    {
+        $sub = $this->query_factory->newSelect();
+        $sub->cols(['c1'])->from('t1')->where('id = :id', ['id' => 1]);
+
+        $select = $this->query_factory->newSelect();
+        $select->with('cte', $sub)
+               ->cols(['*'])
+               ->from('cte')
+               ->where('id = :id', ['id' => 1])
+               ->union()
+               ->cols(['*'])
+               ->from('t2');
+
+        // the CTE is gone, but the branch retained above still spells :id
+        $select->resetWith();
+
+        $this->expectException(Exception\LogicException::class);
+        $select->where('id = :id', ['id' => 777]);
+    }
+
+    /**
+     *
+     * An outer clause reusing a CTE name with the same value is allowed,
+     * but reusing it with a different value throws.
+     *
+     */
+    public function testOuterClauseReusingCteNameSameValueAllowedDifferentValueThrows()
+    {
+        $sub = $this->query_factory->newSelect();
+        $sub->cols(['c1'])->from('t1')->where('id = :id', ['id' => 1]);
+
+        $select = $this->query_factory->newSelect();
+        $select->with('cte', $sub);
+
+        // Same value is allowed
+        $select->where('id = :id', ['id' => 1]);
+
+        // Different value throws
+        $select2 = $this->query_factory->newSelect();
+        $select2->with('cte', $sub);
+
+        $this->expectException(Exception\LogicException::class);
+        $select2->where('id = :id', ['id' => 2]);
+    }
+
+    /**
+     *
+     * union() reaches the sharing rule only ever holding the name itself:
+     * addUnion() renders the branch being closed and re-reads the claims from
+     * that SQL before the supplied branch's values are bound, so a clause's
+     * claim has already passed to the union by then. The CTE rule added
+     * beside this one therefore leaves union() where it was; this pins that,
+     * since the two are read in one place and it would be easy to widen the
+     * wrong one.
+     *
+     */
+    public function testUnionKeepsItsOwnSharingRule()
+    {
+        $branch = $this->query_factory->newSelect();
+        $branch->cols(['*'])->from('b')->where('id = :id', ['id' => 1]);
+
+        $select = $this->query_factory->newSelect();
+        $select->cols(['*'])->from('a')->where('id = :id', ['id' => 1]);
+        $select->union($branch);
+
+        $this->assertSame(['id' => 1], $select->getBindValues());
+
+        // the union holds the name, so a branch wanting a different value for
+        // it is still caught
+        $this->expectException(Exception\LogicException::class);
+        $select->where('id = :id', ['id' => 2]);
+    }
+
+    /**
+     *
+     * A hand-bound value claims nothing, so a CTE asking for the same name
+     * and value takes the claim and records no second claimant. Recording
+     * one would put a name in the shared list that no clause is holding,
+     * and resetWith() would then hand the name to nobody.
+     *
+     */
+    public function testCteTakesTheClaimOnAHandBoundName()
+    {
+        $sub = $this->query_factory->newSelect();
+        $sub->cols(['c1'])->from('t1')->where('id = :id', ['id' => 5]);
+
+        $select = $this->query_factory->newSelect();
+        $select->bindValue('id', 5);
+        $select->with('cte', $sub);
+
+        // the CTE holds it now, so a clause wanting a different value throws
+        try {
+            $select->where('id = :id', ['id' => 6]);
+            $this->fail('Expected the CTE to hold the placeholder name.');
+        } catch (Exception\LogicException $e) {
+            $this->assertStringContainsString("':id'", $e->getMessage());
+            $this->assertStringContainsString('common table expression', $e->getMessage());
+        }
+
+        // and once the CTE is gone the name is free again, rather than being
+        // handed to a sharer that was never there
+        $select->resetWith();
+        $select->where('id = :id', ['id' => 6]);
+        $this->assertSame(['id' => 6], $select->getBindValues());
+    }
+
+    /**
+     *
+     * resetWith() hands a shared name over to the WHERE clause sharing it,
+     * so that resetting the CTE does not release the name when the WHERE is
+     * still using it.
+     *
+     */
+    public function testResetWithHandsSharedNameToSharingClause()
+    {
+        $sub = $this->query_factory->newSelect();
+        $sub->cols(['c1'])->from('t1')->where('id = :id', ['id' => 1]);
+
+        $select = $this->query_factory->newSelect();
+        $select->with('cte', $sub);
+
+        // Share the name in WHERE
+        $select->where('id = :id', ['id' => 1]);
+
+        // Reset the CTE
+        $select->resetWith();
+
+        // The WHERE still uses the name, so a conflicting rebind in HAVING should throw
+        $this->expectException(Exception\LogicException::class);
+        $select->having('id = :id', ['id' => 2]);
+    }
+
+    /**
+     *
+     * Reusing a name when the WHERE is bound first and the CTE is bound second
+     * is also allowed if values are identical.
+     *
+     */
+    public function testCteReusingOuterClauseNameSameValueAllowed()
+    {
+        $sub = $this->query_factory->newSelect();
+        $sub->cols(['c1'])->from('t1')->where('id = :id', ['id' => 1]);
+
+        $select = $this->query_factory->newSelect();
+        $select->where('id = :id', ['id' => 1]);
+
+        // Same value is allowed
+        $select->with('cte', $sub);
+
+        // Different value throws
+        $select2 = $this->query_factory->newSelect();
+        $select2->where('id = :id', ['id' => 1]);
+
+        $sub2 = $this->query_factory->newSelect();
+        $sub2->cols(['c1'])->from('t1')->where('id = :id', ['id' => 2]);
+
+        $this->expectException(Exception\LogicException::class);
+        $select2->with('cte', $sub2);
+    }
 }

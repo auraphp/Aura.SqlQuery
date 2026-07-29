@@ -51,4 +51,28 @@ class SelectTest extends Common\SelectTest
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
     }
+
+    protected function withRecursiveKeyword()
+    {
+        return 'WITH';
+    }
+
+    public function testWithLimit()
+    {
+        $sub = $this->newQuery()->cols(['c1'])->from('t1');
+        $this->query->with('cte', $sub)->cols(['*'])->from('cte')->limit(10);
+        $expect = '
+            WITH <<cte>> AS (
+                SELECT
+                    c1
+                FROM
+                    <<t1>>
+            )
+            SELECT TOP 10
+                *
+            FROM
+                <<cte>>
+        ';
+        $this->assertSameSql($expect, $this->query->getStatement());
+    }
 }
