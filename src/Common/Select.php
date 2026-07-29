@@ -900,6 +900,9 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @return $this
      *
+     * @throws LogicException when handed this very query, or a branch
+     * defining a WITH clause of its own.
+     *
      */
     public function union(?SelectInterface $select = null)
     {
@@ -915,6 +918,9 @@ class Select extends AbstractQuery implements SelectInterface
      * own; when omitted, this query is reset to build that branch itself.
      *
      * @return $this
+     *
+     * @throws LogicException when handed this very query, or a branch
+     * defining a WITH clause of its own.
      *
      */
     public function unionAll(?SelectInterface $select = null)
@@ -944,7 +950,10 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @return $this
      *
-     * @throws LogicException when handed this very query.
+     * @throws LogicException when handed this very query, or a branch
+     * defining a WITH clause of its own: the clause opens a statement and
+     * there is none here for it to open, so the CTE goes on the query the
+     * union belongs to.
      *
      */
     protected function addUnion($type, ?SelectInterface $select)
