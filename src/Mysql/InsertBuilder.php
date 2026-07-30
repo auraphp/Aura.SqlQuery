@@ -55,9 +55,9 @@ class InsertBuilder extends Common\InsertBuilder
             return ''; // not applicable
         }
 
-        $values = array();
+        $values = [];
         foreach ($col_on_update_values as $key => $row) {
-            $values[] = $this->indent(array($key . ' = ' . $row));
+            $values[] = $this->indent([$key . ' = ' . $row]);
         }
 
         return ' ON DUPLICATE KEY UPDATE'

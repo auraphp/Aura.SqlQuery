@@ -71,7 +71,7 @@ trait OnConflictUpdateTrait
     public function onConflict($target)
     {
         if (is_array($target)) {
-            $cols = array();
+            $cols = [];
             foreach ($target as $col) {
                 $cols[] = $this->quoter->quoteName($this->assertConflictName($col));
             }

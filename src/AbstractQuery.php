@@ -28,7 +28,7 @@ abstract class AbstractQuery
      * @var array
      *
      */
-    protected $bind_values = array();
+    protected $bind_values = [];
 
     /**
      *
@@ -38,7 +38,7 @@ abstract class AbstractQuery
      * @var array
      *
      */
-    protected $bind_sources = array();
+    protected $bind_sources = [];
 
     /**
      *
@@ -50,7 +50,7 @@ abstract class AbstractQuery
      * @var array
      *
      */
-    protected $bind_shared = array();
+    protected $bind_shared = [];
 
     /**
      *
@@ -59,7 +59,7 @@ abstract class AbstractQuery
      * @var array
      *
      */
-    protected $bind_source_labels = array(
+    protected $bind_source_labels = [
         'col' => 'cols()',
         'cond' => 'a condition',
         'where' => 'a WHERE condition',
@@ -71,7 +71,7 @@ abstract class AbstractQuery
         'conflict' => 'doUpdateCol()',
         'duplicate_key' => 'onDuplicateKeyUpdateCol()',
         'bulk_col' => 'a bulk-insert row',
-    );
+    ];
 
     /**
      *
@@ -80,7 +80,7 @@ abstract class AbstractQuery
      * @var array
      *
      */
-    protected $where = array();
+    protected $where = [];
 
     /**
      *
@@ -89,7 +89,7 @@ abstract class AbstractQuery
      * @var array
      *
      */
-    protected $order_by = array();
+    protected $order_by = [];
 
     /**
      *
@@ -98,7 +98,7 @@ abstract class AbstractQuery
      * @var array
      *
      */
-    protected $flags = array();
+    protected $flags = [];
 
     /**
      *
@@ -287,7 +287,7 @@ abstract class AbstractQuery
         // must be the one holding the name first. Widening that is a change
         // to how union() behaves, wanted or not, and it belongs to union
         // rather than to the clause being added here.
-        $prior_owns = in_array($prior, array('union', 'with'), true);
+        $prior_owns = in_array($prior, ['union', 'with'], true);
         $source_owns = $source === 'with';
 
         if (
@@ -460,9 +460,9 @@ abstract class AbstractQuery
      */
     public function resetBindValues()
     {
-        $this->bind_values = array();
-        $this->bind_sources = array();
-        $this->bind_shared = array();
+        $this->bind_values = [];
+        $this->bind_sources = [];
+        $this->bind_shared = [];
         return $this;
     }
 
@@ -553,7 +553,7 @@ abstract class AbstractQuery
      */
     public function resetFlags()
     {
-        $this->flags = array();
+        $this->flags = [];
         return $this;
     }
 

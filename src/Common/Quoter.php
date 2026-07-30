@@ -94,7 +94,7 @@ class Quoter implements QuoterInterface
             return $spec;
         }
 
-        $seps = array(' AS ', ' ', '.');
+        $seps = [' AS ', ' ', '.'];
         foreach ($seps as $sep) {
             $pos = strripos($spec, $sep);
             if ($pos) {

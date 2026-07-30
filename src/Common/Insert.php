@@ -67,7 +67,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @var array
      *
      */
-    protected $col_values_bulk = array();
+    protected $col_values_bulk = [];
 
     /**
      *
@@ -76,7 +76,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @var array
      *
      */
-    protected $bind_values_bulk = array();
+    protected $bind_values_bulk = [];
 
     /**
      *
@@ -88,7 +88,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @var array
      *
      */
-    protected $bind_sources_bulk = array();
+    protected $bind_sources_bulk = [];
 
     /**
      *
@@ -98,7 +98,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @var array
      *
      */
-    protected $col_order = array();
+    protected $col_order = [];
 
     /**
      *
@@ -288,7 +288,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @return $this
      *
      */
-    public function addRow(array $cols = array())
+    public function addRow(array $cols = [])
     {
         if (empty($this->col_values)) {
             return $this->cols($cols);
@@ -440,7 +440,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
             }
         }
 
-        $this->col_values = array();
+        $this->col_values = [];
     }
 
     /**
@@ -521,8 +521,8 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      */
     public function resetBindValues()
     {
-        $this->bind_values_bulk = array();
-        $this->bind_sources_bulk = array();
+        $this->bind_values_bulk = [];
+        $this->bind_sources_bulk = [];
         return parent::resetBindValues();
     }
 

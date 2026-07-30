@@ -30,7 +30,7 @@ interface WithInterface
      * @return $this
      *
      */
-    public function with($name, $spec, array $cols = array());
+    public function with($name, $spec, array $cols = []);
 
     /**
      *
@@ -45,7 +45,7 @@ interface WithInterface
      * @return $this
      *
      */
-    public function withRecursive($name, $spec, array $cols = array());
+    public function withRecursive($name, $spec, array $cols = []);
 
     /**
      *

@@ -55,7 +55,7 @@ class SelectBuilder extends AbstractBuilder
             return ''; // not applicable
         }
 
-        $refs = array();
+        $refs = [];
         foreach ($from as $from_key => $from_val) {
             if (isset($join[$from_key])) {
                 $from_val = array_merge($from_val, $join[$from_key]);

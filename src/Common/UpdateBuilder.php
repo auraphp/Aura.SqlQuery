@@ -42,7 +42,7 @@ class UpdateBuilder extends AbstractBuilder
      */
     public function buildValuesForUpdate(array $col_values)
     {
-        $values = array();
+        $values = [];
         foreach ($col_values as $col => $value) {
             $values[] = "{$col} = {$value}";
         }

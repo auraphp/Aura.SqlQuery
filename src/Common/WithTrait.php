@@ -27,7 +27,7 @@ trait WithTrait
      * @var array
      *
      */
-    protected $with = array();
+    protected $with = [];
 
     /**
      *
@@ -87,7 +87,7 @@ trait WithTrait
      * is already taken.
      *
      */
-    public function with($name, $spec, array $cols = array())
+    public function with($name, $spec, array $cols = [])
     {
         // a query cannot be a CTE of itself: it would have to be rendered
         // into the clause at the moment it must stand apart from it. The
@@ -116,7 +116,7 @@ trait WithTrait
 
         $head = $this->quoter->quoteName($name);
         if (! empty($cols)) {
-            $quoted = array();
+            $quoted = [];
             foreach ($cols as $col) {
                 $quoted[] = $this->quoter->quoteName($col);
             }
@@ -164,7 +164,7 @@ trait WithTrait
      * @return $this
      *
      */
-    public function withRecursive($name, $spec, array $cols = array())
+    public function withRecursive($name, $spec, array $cols = [])
     {
         // added first, so that a CTE that cannot render leaves the clause as
         // it was rather than marking it recursive on the way to throwing.
@@ -194,7 +194,7 @@ trait WithTrait
      */
     public function resetWith()
     {
-        $this->with = array();
+        $this->with = [];
         $this->with_recursive = false;
 
         // the CTEs are gone, so nothing binds their placeholders any more:
