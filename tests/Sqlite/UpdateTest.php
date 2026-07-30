@@ -27,13 +27,13 @@ class UpdateTest extends Common\UpdateTest
     public function testOrderLimit()
     {
         $this->query->table('t1')
-                    ->cols(array('c1', 'c2', 'c3'))
+                    ->cols(['c1', 'c2', 'c3'])
                     ->set('c4', null)
                     ->set('c5', 'NOW()')
                     ->where('foo = :foo', ['foo' => 'bar'])
                     ->where('baz = :baz', ['baz' => 'dib'])
                     ->orWhere('zim = gir')
-                    ->orderBy(array('zim DESC', 'baz ASC'))
+                    ->orderBy(['zim DESC', 'baz ASC'])
                     ->limit(5)
                     ->offset(10);
 
@@ -58,10 +58,10 @@ class UpdateTest extends Common\UpdateTest
         $this->assertSameSql($expect, $actual);
 
         $actual = $this->query->getBindValues();
-        $expect = array(
+        $expect = [
             'foo' => 'bar',
             'baz' => 'dib',
-        );
+        ];
         $this->assertSame($expect, $actual);
     }
 
@@ -69,7 +69,7 @@ class UpdateTest extends Common\UpdateTest
     {
         $this->query->orAbort()
                     ->table('t1')
-                    ->cols(array('c1', 'c2', 'c3'))
+                    ->cols(['c1', 'c2', 'c3'])
                     ->set('c4', null)
                     ->set('c5', 'NOW()')
                     ->where('foo = :foo', ['foo' => 'bar'])
@@ -82,10 +82,10 @@ class UpdateTest extends Common\UpdateTest
         $this->assertSameSql($expect, $actual);
 
         $actual = $this->query->getBindValues();
-        $expect = array(
+        $expect = [
             'foo' => 'bar',
             'baz' => 'dib',
-        );
+        ];
         $this->assertSame($expect, $actual);
     }
 
@@ -93,7 +93,7 @@ class UpdateTest extends Common\UpdateTest
     {
         $this->query->orFail()
                     ->table('t1')
-                    ->cols(array('c1', 'c2', 'c3'))
+                    ->cols(['c1', 'c2', 'c3'])
                     ->set('c4', null)
                     ->set('c5', 'NOW()')
                     ->where('foo = :foo', ['foo' => 'bar'])
@@ -106,10 +106,10 @@ class UpdateTest extends Common\UpdateTest
         $this->assertSameSql($expect, $actual);
 
         $actual = $this->query->getBindValues();
-        $expect = array(
+        $expect = [
             'foo' => 'bar',
             'baz' => 'dib',
-        );
+        ];
         $this->assertSame($expect, $actual);
     }
 
@@ -117,7 +117,7 @@ class UpdateTest extends Common\UpdateTest
     {
         $this->query->ignore()
                     ->table('t1')
-                    ->cols(array('c1', 'c2', 'c3'))
+                    ->cols(['c1', 'c2', 'c3'])
                     ->set('c4', null)
                     ->set('c5', 'NOW()')
                     ->where('foo = :foo', ['foo' => 'bar'])
@@ -130,10 +130,10 @@ class UpdateTest extends Common\UpdateTest
         $this->assertSameSql($expect, $actual);
 
         $actual = $this->query->getBindValues();
-        $expect = array(
+        $expect = [
             'foo' => 'bar',
             'baz' => 'dib',
-        );
+        ];
         $this->assertSame($expect, $actual);
     }
 
@@ -141,7 +141,7 @@ class UpdateTest extends Common\UpdateTest
     {
         $this->query->orIgnore()
                     ->table('t1')
-                    ->cols(array('c1', 'c2', 'c3'))
+                    ->cols(['c1', 'c2', 'c3'])
                     ->set('c4', null)
                     ->set('c5', 'NOW()')
                     ->where('foo = :foo', ['foo' => 'bar'])
@@ -154,10 +154,10 @@ class UpdateTest extends Common\UpdateTest
         $this->assertSameSql($expect, $actual);
 
         $actual = $this->query->getBindValues();
-        $expect = array(
+        $expect = [
             'foo' => 'bar',
             'baz' => 'dib',
-        );
+        ];
         $this->assertSame($expect, $actual);
     }
 
@@ -165,7 +165,7 @@ class UpdateTest extends Common\UpdateTest
     {
         $this->query->orReplace()
                     ->table('t1')
-                    ->cols(array('c1', 'c2', 'c3'))
+                    ->cols(['c1', 'c2', 'c3'])
                     ->set('c4', null)
                     ->set('c5', 'NOW()')
                     ->where('foo = :foo', ['foo' => 'bar'])
@@ -178,10 +178,10 @@ class UpdateTest extends Common\UpdateTest
         $this->assertSameSql($expect, $actual);
 
         $actual = $this->query->getBindValues();
-        $expect = array(
+        $expect = [
             'foo' => 'bar',
             'baz' => 'dib',
-        );
+        ];
         $this->assertSame($expect, $actual);
     }
 
@@ -189,7 +189,7 @@ class UpdateTest extends Common\UpdateTest
     {
         $this->query->orRollback()
                     ->table('t1')
-                    ->cols(array('c1', 'c2', 'c3'))
+                    ->cols(['c1', 'c2', 'c3'])
                     ->set('c4', null)
                     ->set('c5', 'NOW()')
                     ->where('foo = :foo', ['foo' => 'bar'])
@@ -202,10 +202,10 @@ class UpdateTest extends Common\UpdateTest
         $this->assertSameSql($expect, $actual);
 
         $actual = $this->query->getBindValues();
-        $expect = array(
+        $expect = [
             'foo' => 'bar',
             'baz' => 'dib',
-        );
+        ];
         $this->assertSame($expect, $actual);
     }
 
@@ -218,21 +218,21 @@ class UpdateTest extends Common\UpdateTest
             name VARCHAR(50) NOT NULL
         )");
 
-        $names = array(
+        $names = [
             'Anna', 'Betty', 'Clara', 'Donna', 'Flora',
             'Gina', 'Hanna', 'Ione', 'Julia', 'Kara',
-        );
+        ];
 
         $stm = "INSERT INTO test (name) VALUES (:name)";
         foreach ($names as $name) {
             $sth = $pdo->prepare($stm);
-            $sth->execute(array('name' => $name));
+            $sth->execute(['name' => $name]);
         }
 
         $this->query->table('test')
-                    ->cols(array('name'))
+                    ->cols(['name'])
                     ->where('id = :id', ['id' => 1])
-                    ->bindValues(array('name' => 'Annabelle'));
+                    ->bindValues(['name' => 'Annabelle']);
 
         $stm = $this->query->__toString();
         $bind = $this->query->getBindValues();
@@ -267,7 +267,7 @@ class UpdateTest extends Common\UpdateTest
         $this->query->$first()
                     ->$second()
                     ->table('t1')
-                    ->cols(array('c1'));
+                    ->cols(['c1']);
 
         $this->expectException('Aura\SqlQuery\Exception\LogicException');
         $this->expectExceptionMessage($message);
@@ -276,11 +276,11 @@ class UpdateTest extends Common\UpdateTest
 
     public static function provideConflictClausePair()
     {
-        return array(
-            array('orIgnore', 'orReplace', 'OR IGNORE and OR REPLACE'),
-            array('ignore', 'orReplace', 'OR IGNORE and OR REPLACE'),
-            array('orAbort', 'orFail', 'OR ABORT and OR FAIL'),
-            array('orRollback', 'orAbort', 'OR ABORT and OR ROLLBACK'),
-        );
+        return [
+            ['orIgnore', 'orReplace', 'OR IGNORE and OR REPLACE'],
+            ['ignore', 'orReplace', 'OR IGNORE and OR REPLACE'],
+            ['orAbort', 'orFail', 'OR ABORT and OR FAIL'],
+            ['orRollback', 'orAbort', 'OR ABORT and OR ROLLBACK'],
+        ];
     }
 }

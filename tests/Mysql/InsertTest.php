@@ -85,7 +85,7 @@ class InsertTest extends Common\InsertTest
     {
         $this->query->highPriority()
                     ->into('t1')
-                    ->cols(array('c1', 'c2', 'c3'))
+                    ->cols(['c1', 'c2', 'c3'])
                     ->set('c4', 'NOW()')
                     ->set('c5', null);
 
@@ -99,7 +99,7 @@ class InsertTest extends Common\InsertTest
     {
         $this->query->orReplace()
                     ->into('t1')
-                    ->cols(array('c1', 'c2', 'c3'))
+                    ->cols(['c1', 'c2', 'c3'])
                     ->set('c4', 'NOW()')
                     ->set('c5', null);
 
@@ -116,7 +116,7 @@ class InsertTest extends Common\InsertTest
         $this->query->orReplace()
                     ->$method()
                     ->into('t1')
-                    ->cols(array('c1', 'c2', 'c3'))
+                    ->cols(['c1', 'c2', 'c3'])
                     ->set('c4', 'NOW()')
                     ->set('c5', null);
 
@@ -128,18 +128,18 @@ class InsertTest extends Common\InsertTest
 
     public static function provideReplaceFlagAllowed()
     {
-        return array(
-            array('lowPriority', 'LOW_PRIORITY'),
-            array('delayed', 'DELAYED'),
-        );
+        return [
+            ['lowPriority', 'LOW_PRIORITY'],
+            ['delayed', 'DELAYED'],
+        ];
     }
 
     public static function provideReplaceFlagForbidden()
     {
-        return array(
-            array('highPriority', 'HIGH_PRIORITY'),
-            array('ignore', 'IGNORE'),
-        );
+        return [
+            ['highPriority', 'HIGH_PRIORITY'],
+            ['ignore', 'IGNORE'],
+        ];
     }
 
     /**
@@ -152,7 +152,7 @@ class InsertTest extends Common\InsertTest
         $this->query->orReplace()
                     ->$method()
                     ->into('t1')
-                    ->cols(array('c1'));
+                    ->cols(['c1']);
 
         $this->expectException('Aura\SqlQuery\Exception\LogicException');
         $this->expectExceptionMessage("A REPLACE cannot take the $flag flag.");
@@ -169,7 +169,7 @@ class InsertTest extends Common\InsertTest
         $this->query->$method()
                     ->orReplace()
                     ->into('t1')
-                    ->cols(array('c1'));
+                    ->cols(['c1']);
 
         $this->expectException('Aura\SqlQuery\Exception\LogicException');
         $this->expectExceptionMessage("A REPLACE cannot take the $flag flag.");
@@ -187,7 +187,7 @@ class InsertTest extends Common\InsertTest
         $this->query->$first()
                     ->$second()
                     ->into('t1')
-                    ->cols(array('c1'));
+                    ->cols(['c1']);
 
         $this->expectException('Aura\SqlQuery\Exception\LogicException');
         $this->expectExceptionMessage($message);
@@ -196,16 +196,16 @@ class InsertTest extends Common\InsertTest
 
     public static function providePriorityModifierPair()
     {
-        $pairs = array(
-            array('lowPriority', 'highPriority', 'LOW_PRIORITY and HIGH_PRIORITY'),
-            array('lowPriority', 'delayed', 'LOW_PRIORITY and DELAYED'),
-            array('highPriority', 'delayed', 'HIGH_PRIORITY and DELAYED'),
-        );
+        $pairs = [
+            ['lowPriority', 'highPriority', 'LOW_PRIORITY and HIGH_PRIORITY'],
+            ['lowPriority', 'delayed', 'LOW_PRIORITY and DELAYED'],
+            ['highPriority', 'delayed', 'HIGH_PRIORITY and DELAYED'],
+        ];
 
-        $both_orders = array();
+        $both_orders = [];
         foreach ($pairs as $pair) {
             $both_orders[] = $pair;
-            $both_orders[] = array($pair[1], $pair[0], $pair[2]);
+            $both_orders[] = [$pair[1], $pair[0], $pair[2]];
         }
         return $both_orders;
     }
@@ -219,7 +219,7 @@ class InsertTest extends Common\InsertTest
                     ->lowPriority()
                     ->delayed()
                     ->into('t1')
-                    ->cols(array('c1'));
+                    ->cols(['c1']);
 
         $this->expectException('Aura\SqlQuery\Exception\LogicException');
         $this->expectExceptionMessage('LOW_PRIORITY and DELAYED');
@@ -236,7 +236,7 @@ class InsertTest extends Common\InsertTest
                     ->ignore()
                     ->ignore(false)
                     ->into('t1')
-                    ->cols(array('c1', 'c2', 'c3'))
+                    ->cols(['c1', 'c2', 'c3'])
                     ->set('c4', 'NOW()')
                     ->set('c5', null);
 
@@ -253,7 +253,7 @@ class InsertTest extends Common\InsertTest
     {
         $this->query->lowPriority()
                     ->into('t1')
-                    ->cols(array('c1', 'c2', 'c3'))
+                    ->cols(['c1', 'c2', 'c3'])
                     ->set('c4', 'NOW()')
                     ->set('c5', null);
 
@@ -267,7 +267,7 @@ class InsertTest extends Common\InsertTest
     {
         $this->query->delayed()
                     ->into('t1')
-                    ->cols(array('c1', 'c2', 'c3'))
+                    ->cols(['c1', 'c2', 'c3'])
                     ->set('c4', 'NOW()')
                     ->set('c5', null);
 
@@ -281,7 +281,7 @@ class InsertTest extends Common\InsertTest
     {
         $this->query->ignore()
                     ->into('t1')
-                    ->cols(array('c1', 'c2', 'c3'))
+                    ->cols(['c1', 'c2', 'c3'])
                     ->set('c4', 'NOW()')
                     ->set('c5', null);
 
@@ -294,10 +294,10 @@ class InsertTest extends Common\InsertTest
     public function testOnDuplicateKeyUpdate()
     {
         $this->query->into('t1')
-                    ->cols(array('c1', 'c2' => 'c2-inserted', 'c3'))
+                    ->cols(['c1', 'c2' => 'c2-inserted', 'c3'])
                     ->set('c4', 'NOW()')
                     ->set('c5', null)
-                    ->onDuplicateKeyUpdateCols(array('c1', 'c2' => 'c2-updated', 'c3'))
+                    ->onDuplicateKeyUpdateCols(['c1', 'c2' => 'c2-updated', 'c3'])
                     ->onDuplicateKeyUpdate('c4', null)
                     ->onDuplicateKeyUpdateCol('c5', 'c5-updated');
 
@@ -305,11 +305,11 @@ class InsertTest extends Common\InsertTest
         $expect = $this->expected_sql_on_duplicate_key_update;
         $this->assertSameSql($expect, $actual);
 
-        $expect = array (
+        $expect = [
             'c2' => 'c2-inserted',
             'c2__on_duplicate_key' => 'c2-updated',
             'c5__on_duplicate_key' => 'c5-updated',
-        );
+        ];
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);
     }
@@ -326,8 +326,8 @@ class InsertTest extends Common\InsertTest
     public function testBulkInsertKeepsTheOnDuplicateKeyUpdateBind()
     {
         $this->query->into('t1')
-                    ->cols(array('c1' => 'v1-0'))
-                    ->addRow(array('c1' => 'v1-1'))
+                    ->cols(['c1' => 'v1-0'])
+                    ->addRow(['c1' => 'v1-1'])
                     ->onDuplicateKeyUpdateCol('c1', 'c1-updated');
 
         $actual = $this->query->__toString();
@@ -341,11 +341,11 @@ class InsertTest extends Common\InsertTest
         ';
         $this->assertSameSql($expect, $actual);
 
-        $expect = array(
+        $expect = [
             'c1__on_duplicate_key' => 'c1-updated',
             'c1_0' => 'v1-0',
             'c1_1' => 'v1-1',
-        );
+        ];
         $this->assertSame($expect, $this->query->getBindValues());
     }
 
@@ -360,7 +360,7 @@ class InsertTest extends Common\InsertTest
     {
         $this->query->orReplace()
                     ->into('t1')
-                    ->cols(array('c1'))
+                    ->cols(['c1'])
                     ->onDuplicateKeyUpdate('c1', 'new-val');
 
         $this->expectException('Aura\SqlQuery\Exception\LogicException');

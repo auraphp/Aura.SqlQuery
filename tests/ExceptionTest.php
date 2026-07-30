@@ -11,11 +11,11 @@ class ExceptionTest extends TestCase
      */
     public function testAllAreLogicExceptions()
     {
-        $exceptions = array(
+        $exceptions = [
             new Exception\LogicException('message'),
             new Exception\BadMethodCallException('message'),
             new Exception\InvalidArgumentException('message'),
-        );
+        ];
         foreach ($exceptions as $e) {
             $this->assertInstanceOf(\LogicException::class, $e);
         }
@@ -39,11 +39,11 @@ class ExceptionTest extends TestCase
      */
     public function testAllImplementMarkerInterface()
     {
-        $exceptions = array(
+        $exceptions = [
             new Exception\LogicException('message'),
             new Exception\BadMethodCallException('message'),
             new Exception\InvalidArgumentException('message'),
-        );
+        ];
         foreach ($exceptions as $e) {
             $this->assertInstanceOf(ExceptionInterface::class, $e);
             $this->assertInstanceOf(Exception::class, $e);

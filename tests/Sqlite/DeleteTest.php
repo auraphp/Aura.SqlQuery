@@ -24,7 +24,7 @@ class DeleteTest extends Common\DeleteTest
                     ->where('foo = :foo', ['foo' => 'bar'])
                     ->where('baz = :baz', ['baz' => 'dib'])
                     ->orWhere('zim = gir')
-                    ->orderBy(array('zim DESC'))
+                    ->orderBy(['zim DESC'])
                     ->limit(5)
                     ->offset(10);
 
@@ -42,10 +42,10 @@ class DeleteTest extends Common\DeleteTest
         $this->assertSameSql($expect, $actual);
 
         $actual = $this->query->getBindValues();
-        $expect = array(
+        $expect = [
             'foo' => 'bar',
             'baz' => 'dib',
-        );
+        ];
         $this->assertSame($expect, $actual);
     }
 

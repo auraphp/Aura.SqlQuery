@@ -28,10 +28,10 @@ class CollisionTest extends TestCase
     public function testColsAndWhereCollide()
     {
         $update = $this->query_factory->newUpdate();
-        $update->table('t1')->cols(array('id' => 1));
+        $update->table('t1')->cols(['id' => 1]);
 
         $this->expectException(Exception\LogicException::class);
-        $update->where('id = :id', array('id' => 2));
+        $update->where('id = :id', ['id' => 2]);
     }
 
     public function testDoUpdateColCollidesWithCols()
@@ -39,7 +39,7 @@ class CollisionTest extends TestCase
         $insert = $this->newFactory('pgsql')->newInsert();
         $insert
             ->into('t1')
-            ->cols(array('status__on_conflict' => 'from cols'))
+            ->cols(['status__on_conflict' => 'from cols'])
             ->onConflict('id');
 
         $this->expectException(Exception\LogicException::class);
@@ -51,7 +51,7 @@ class CollisionTest extends TestCase
         $insert = $this->newFactory('mysql')->newInsert();
         $insert
             ->into('t1')
-            ->cols(array('status__on_duplicate_key' => 'from cols'));
+            ->cols(['status__on_duplicate_key' => 'from cols']);
 
         $this->expectException(Exception\LogicException::class);
         $insert->onDuplicateKeyUpdateCol('status', 'from on duplicate key');
@@ -69,10 +69,10 @@ class CollisionTest extends TestCase
     public function testCollisionMessageNamesBothSources()
     {
         $update = $this->query_factory->newUpdate();
-        $update->table('t1')->cols(array('id' => 1));
+        $update->table('t1')->cols(['id' => 1]);
 
         try {
-            $update->where('id = :id', array('id' => 2));
+            $update->where('id = :id', ['id' => 2]);
             $this->fail('Expected a collision on the :id placeholder.');
         } catch (Exception\LogicException $e) {
             $message = $e->getMessage();
@@ -92,10 +92,10 @@ class CollisionTest extends TestCase
     public function testSameValueFromTwoSourcesStillCollides()
     {
         $update = $this->query_factory->newUpdate();
-        $update->table('t1')->cols(array('id' => 1));
+        $update->table('t1')->cols(['id' => 1]);
 
         $this->expectException(Exception\LogicException::class);
-        $update->where('id = :id', array('id' => 1));
+        $update->where('id = :id', ['id' => 1]);
     }
 
     /**
@@ -109,72 +109,72 @@ class CollisionTest extends TestCase
     public function testTwoConditionsCannotShareAPlaceholder()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('t1')->where('a = :id', array('id' => 1));
+        $select->cols(['*'])->from('t1')->where('a = :id', ['id' => 1]);
 
         $this->expectException(Exception\LogicException::class);
-        $select->where('b = :id', array('id' => 2));
+        $select->where('b = :id', ['id' => 2]);
     }
 
     public function testWhereAndHavingCannotShareAPlaceholder()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('a'))->from('t1')->where('a = :x', array('x' => 1));
+        $select->cols(['a'])->from('t1')->where('a = :x', ['x' => 1]);
 
         $this->expectException(Exception\LogicException::class);
-        $select->having('b = :x', array('x' => 2));
+        $select->having('b = :x', ['x' => 2]);
     }
 
     public function testJoinAndWhereCannotShareAPlaceholder()
     {
         $select = $this->query_factory->newSelect();
         $select
-            ->cols(array('a'))
+            ->cols(['a'])
             ->from('t1')
-            ->join('LEFT', 't2', 't2.id = t1.id AND t2.status = :x', array('x' => 1));
+            ->join('LEFT', 't2', 't2.id = t1.id AND t2.status = :x', ['x' => 1]);
 
         $this->expectException(Exception\LogicException::class);
-        $select->where('b = :x', array('x' => 2));
+        $select->where('b = :x', ['x' => 2]);
     }
 
     public function testTwoJoinConditionsCannotShareAPlaceholder()
     {
         $select = $this->query_factory->newSelect();
         $select
-            ->cols(array('a'))
+            ->cols(['a'])
             ->from('t1')
-            ->join('LEFT', 't2', 't2.status = :x', array('x' => 1));
+            ->join('LEFT', 't2', 't2.status = :x', ['x' => 1]);
 
         $this->expectException(Exception\LogicException::class);
-        $select->join('LEFT', 't3', 't3.status = :x', array('x' => 2));
+        $select->join('LEFT', 't3', 't3.status = :x', ['x' => 2]);
     }
 
     public function testJoinSubSelectConditionCannotShareAPlaceholder()
     {
         $subSelect = $this->query_factory->newSelect();
-        $subSelect->cols(array('id'))->from('users');
+        $subSelect->cols(['id'])->from('users');
 
         $select = $this->query_factory->newSelect();
         $select
-            ->cols(array('a'))
+            ->cols(['a'])
             ->from('t1')
-            ->where('b = :x', array('x' => 1));
+            ->where('b = :x', ['x' => 1]);
 
         $this->expectException(Exception\LogicException::class);
-        $select->joinSubSelect('LEFT', $subSelect, 'sub', 'sub.status = :x', array('x' => 2));
+        $select->joinSubSelect('LEFT', $subSelect, 'sub', 'sub.status = :x', ['x' => 2]);
     }
 
     public function testRebindingByHandIsAllowed()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('t1')->where('id = :id', array('id' => 1));
+        $select->cols(['*'])->from('t1')->where('id = :id', ['id' => 1]);
 
         // changing the value before execution is legitimate
         $select->bindValue('id', 2);
-        $this->assertSame(array('id' => 2), $select->getBindValues());
+        $this->assertSame(['id' => 2], $select->getBindValues());
 
         // and so is reusing the query object with a fresh set of values
-        $select->bindValues(array('id' => 3));
-        $this->assertSame(array('id' => 3), $select->getBindValues());
+        $select->bindValues(['id' => 3]);
+        $this->assertSame(['id' => 3], $select->getBindValues());
     }
 
     /**
@@ -188,20 +188,20 @@ class CollisionTest extends TestCase
     public function testHandBindDoesNotLaunderTheSource()
     {
         $update = $this->query_factory->newUpdate();
-        $update->table('orders')->cols(array('status' => 'shipped'));
+        $update->table('orders')->cols(['status' => 'shipped']);
         $update->bindValue('status', 'delivered');
 
         $this->expectException(Exception\LogicException::class);
-        $update->where('status = :status', array('status' => 'pending'));
+        $update->where('status = :status', ['status' => 'pending']);
     }
 
     public function testHandBindStillOverwritesTheValue()
     {
         $update = $this->query_factory->newUpdate();
-        $update->table('orders')->cols(array('status' => 'shipped'));
+        $update->table('orders')->cols(['status' => 'shipped']);
         $update->bindValue('status', 'delivered');
 
-        $this->assertSame(array('status' => 'delivered'), $update->getBindValues());
+        $this->assertSame(['status' => 'delivered'], $update->getBindValues());
     }
 
     public function testHandBoundValueMayBeClaimedByCols()
@@ -210,8 +210,8 @@ class CollisionTest extends TestCase
         $update->table('t1')->bindValue('id', 1);
 
         // a null source never blocks a later bind
-        $update->cols(array('id' => 2));
-        $this->assertSame(array('id' => 2), $update->getBindValues());
+        $update->cols(['id' => 2]);
+        $this->assertSame(['id' => 2], $update->getBindValues());
     }
 
     /**
@@ -224,10 +224,10 @@ class CollisionTest extends TestCase
     public function testOnePartMayRebindItsOwnPlaceholder()
     {
         $update = $this->query_factory->newUpdate();
-        $update->table('orders')->cols(array('status' => 'first'));
-        $update->cols(array('status' => 'second'));
+        $update->table('orders')->cols(['status' => 'first']);
+        $update->cols(['status' => 'second']);
 
-        $this->assertSame(array('status' => 'second'), $update->getBindValues());
+        $this->assertSame(['status' => 'second'], $update->getBindValues());
     }
 
     /**
@@ -241,17 +241,17 @@ class CollisionTest extends TestCase
     public function testAgreeThenDivergeCannotHappen()
     {
         $update = $this->query_factory->newUpdate();
-        $update->table('orders')->cols(array('status' => 'first'));
+        $update->table('orders')->cols(['status' => 'first']);
 
         try {
-            $update->where('status = :status', array('status' => 'first'));
+            $update->where('status = :status', ['status' => 'first']);
             $this->fail('Expected the shared placeholder to be rejected.');
         } catch (Exception\LogicException $e) {
             // the condition never took the name, so cols() still owns it and
             // may revise its own value
-            $update->cols(array('status' => 'second'));
+            $update->cols(['status' => 'second']);
             $this->assertSame(
-                array('status' => 'second'),
+                ['status' => 'second'],
                 $update->getBindValues()
             );
         }
@@ -262,11 +262,11 @@ class CollisionTest extends TestCase
         $insert = $this->query_factory->newInsert();
         $insert
             ->into('t1')
-            ->cols(array('c1' => 'v1-0'))
-            ->addRow(array('c1' => 'v1-1'))
-            ->addRow(array('c1' => 'v1-2'));
+            ->cols(['c1' => 'v1-0'])
+            ->addRow(['c1' => 'v1-1'])
+            ->addRow(['c1' => 'v1-2']);
 
-        $expect = array('c1_0' => 'v1-0', 'c1_1' => 'v1-1', 'c1_2' => 'v1-2');
+        $expect = ['c1_0' => 'v1-0', 'c1_1' => 'v1-1', 'c1_2' => 'v1-2'];
         $insert->getStatement();
         $this->assertSame($expect, $insert->getBindValues());
     }
@@ -284,7 +284,7 @@ class CollisionTest extends TestCase
         $insert = $this->newFactory('pgsql')->newInsert();
         $insert
             ->into('t1')
-            ->cols(array('status__on_conflict' => 'banked into the row'))
+            ->cols(['status__on_conflict' => 'banked into the row'])
             ->addRow();
 
         // the name is free again, so this is not a collision
@@ -308,61 +308,61 @@ class CollisionTest extends TestCase
     public function testSourceWithoutAValueIsNotACollision()
     {
         $update = $this->query_factory->newUpdate();
-        $update->table('t1')->cols(array('id' => 1));
+        $update->table('t1')->cols(['id' => 1]);
 
         // force the desync the guard exists for
         $property = new \ReflectionProperty($update, 'bind_values');
         $property->setAccessible(true);
-        $property->setValue($update, array());
+        $property->setValue($update, []);
 
-        $update->where('id = :id', array('id' => 2));
-        $this->assertSame(array('id' => 2), $update->getBindValues());
+        $update->where('id = :id', ['id' => 2]);
+        $this->assertSame(['id' => 2], $update->getBindValues());
     }
 
     public function testResetBindValuesClearsTheSources()
     {
         $update = $this->query_factory->newUpdate();
-        $update->table('t1')->cols(array('id' => 1));
+        $update->table('t1')->cols(['id' => 1]);
         $update->resetBindValues();
 
         // with the source forgotten there is nothing left to collide with
-        $update->where('id = :id', array('id' => 2));
-        $this->assertSame(array('id' => 2), $update->getBindValues());
+        $update->where('id = :id', ['id' => 2]);
+        $this->assertSame(['id' => 2], $update->getBindValues());
     }
 
     public function testClosureBindsDoNotBypassCollision()
     {
         $update = $this->query_factory->newUpdate();
-        $update->table('orders')->cols(array('status' => 'shipped'));
+        $update->table('orders')->cols(['status' => 'shipped']);
 
         $this->expectException(Exception\LogicException::class);
-        $update->where(function($query) {}, array('status' => 'pending'));
+        $update->where(function($query) {}, ['status' => 'pending']);
     }
 
     public function testSubselectBindsDoNotBypassCollision()
     {
         $subSelect = $this->query_factory->newSelect();
-        $subSelect->cols(array('id'))->from('users')->where('status = :status', array('status' => 'active'));
+        $subSelect->cols(['id'])->from('users')->where('status = :status', ['status' => 'active']);
 
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('orders')
-               ->where('status = :status', array('status' => 'pending'));
+        $select->cols(['*'])->from('orders')
+               ->where('status = :status', ['status' => 'pending']);
 
         $this->expectException(Exception\LogicException::class);
-        $select->where('user_id IN (:sub)', array('sub' => $subSelect));
+        $select->where('user_id IN (:sub)', ['sub' => $subSelect]);
     }
 
     public function testFromSubSelectBindsDoNotBypassCollision()
     {
         $subSelect = $this->query_factory->newSelect();
-        $subSelect->cols(array('id'))->from('users')->where('status = :status', array('status' => 'active'));
+        $subSelect->cols(['id'])->from('users')->where('status = :status', ['status' => 'active']);
 
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))
+        $select->cols(['*'])
                ->fromSubSelect($subSelect, 'sub');
 
         $this->expectException(Exception\LogicException::class);
-        $select->where('status = :status', array('status' => 'pending'));
+        $select->where('status = :status', ['status' => 'pending']);
     }
 
     /**
@@ -377,28 +377,28 @@ class CollisionTest extends TestCase
     public function testJoinSubSelectNamesAreReleasedByResetTables()
     {
         $subSelect = $this->query_factory->newSelect();
-        $subSelect->cols(array('id'))->from('u')->where('s = :s', array('s' => 'a'));
+        $subSelect->cols(['id'])->from('u')->where('s = :s', ['s' => 'a']);
 
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('t')
+        $select->cols(['*'])->from('t')
                ->joinSubSelect('INNER', $subSelect, 'sub', 'sub.id = t.id');
         $select->resetTables();
 
-        $select->from('t')->join('INNER', 'u', 'u.s = :s', array('s' => 'b'));
-        $this->assertSame(array('s' => 'b'), $select->getBindValues());
+        $select->from('t')->join('INNER', 'u', 'u.s = :s', ['s' => 'b']);
+        $this->assertSame(['s' => 'b'], $select->getBindValues());
     }
 
     public function testFromSubSelectNamesAreReleasedByResetTables()
     {
         $subSelect = $this->query_factory->newSelect();
-        $subSelect->cols(array('id'))->from('u')->where('s = :s', array('s' => 'a'));
+        $subSelect->cols(['id'])->from('u')->where('s = :s', ['s' => 'a']);
 
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->fromSubSelect($subSelect, 'sub');
+        $select->cols(['*'])->fromSubSelect($subSelect, 'sub');
         $select->resetTables();
 
-        $select->from('t')->where('s = :s', array('s' => 'b'));
-        $this->assertSame(array('s' => 'b'), $select->getBindValues());
+        $select->from('t')->where('s = :s', ['s' => 'b']);
+        $this->assertSame(['s' => 'b'], $select->getBindValues());
     }
 
     /**
@@ -412,14 +412,14 @@ class CollisionTest extends TestCase
     public function testResetWhereCannotFreeAFromSubSelectsPlaceholder()
     {
         $subSelect = $this->query_factory->newSelect();
-        $subSelect->cols(array('id'))->from('u')->where('status = :status', array('status' => 'active'));
+        $subSelect->cols(['id'])->from('u')->where('status = :status', ['status' => 'active']);
 
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->fromSubSelect($subSelect, 'sub');
+        $select->cols(['*'])->fromSubSelect($subSelect, 'sub');
         $select->resetWhere();
 
         $this->expectException(Exception\LogicException::class);
-        $select->where('x = :status', array('status' => 'CLOBBERED'));
+        $select->where('x = :status', ['status' => 'CLOBBERED']);
     }
 
     /**
@@ -432,14 +432,14 @@ class CollisionTest extends TestCase
     public function testLateralJoinSubSelectIsNamedAsAJoin()
     {
         $subSelect = $this->newFactory('pgsql')->newSelect();
-        $subSelect->cols(array('id'))->from('u')->where('s = :s', array('s' => 'a'));
+        $subSelect->cols(['id'])->from('u')->where('s = :s', ['s' => 'a']);
 
         $select = $this->newFactory('pgsql')->newSelect();
-        $select->cols(array('*'))->from('t')
+        $select->cols(['*'])->from('t')
                ->lateralJoinSubSelect('INNER', $subSelect, 'sub', 'sub.id = t.id');
 
         try {
-            $select->where('s = :s', array('s' => 'b'));
+            $select->where('s = :s', ['s' => 'b']);
             $this->fail('Expected a collision on the :s placeholder.');
         } catch (Exception\LogicException $e) {
             $this->assertStringContainsString('JOIN', $e->getMessage());
@@ -456,13 +456,13 @@ class CollisionTest extends TestCase
     public function testSubSelectCollisionNamesTheOuterClause()
     {
         $subSelect = $this->query_factory->newSelect();
-        $subSelect->cols(array('id'))->from('u')->where('s = :s', array('s' => 'a'));
+        $subSelect->cols(['id'])->from('u')->where('s = :s', ['s' => 'a']);
 
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->fromSubSelect($subSelect, 'sub');
+        $select->cols(['*'])->fromSubSelect($subSelect, 'sub');
 
         try {
-            $select->where('s = :s', array('s' => 'b'));
+            $select->where('s = :s', ['s' => 'b']);
             $this->fail('Expected a collision on the :s placeholder.');
         } catch (Exception\LogicException $e) {
             $message = $e->getMessage();
@@ -474,11 +474,11 @@ class CollisionTest extends TestCase
     public function testSameSourceDifferentValueCollides()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('orders')
-               ->where('status = :status', array('status' => 'pending'));
+        $select->cols(['*'])->from('orders')
+               ->where('status = :status', ['status' => 'pending']);
 
         $this->expectException(Exception\LogicException::class);
-        $select->where('status = :status', array('status' => 'active'));
+        $select->where('status = :status', ['status' => 'active']);
     }
 
     /**
@@ -493,26 +493,26 @@ class CollisionTest extends TestCase
     public function testResetWhereFreesItsPlaceholderNames()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('orders')
-               ->where('status = :status', array('status' => 'pending'));
+        $select->cols(['*'])->from('orders')
+               ->where('status = :status', ['status' => 'pending']);
 
         $select->resetWhere();
 
         // no collision, because the WHERE clause no longer claims the name
-        $select->where('status = :status', array('status' => 'active'));
-        $this->assertSame(array('status' => 'active'), $select->getBindValues());
+        $select->where('status = :status', ['status' => 'active']);
+        $this->assertSame(['status' => 'active'], $select->getBindValues());
     }
 
     public function testResetHavingFreesItsPlaceholderNames()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('orders')
-               ->having('status = :status', array('status' => 'pending'));
+        $select->cols(['*'])->from('orders')
+               ->having('status = :status', ['status' => 'pending']);
 
         $select->resetHaving();
 
-        $select->having('status = :status', array('status' => 'active'));
-        $this->assertSame(array('status' => 'active'), $select->getBindValues());
+        $select->having('status = :status', ['status' => 'active']);
+        $this->assertSame(['status' => 'active'], $select->getBindValues());
     }
 
     /**
@@ -527,12 +527,12 @@ class CollisionTest extends TestCase
     public function testANameResetBeforeTheUnionIsFreeInTheNextBranch()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('a')
-               ->where('id = :id', array('id' => 1));
+        $select->cols(['*'])->from('a')
+               ->where('id = :id', ['id' => 1]);
 
         $select->resetWhere();
-        $select->where('status = :status', array('status' => 'pending'));
-        $select->union()->cols(array('*'))->from('b');
+        $select->where('status = :status', ['status' => 'pending']);
+        $select->union()->cols(['*'])->from('b');
 
         // the rendered branch spells :status, but never :id
         $statement = $select->getStatement();
@@ -540,9 +540,9 @@ class CollisionTest extends TestCase
         $this->assertStringNotContainsString(':id', $statement);
 
         // so the next branch may claim :id for a value of its own
-        $select->where('id = :id', array('id' => 2));
+        $select->where('id = :id', ['id' => 2]);
         $this->assertSame(
-            array('id' => 2, 'status' => 'pending'),
+            ['id' => 2, 'status' => 'pending'],
             $select->getBindValues()
         );
     }
@@ -560,23 +560,23 @@ class CollisionTest extends TestCase
     public function testUnionBranchesCannotShareAPlaceholder()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('a')->where('id = :id', array('id' => 1))
+        $select->cols(['*'])->from('a')->where('id = :id', ['id' => 1])
                ->union()
-               ->cols(array('*'))->from('b');
+               ->cols(['*'])->from('b');
 
         $this->expectException(Exception\LogicException::class);
-        $select->where('id = :id', array('id' => 2));
+        $select->where('id = :id', ['id' => 2]);
     }
 
     public function testUnionAllBranchesCannotShareAPlaceholder()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('a')->where('id = :id', array('id' => 1))
+        $select->cols(['*'])->from('a')->where('id = :id', ['id' => 1])
                ->unionAll()
-               ->cols(array('*'))->from('b');
+               ->cols(['*'])->from('b');
 
         $this->expectException(Exception\LogicException::class);
-        $select->where('id = :id', array('id' => 2));
+        $select->where('id = :id', ['id' => 2]);
     }
 
     /**
@@ -589,12 +589,12 @@ class CollisionTest extends TestCase
     public function testUnionCollisionMessageNamesTheRenderedBranch()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('a')->where('id = :id', array('id' => 1))
+        $select->cols(['*'])->from('a')->where('id = :id', ['id' => 1])
                ->union()
-               ->cols(array('*'))->from('b');
+               ->cols(['*'])->from('b');
 
         try {
-            $select->where('id = :id', array('id' => 2));
+            $select->where('id = :id', ['id' => 2]);
             $this->fail('Expected the shared placeholder to be rejected.');
         } catch (Exception\LogicException $e) {
             $this->assertStringContainsString("':id'", $e->getMessage());
@@ -613,38 +613,38 @@ class CollisionTest extends TestCase
     public function testResetWhereCannotFreeARenderedBranchesPlaceholder()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('a')->where('id = :id', array('id' => 1))
+        $select->cols(['*'])->from('a')->where('id = :id', ['id' => 1])
                ->union()
-               ->cols(array('*'))->from('b')
+               ->cols(['*'])->from('b')
                ->resetWhere();
 
         $this->expectException(Exception\LogicException::class);
-        $select->where('id = :id', array('id' => 2));
+        $select->where('id = :id', ['id' => 2]);
     }
 
     public function testResetHavingCannotFreeARenderedBranchesPlaceholder()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('a')->having('id = :id', array('id' => 1))
+        $select->cols(['*'])->from('a')->having('id = :id', ['id' => 1])
                ->union()
-               ->cols(array('*'))->from('b')
+               ->cols(['*'])->from('b')
                ->resetHaving();
 
         $this->expectException(Exception\LogicException::class);
-        $select->having('id = :id', array('id' => 2));
+        $select->having('id = :id', ['id' => 2]);
     }
 
     public function testResetTablesCannotFreeARenderedBranchesPlaceholder()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('a')
-               ->join('LEFT', 'j', 'j.id = a.id AND j.status = :id', array('id' => 1))
+        $select->cols(['*'])->from('a')
+               ->join('LEFT', 'j', 'j.id = a.id AND j.status = :id', ['id' => 1])
                ->union()
-               ->cols(array('*'))->from('b')
+               ->cols(['*'])->from('b')
                ->resetTables();
 
         $this->expectException(Exception\LogicException::class);
-        $select->from('c')->join('LEFT', 'k', 'k.status = :id', array('id' => 2));
+        $select->from('c')->join('LEFT', 'k', 'k.status = :id', ['id' => 2]);
     }
 
     /**
@@ -657,13 +657,13 @@ class CollisionTest extends TestCase
     public function testUnionBranchesMayShareAPlaceholderOnTheSameValue()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('a')->where('tenant = :t', array('t' => 5))
+        $select->cols(['*'])->from('a')->where('tenant = :t', ['t' => 5])
                ->union()
-               ->cols(array('*'))->from('b')->where('tenant = :t', array('t' => 5));
+               ->cols(['*'])->from('b')->where('tenant = :t', ['t' => 5]);
 
         $statement = $select->getStatement();
         $this->assertSame(2, substr_count($statement, ':t'));
-        $this->assertSame(array('t' => 5), $select->getBindValues());
+        $this->assertSame(['t' => 5], $select->getBindValues());
     }
 
     /**
@@ -676,13 +676,13 @@ class CollisionTest extends TestCase
     public function testSharingOnTheSameValueLeavesOwnershipWithTheUnion()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('a')->where('tenant = :t', array('t' => 5))
+        $select->cols(['*'])->from('a')->where('tenant = :t', ['t' => 5])
                ->union()
-               ->cols(array('*'))->from('b')->where('tenant = :t', array('t' => 5))
+               ->cols(['*'])->from('b')->where('tenant = :t', ['t' => 5])
                ->resetWhere();
 
         $this->expectException(Exception\LogicException::class);
-        $select->where('tenant = :t', array('t' => 6));
+        $select->where('tenant = :t', ['t' => 6]);
     }
 
     /**
@@ -695,14 +695,14 @@ class CollisionTest extends TestCase
     public function testResetUnionsReleasesTheRenderedPlaceholders()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('a')->where('id = :id', array('id' => 1))
+        $select->cols(['*'])->from('a')->where('id = :id', ['id' => 1])
                ->union()
-               ->cols(array('*'))->from('b');
+               ->cols(['*'])->from('b');
 
         $select->resetUnions();
 
-        $select->where('id = :id', array('id' => 2));
-        $this->assertSame(array('id' => 2), $select->getBindValues());
+        $select->where('id = :id', ['id' => 2]);
+        $this->assertSame(['id' => 2], $select->getBindValues());
     }
 
     /**
@@ -717,12 +717,12 @@ class CollisionTest extends TestCase
     public function testHandBoundPlaceholderOfARenderedBranchIsHeld()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('a')->where('id = :id');
+        $select->cols(['*'])->from('a')->where('id = :id');
         $select->bindValue('id', 1);
-        $select->union()->cols(array('*'))->from('b');
+        $select->union()->cols(['*'])->from('b');
 
         $this->expectException(Exception\LogicException::class);
-        $select->where('id = :id', array('id' => 2));
+        $select->where('id = :id', ['id' => 2]);
     }
 
     /**
@@ -741,15 +741,15 @@ class CollisionTest extends TestCase
     public function testPositionalPlaceholderOfARenderedBranchIsHeld()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('a')->where('id = ?');
+        $select->cols(['*'])->from('a')->where('id = ?');
         $select->bindValue(1, 5);
-        $select->union()->cols(array('*'))->from('b');
+        $select->union()->cols(['*'])->from('b');
 
         // the retained branch spells no name to scan for
         $this->assertStringContainsString('id = ?', $select->getStatement());
 
         $this->expectException(Exception\LogicException::class);
-        $select->where('id = ?', array(1 => 6));
+        $select->where('id = ?', [1 => 6]);
     }
 
     /**
@@ -762,12 +762,12 @@ class CollisionTest extends TestCase
     public function testCollisionMessageDoesNotNameAPositionalPlaceholder()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('a')->where('id = ?');
+        $select->cols(['*'])->from('a')->where('id = ?');
         $select->bindValue(1, 5);
-        $select->union()->cols(array('*'))->from('b');
+        $select->union()->cols(['*'])->from('b');
 
         try {
-            $select->where('id = ?', array(1 => 6));
+            $select->where('id = ?', [1 => 6]);
             $this->fail('Expected a collision on the positional placeholder.');
         } catch (Exception\LogicException $e) {
             $message = $e->getMessage();
@@ -783,11 +783,11 @@ class CollisionTest extends TestCase
     public function testHandBoundPlaceholderOfARenderedBranchMayBeSharedOnTheSameValue()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('a')->where('tenant = :t');
+        $select->cols(['*'])->from('a')->where('tenant = :t');
         $select->bindValue('t', 5);
-        $select->union()->cols(array('*'))->from('b')->where('tenant = :t', array('t' => 5));
+        $select->union()->cols(['*'])->from('b')->where('tenant = :t', ['t' => 5]);
 
-        $this->assertSame(array('t' => 5), $select->getBindValues());
+        $this->assertSame(['t' => 5], $select->getBindValues());
     }
 
     /**
@@ -803,16 +803,16 @@ class CollisionTest extends TestCase
     public function testAHandBoundNameSharedByALiveClauseBecomesItsToHold()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('a')->where('id = :id');
+        $select->cols(['*'])->from('a')->where('id = :id');
         $select->bindValue('id', 1);
-        $select->union()->cols(array('*'))->from('b')->where('id = :id', array('id' => 1));
+        $select->union()->cols(['*'])->from('b')->where('id = :id', ['id' => 1]);
         $select->resetUnions();
 
         // the sharing WHERE outlives the union it was sharing with
         $this->assertStringContainsString('id = :id', $select->getStatement());
 
         $this->expectException(Exception\LogicException::class);
-        $select->having('x = :id', array('id' => 2));
+        $select->having('x = :id', ['id' => 2]);
     }
 
     /**
@@ -824,13 +824,13 @@ class CollisionTest extends TestCase
     public function testAHandBoundNameNoClauseSharesIsFreeAfterResetUnions()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('a')->where('id = :id');
+        $select->cols(['*'])->from('a')->where('id = :id');
         $select->bindValue('id', 1);
-        $select->union()->cols(array('*'))->from('b');
+        $select->union()->cols(['*'])->from('b');
         $select->resetUnions();
 
-        $select->having('x = :id', array('id' => 2));
-        $this->assertSame(array('id' => 2), $select->getBindValues());
+        $select->having('x = :id', ['id' => 2]);
+        $this->assertSame(['id' => 2], $select->getBindValues());
     }
 
     /**
@@ -843,12 +843,12 @@ class CollisionTest extends TestCase
     public function testHandBindStillOverwritesARenderedBranchesValue()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('a')->where('id = :id', array('id' => 1))
+        $select->cols(['*'])->from('a')->where('id = :id', ['id' => 1])
                ->union()
-               ->cols(array('*'))->from('b');
+               ->cols(['*'])->from('b');
 
         $select->bindValue('id', 9);
-        $this->assertSame(array('id' => 9), $select->getBindValues());
+        $this->assertSame(['id' => 9], $select->getBindValues());
     }
 
     /**
@@ -861,13 +861,13 @@ class CollisionTest extends TestCase
     public function testResetUnionsCannotFreeANameTheActiveBranchStillUses()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('a')->where('tenant = :t', array('t' => 5))
+        $select->cols(['*'])->from('a')->where('tenant = :t', ['t' => 5])
                ->union()
-               ->cols(array('*'))->from('b')->where('tenant = :t', array('t' => 5))
+               ->cols(['*'])->from('b')->where('tenant = :t', ['t' => 5])
                ->resetUnions();
 
         $this->expectException(Exception\LogicException::class);
-        $select->where('other = :t', array('t' => 6));
+        $select->where('other = :t', ['t' => 6]);
     }
 
     /**
@@ -880,12 +880,12 @@ class CollisionTest extends TestCase
     public function testTwoClausesCannotBothShareARenderedBranchesPlaceholder()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('a')->where('tenant = :t', array('t' => 5))
+        $select->cols(['*'])->from('a')->where('tenant = :t', ['t' => 5])
                ->union()
-               ->cols(array('*'))->from('b')->where('tenant = :t', array('t' => 5));
+               ->cols(['*'])->from('b')->where('tenant = :t', ['t' => 5]);
 
         $this->expectException(Exception\LogicException::class);
-        $select->having('tenant = :t', array('t' => 5));
+        $select->having('tenant = :t', ['t' => 5]);
     }
 
     /**
@@ -897,14 +897,14 @@ class CollisionTest extends TestCase
     public function testResetUnionsThenResettingTheSharingClauseFreesTheName()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('a')->where('tenant = :t', array('t' => 5))
+        $select->cols(['*'])->from('a')->where('tenant = :t', ['t' => 5])
                ->union()
-               ->cols(array('*'))->from('b')->where('tenant = :t', array('t' => 5))
+               ->cols(['*'])->from('b')->where('tenant = :t', ['t' => 5])
                ->resetUnions()
                ->resetWhere();
 
-        $select->where('other = :t', array('t' => 6));
-        $this->assertSame(array('t' => 6), $select->getBindValues());
+        $select->where('other = :t', ['t' => 6]);
+        $this->assertSame(['t' => 6], $select->getBindValues());
     }
 
     /**
@@ -917,14 +917,14 @@ class CollisionTest extends TestCase
     public function testResettingTheSharingClauseFirstStillFreesTheName()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('a')->where('tenant = :t', array('t' => 5))
+        $select->cols(['*'])->from('a')->where('tenant = :t', ['t' => 5])
                ->union()
-               ->cols(array('*'))->from('b')->where('tenant = :t', array('t' => 5))
+               ->cols(['*'])->from('b')->where('tenant = :t', ['t' => 5])
                ->resetWhere()
                ->resetUnions();
 
-        $select->where('other = :t', array('t' => 6));
-        $this->assertSame(array('t' => 6), $select->getBindValues());
+        $select->where('other = :t', ['t' => 6]);
+        $this->assertSame(['t' => 6], $select->getBindValues());
     }
 
     /**
@@ -937,15 +937,15 @@ class CollisionTest extends TestCase
     public function testASharingClauseRenderedIntoItsOwnBranchDoesNotHoldTheName()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('a')->where('tenant = :t', array('t' => 5))
+        $select->cols(['*'])->from('a')->where('tenant = :t', ['t' => 5])
                ->union()
-               ->cols(array('*'))->from('b')->where('tenant = :t', array('t' => 5))
+               ->cols(['*'])->from('b')->where('tenant = :t', ['t' => 5])
                ->union()
-               ->cols(array('*'))->from('c')
+               ->cols(['*'])->from('c')
                ->resetUnions();
 
-        $select->where('other = :t', array('t' => 6));
-        $this->assertSame(array('t' => 6), $select->getBindValues());
+        $select->where('other = :t', ['t' => 6]);
+        $this->assertSame(['t' => 6], $select->getBindValues());
     }
 
     /**
@@ -958,19 +958,19 @@ class CollisionTest extends TestCase
     public function testASharedSubSelectNameIsFreedAfterItsBranchIsRendered()
     {
         $sub = $this->query_factory->newSelect();
-        $sub->cols(array('*'))->from('s');
+        $sub->cols(['*'])->from('s');
         $sub->bindValue('t', 5);
 
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('a')->where('tenant = :t', array('t' => 5))
+        $select->cols(['*'])->from('a')->where('tenant = :t', ['t' => 5])
                ->union()
-               ->cols(array('*'))->fromSubSelect($sub, 'x')
+               ->cols(['*'])->fromSubSelect($sub, 'x')
                ->union()
-               ->cols(array('*'))->from('c')
+               ->cols(['*'])->from('c')
                ->resetUnions();
 
-        $select->where('other = :t', array('t' => 6));
-        $this->assertSame(array('t' => 6), $select->getBindValues());
+        $select->where('other = :t', ['t' => 6]);
+        $this->assertSame(['t' => 6], $select->getBindValues());
     }
 
     /**
@@ -985,11 +985,11 @@ class CollisionTest extends TestCase
     public function testUnionKeepsTheValuesOfEveryHalf()
     {
         $select = $this->query_factory->newSelect();
-        $select->cols(array('*'))->from('orders')
-               ->where('status = :first', array('first' => 'pending'))
+        $select->cols(['*'])->from('orders')
+               ->where('status = :first', ['first' => 'pending'])
                ->union()
-               ->cols(array('*'))->from('orders')
-               ->where('status = :second', array('second' => 'shipped'));
+               ->cols(['*'])->from('orders')
+               ->where('status = :second', ['second' => 'shipped']);
 
         $statement = $select->getStatement();
         $bind_values = $select->getBindValues();
@@ -997,7 +997,7 @@ class CollisionTest extends TestCase
         $this->assertStringContainsString(':first', $statement);
         $this->assertStringContainsString(':second', $statement);
         $this->assertSame(
-            array('first' => 'pending', 'second' => 'shipped'),
+            ['first' => 'pending', 'second' => 'shipped'],
             $bind_values
         );
     }
@@ -1015,14 +1015,14 @@ class CollisionTest extends TestCase
     {
         $insert = $this->newFactory('pgsql')->newInsert();
         $insert->into('t')
-               ->cols(array('status' => 'row0'))
-               ->addRow(array('status' => 'row1'));
+               ->cols(['status' => 'row0'])
+               ->addRow(['status' => 'row1']);
 
         $this->expectException(Exception\LogicException::class);
         $this->expectExceptionMessage("':status_0' is already in use by a bulk-insert row");
         $insert->onConflict('id')
                ->doUpdateCol('status')
-               ->doUpdateWhere('t.note = :status_0', array('status_0' => 'from the condition'));
+               ->doUpdateWhere('t.note = :status_0', ['status_0' => 'from the condition']);
     }
 
     /**
@@ -1035,14 +1035,14 @@ class CollisionTest extends TestCase
     {
         $insert = $this->newFactory('pgsql')->newInsert();
         $insert->into('t')
-               ->cols(array('status' => 'row0'))
+               ->cols(['status' => 'row0'])
                ->onConflict('id')
                ->doUpdateCol('status')
-               ->doUpdateWhere('t.note = :status_0', array('status_0' => 'from the condition'));
+               ->doUpdateWhere('t.note = :status_0', ['status_0' => 'from the condition']);
 
         $this->expectException(Exception\LogicException::class);
         $this->expectExceptionMessage("':status_0' is already in use by a condition");
-        $insert->addRow(array('status' => 'row1'));
+        $insert->addRow(['status' => 'row1']);
     }
 
     /**
@@ -1057,14 +1057,14 @@ class CollisionTest extends TestCase
     {
         $insert = $this->newFactory('pgsql')->newInsert();
         $insert->into('t')
-               ->cols(array('status' => 'row0'))
-               ->addRow(array('status' => 'row1'));
+               ->cols(['status' => 'row0'])
+               ->addRow(['status' => 'row1']);
 
         $insert->getStatement();
         $insert->bindValue('status_0', 'by hand');
 
         $this->assertSame(
-            array('status_0' => 'by hand', 'status_1' => 'row1'),
+            ['status_0' => 'by hand', 'status_1' => 'row1'],
             $insert->getBindValues()
         );
     }
@@ -1080,8 +1080,8 @@ class CollisionTest extends TestCase
     {
         $insert = $this->newFactory('pgsql')->newInsert();
         $insert->into('t')
-               ->cols(array('status' => 'row0'))
-               ->addRow(array('status' => 'row1'));
+               ->cols(['status' => 'row0'])
+               ->addRow(['status' => 'row1']);
         $insert->getStatement();
 
         $insert->resetBindValues();
@@ -1089,7 +1089,7 @@ class CollisionTest extends TestCase
         // no collision, because nothing is holding :status_0 now
         $insert->onConflict('id')
                ->doUpdateCol('status')
-               ->doUpdateWhere('t.note = :status_0', array('status_0' => 'fresh'));
+               ->doUpdateWhere('t.note = :status_0', ['status_0' => 'fresh']);
 
         $values = $insert->getBindValues();
         $this->assertSame('fresh', $values['status_0']);
@@ -1108,13 +1108,13 @@ class CollisionTest extends TestCase
     {
         $insert = $this->newFactory('pgsql')->newInsert();
         $insert->into('t')
-               ->cols(array('status' => 'row0'))
-               ->addRow(array('status' => 'row1'));
+               ->cols(['status' => 'row0'])
+               ->addRow(['status' => 'row1']);
         $insert->getStatement();
 
         $insert->resetBindValues();
 
-        $this->assertSame(array(), $insert->getBindValues());
+        $this->assertSame([], $insert->getBindValues());
         $statement = $insert->getStatement();
         $this->assertStringContainsString(':status_0', $statement);
         $this->assertStringContainsString(':status_1', $statement);
@@ -1136,9 +1136,9 @@ class CollisionTest extends TestCase
     {
         $insert = $this->newFactory('pgsql')->newInsert();
         $insert->into('t')
-               ->cols(array('a' => 'r0', 'a_1' => 'x0'))
-               ->addRow(array('a' => 'r1', 'a_1' => 'x1'))
-               ->addRow(array('a' => 'r2', 'a_1' => 'x2'));
+               ->cols(['a' => 'r0', 'a_1' => 'x0'])
+               ->addRow(['a' => 'r1', 'a_1' => 'x1'])
+               ->addRow(['a' => 'r2', 'a_1' => 'x2']);
 
         // deliberately before getStatement(), while row 2 is still live
         $values = $insert->getBindValues();
@@ -1163,18 +1163,18 @@ class CollisionTest extends TestCase
     {
         $insert = $this->newFactory('pgsql')->newInsert();
         $insert->into('t')
-               ->cols(array('a' => 'a-row0', 'a_1' => 'a1-row0'))
-               ->addRow(array('a' => 'a-row1', 'a_1' => 'a1-row1'));
+               ->cols(['a' => 'a-row0', 'a_1' => 'a1-row0'])
+               ->addRow(['a' => 'a-row1', 'a_1' => 'a1-row1']);
 
         $insert->getStatement();
 
         $this->assertSame(
-            array(
+            [
                 'a_0' => 'a-row0',
                 'a_1_0' => 'a1-row0',
                 'a_1' => 'a-row1',
                 'a_1_1' => 'a1-row1',
-            ),
+            ],
             $insert->getBindValues()
         );
     }

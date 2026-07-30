@@ -26,7 +26,7 @@ class UpdateTest extends Common\UpdateTest
     {
         $this->query->table('t1')
                     ->col('c1')
-                    ->orderBy(array('c2'))
+                    ->orderBy(['c2'])
                     ->limit(10);
 
         $actual = $this->query->__toString();
@@ -46,7 +46,7 @@ class UpdateTest extends Common\UpdateTest
     {
         $this->query->lowPriority()
                     ->table('t1')
-                    ->cols(array('c1', 'c2', 'c3'))
+                    ->cols(['c1', 'c2', 'c3'])
                     ->set('c4', null)
                     ->set('c5', 'NOW()')
                     ->where('foo = :foo', ['foo' => 'bar'])
@@ -59,10 +59,10 @@ class UpdateTest extends Common\UpdateTest
         $this->assertSameSql($expect, $actual);
 
         $actual = $this->query->getBindValues();
-        $expect = array(
+        $expect = [
             'foo' => 'bar',
             'baz' => 'dib',
-        );
+        ];
         $this->assertSame($expect, $actual);
     }
 
@@ -70,7 +70,7 @@ class UpdateTest extends Common\UpdateTest
     {
         $this->query->ignore()
                     ->table('t1')
-                    ->cols(array('c1', 'c2', 'c3'))
+                    ->cols(['c1', 'c2', 'c3'])
                     ->set('c4', null)
                     ->set('c5', 'NOW()')
                     ->where('foo = :foo', ['foo' => 'bar'])
@@ -83,10 +83,10 @@ class UpdateTest extends Common\UpdateTest
         $this->assertSameSql($expect, $actual);
 
         $actual = $this->query->getBindValues();
-        $expect = array(
+        $expect = [
             'foo' => 'bar',
             'baz' => 'dib',
-        );
+        ];
         $this->assertSame($expect, $actual);
     }
 

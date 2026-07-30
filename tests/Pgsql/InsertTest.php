@@ -22,11 +22,11 @@ class InsertTest extends Common\InsertTest
     public function testReturning()
     {
         $this->query->into('t1')
-                    ->cols(array('c1', 'c2', 'c3'))
+                    ->cols(['c1', 'c2', 'c3'])
                     ->set('c4', 'NOW()')
                     ->set('c5', null)
-                    ->returning(array('c1', 'c2'))
-                    ->returning(array('c3'));
+                    ->returning(['c1', 'c2'])
+                    ->returning(['c3']);
 
         $actual = $this->query->__toString();
         $expect = "
@@ -63,9 +63,9 @@ class InsertTest extends Common\InsertTest
     public function testIgnore()
     {
         $this->query->into('t1')
-                    ->cols(array('c1', 'c2'))
+                    ->cols(['c1', 'c2'])
                     ->ignore()
-                    ->returning(array('c1'));
+                    ->returning(['c1']);
 
         $actual = $this->query->__toString();
         $expect = "
@@ -87,7 +87,7 @@ class InsertTest extends Common\InsertTest
     public function testIgnoreDisable()
     {
         $this->query->into('t1')
-                    ->cols(array('c1'))
+                    ->cols(['c1'])
                     ->ignore()
                     ->ignore(false);
 
@@ -106,7 +106,7 @@ class InsertTest extends Common\InsertTest
     public function testOnConflictDoNothing()
     {
         $this->query->into('t1')
-                    ->cols(array('c1', 'c2'))
+                    ->cols(['c1', 'c2'])
                     ->onConflict('c1')
                     ->ignore();
 
@@ -127,9 +127,9 @@ class InsertTest extends Common\InsertTest
     public function testOnConflictDoUpdate()
     {
         $this->query->into('t1')
-                    ->cols(array('c1', 'c2', 'c3'))
-                    ->onConflict(array('c1', 'c2'))
-                    ->doUpdateCols(array('c2'))
+                    ->cols(['c1', 'c2', 'c3'])
+                    ->onConflict(['c1', 'c2'])
+                    ->doUpdateCols(['c2'])
                     ->doUpdate('c3', 'excluded.c3');
 
         $actual = $this->query->__toString();
@@ -153,11 +153,11 @@ class InsertTest extends Common\InsertTest
     public function testOnConflictDoUpdateWhere()
     {
         $this->query->into('t1')
-                    ->cols(array('c1', 'c2'))
+                    ->cols(['c1', 'c2'])
                     ->onConflict('c1')
                     ->doUpdateCol('c2', 'c2-updated')
-                    ->doUpdateWhere('t1.c2 != :c2_old', array('c2_old' => 'foo'))
-                    ->doUpdateWhere('t1.c3 = :c3_old', array('c3_old' => 'bar'));
+                    ->doUpdateWhere('t1.c2 != :c2_old', ['c2_old' => 'foo'])
+                    ->doUpdateWhere('t1.c3 = :c3_old', ['c3_old' => 'bar']);
 
         $actual = $this->query->__toString();
         $expect = "
@@ -194,11 +194,11 @@ class InsertTest extends Common\InsertTest
     public function testBulkInsertKeepsTheDoUpdateBinds()
     {
         $this->query->into('t1')
-                    ->cols(array('c1' => 'v1-0'))
-                    ->addRow(array('c1' => 'v1-1'))
+                    ->cols(['c1' => 'v1-0'])
+                    ->addRow(['c1' => 'v1-1'])
                     ->onConflict('c1')
                     ->doUpdateCol('c2', 'c2-updated')
-                    ->doUpdateWhere('t1.c3 = :c3_old', array('c3_old' => 'bar'));
+                    ->doUpdateWhere('t1.c3 = :c3_old', ['c3_old' => 'bar']);
 
         $actual = $this->query->__toString();
         $expect = "
@@ -214,12 +214,12 @@ class InsertTest extends Common\InsertTest
         ";
         $this->assertSameSql($expect, $actual);
 
-        $expect = array(
+        $expect = [
             'c2__on_conflict' => 'c2-updated',
             'c3_old' => 'bar',
             'c1_0' => 'v1-0',
             'c1_1' => 'v1-1',
-        );
+        ];
         $this->assertSame($expect, $this->query->getBindValues());
     }
 
@@ -229,9 +229,9 @@ class InsertTest extends Common\InsertTest
     public function testOnConflictConstraintTarget()
     {
         $this->query->into('t1')
-                    ->cols(array('c1', 'c2'))
+                    ->cols(['c1', 'c2'])
                     ->onConflict('ON CONSTRAINT t1_c1_key')
-                    ->doUpdateCols(array('c2'));
+                    ->doUpdateCols(['c2']);
 
         $actual = $this->query->__toString();
         $expect = "
@@ -265,22 +265,22 @@ class InsertTest extends Common\InsertTest
 
     public static function provideEmptyConflictTarget()
     {
-        return array(
-            'empty array' => array(array()),
-            'empty string' => array(''),
-            'blank string' => array('   '),
-            'array of blanks' => array(array('')),
-            'array with a blank' => array(array('c1', '')),
-            'constraint keyword alone' => array('ON CONSTRAINT'),
-            'constraint with no name' => array('ON CONSTRAINT   '),
-        );
+        return [
+            'empty array' => [[]],
+            'empty string' => [''],
+            'blank string' => ['   '],
+            'array of blanks' => [['']],
+            'array with a blank' => [['c1', '']],
+            'constraint keyword alone' => ['ON CONSTRAINT'],
+            'constraint with no name' => ['ON CONSTRAINT   '],
+        ];
     }
 
     public function testOnConflictThrowsExceptionWhenNoTarget()
     {
         $this->query->into('t1')
-                    ->cols(array('c1', 'c2'))
-                    ->doUpdateCols(array('c2'));
+                    ->cols(['c1', 'c2'])
+                    ->doUpdateCols(['c2']);
 
         $this->expectException('Aura\SqlQuery\Exception\LogicException');
         $this->expectExceptionMessage('Database requires a conflict target for DO UPDATE.');
@@ -290,7 +290,7 @@ class InsertTest extends Common\InsertTest
     public function testOnConflictDoUpdateAmbiguousColumn()
     {
         $this->query->into('t1')
-                    ->cols(array('c1', 'hits'))
+                    ->cols(['c1', 'hits'])
                     ->onConflict('c1')
                     ->doUpdate('hits', 't1.hits + 1');
 
@@ -312,10 +312,10 @@ class InsertTest extends Common\InsertTest
     public function testOnConflictThrowsExceptionWhenIgnoreAndUpdate()
     {
         $this->query->into('t1')
-                    ->cols(array('c1', 'c2'))
+                    ->cols(['c1', 'c2'])
                     ->onConflict('c1')
                     ->ignore()
-                    ->doUpdateCols(array('c2'));
+                    ->doUpdateCols(['c2']);
 
         $this->expectException('Aura\SqlQuery\Exception\LogicException');
         $this->expectExceptionMessage('Cannot combine IGNORE / DO NOTHING with DO UPDATE SET.');

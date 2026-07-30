@@ -27,7 +27,7 @@ class SelectTest extends AbstractQueryTest
     {
         $this->query->distinct()
                      ->from('t1')
-                     ->cols(array('t1.c1', 't1.c2', 't1.c3'));
+                     ->cols(['t1.c1', 't1.c2', 't1.c3']);
 
         $actual = $this->query->__toString();
 
@@ -48,7 +48,7 @@ class SelectTest extends AbstractQueryTest
         $this->query->distinct()
                     ->distinct()
                     ->from('t1')
-                    ->cols(array('t1.c1', 't1.c2', 't1.c3'));
+                    ->cols(['t1.c1', 't1.c2', 't1.c3']);
 
         $actual = $this->query->__toString();
 
@@ -68,7 +68,7 @@ class SelectTest extends AbstractQueryTest
         $this->query->distinct()
                     ->distinct(false)
                     ->from('t1')
-                    ->cols(array('t1.c1', 't1.c2', 't1.c3'));
+                    ->cols(['t1.c1', 't1.c2', 't1.c3']);
 
         $actual = $this->query->__toString();
 
@@ -88,11 +88,11 @@ class SelectTest extends AbstractQueryTest
     {
         $this->assertFalse($this->query->hasCols());
 
-        $this->query->cols(array(
+        $this->query->cols([
             't1.c1',
             'c2' => 'a2',
             'COUNT(t1.c3)'
-        ));
+        ]);
 
         $this->assertTrue($this->query->hasCols());
         $this->assertTrue($this->query->hasCol('t1.c1'));
@@ -112,10 +112,10 @@ class SelectTest extends AbstractQueryTest
 
     public function testColsWithFunctionExpression()
     {
-        $this->query->cols(array(
+        $this->query->cols([
             'id',
             "CONCAT(first_name, ' ', last_name) AS full_name",
-        ));
+        ]);
 
         $actual = $this->query->__toString();
         $expect = "
@@ -128,7 +128,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testFrom()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->from('t1')
                     ->from('t2');
 
@@ -152,7 +152,7 @@ class SelectTest extends AbstractQueryTest
      */
     public function testFromMultipleTablesInOneString()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->from('t1, t2');
 
         $actual = $this->query->__toString();
@@ -168,7 +168,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testFromMultipleTablesWithSpacesAndAliases()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->from('t1 AS a , t2 AS b');
 
         $actual = $this->query->__toString();
@@ -195,7 +195,7 @@ class SelectTest extends AbstractQueryTest
               . 'odd,name'
               . $this->query->getQuoteNameSuffix();
 
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->from($name);
 
         $actual = $this->query->__toString();
@@ -223,7 +223,7 @@ class SelectTest extends AbstractQueryTest
         $suffix = $this->query->getQuoteNameSuffix();
         $name = $prefix . 'odd' . $suffix . $suffix . ',name' . $suffix;
 
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->from($name);
 
         $actual = $this->query->__toString();
@@ -244,7 +244,7 @@ class SelectTest extends AbstractQueryTest
      */
     public function testFromMultipleTablesRejectsADuplicate()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
 
         $this->expectException(\Aura\SqlQuery\Exception\LogicException::class);
         $this->query->from('t1, t1');
@@ -252,7 +252,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testFromRaw()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->fromRaw('t1')
                     ->fromRaw('t2');
 
@@ -269,7 +269,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testDuplicateFromTable()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->from('t1');
 
         $this->expectException(
@@ -281,7 +281,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testDuplicateFromAlias()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->from('t1');
 
         $this->expectException(
@@ -294,7 +294,7 @@ class SelectTest extends AbstractQueryTest
     public function testFromSubSelect()
     {
         $sub = 'SELECT * FROM t2';
-        $this->query->cols(array('*'))->fromSubSelect($sub, 'a2');
+        $this->query->cols(['*'])->fromSubSelect($sub, 'a2');
         $expect = '
             SELECT
                 *
@@ -309,7 +309,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testDuplicateSubSelectTableRef()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->from('t1');
 
         $this->expectException(
@@ -324,11 +324,11 @@ class SelectTest extends AbstractQueryTest
     public function testFromSubSelectObject()
     {
         $sub = $this->newQuery();
-        $sub->cols(array('*'))
+        $sub->cols(['*'])
             ->from('t2')
             ->where('foo = :foo', ['foo' => 'bar']);
 
-        $this->query->cols(array('*'))
+        $this->query->cols(['*'])
             ->fromSubSelect($sub, 'a2')
             ->where('a2.baz = :baz', ['baz' => 'dib']);
 
@@ -354,7 +354,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testJoin()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->from('t1');
         $this->query->join('left', 't2', 't1.id = t2.id');
         $this->query->join('inner', 't3 AS a3', 't2.id = a3.id');
@@ -376,7 +376,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testJoinBeforeFrom()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->join('left', 't2', 't1.id = t2.id');
         $this->query->join('inner', 't3 AS a3', 't2.id = a3.id');
         $this->query->from('t1');
@@ -398,7 +398,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testDuplicateJoinRef()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->from('t1');
 
         $this->expectException(
@@ -410,7 +410,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testJoinAndBind()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->from('t1');
         $this->query->join(
             'left',
@@ -429,14 +429,14 @@ class SelectTest extends AbstractQueryTest
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
 
-        $expect = array('foo' => 'bar');
+        $expect = ['foo' => 'bar'];
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);
     }
 
     public function testLeftAndInnerJoin()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->from('t1');
         $this->query->leftJoin('t2', 't1.id = t2.id');
         $this->query->innerJoin('t3 AS a3', 't2.id = a3.id');
@@ -456,7 +456,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testLeftAndInnerJoinWithBind()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->from('t1');
         $this->query->leftJoin('t2', 't2.id = :t2_id', ['t2_id' => 'foo']);
         $this->query->innerJoin('t3 AS a3', 'a3.id = :a3_id', ['a3_id' => 'bar']);
@@ -471,7 +471,7 @@ class SelectTest extends AbstractQueryTest
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
 
-        $expect = array('t2_id' => 'foo', 'a3_id' => 'bar');
+        $expect = ['t2_id' => 'foo', 'a3_id' => 'bar'];
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);
     }
@@ -480,7 +480,7 @@ class SelectTest extends AbstractQueryTest
     {
         $sub1 = 'SELECT * FROM t2';
         $sub2 = 'SELECT * FROM t3';
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->from('t1');
         $this->query->joinSubSelect('left', $sub1, 'a2', 't2.c1 = a3.c1');
         $this->query->joinSubSelect('natural', $sub2, 'a3');
@@ -504,7 +504,7 @@ class SelectTest extends AbstractQueryTest
     {
         $sub1 = 'SELECT * FROM t2';
         $sub2 = 'SELECT * FROM t3';
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->joinSubSelect('left', $sub1, 'a2', 't2.c1 = a3.c1');
         $this->query->joinSubSelect('natural', $sub2, 'a3');
         $this->query->from('t1');
@@ -526,7 +526,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testDuplicateJoinSubSelectRef()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->from('t1');
 
         $this->expectException(
@@ -541,9 +541,9 @@ class SelectTest extends AbstractQueryTest
     public function testJoinSubSelectObject()
     {
         $sub = $this->newQuery();
-        $sub->cols(array('*'))->from('t2')->where('foo = :foo', ['foo' => 'bar']);
+        $sub->cols(['*'])->from('t2')->where('foo = :foo', ['foo' => 'bar']);
 
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->from('t1');
         $this->query->joinSubSelect('left', $sub, 'a3', 't2.c1 = a3.c1');
         $this->query->where('baz = :baz', ['baz' => 'dib']);
@@ -570,7 +570,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testJoinOrder()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query
             ->from('t1')
             ->join('inner', 't2', 't2.id = t1.id')
@@ -593,7 +593,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testJoinOnAndUsing()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query
             ->from('t1')
             ->join('inner', 't2', 'ON t2.id = t1.id')
@@ -612,7 +612,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testWhere()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->where('c1 = c2')
                      ->where('c3 = :c3', ['c3' => 'foo']);
         $expect = '
@@ -633,7 +633,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testWhereWithInlineArray()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->where('c1 = c2')
             ->where('c3 = :c3 AND c4 IN (:c4) AND c5 = :c5', ['c3' => 'foo', 'c4' => [3, 2, 1], 'c5' => 'bar'])
             ->where('c6 = ? AND c7 IN (?)', ['foo1', [6, 5, 4]]);
@@ -666,7 +666,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testOrWhere()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->orWhere('c1 = c2')
                      ->orWhere('c3 = :c3', ['c3' => 'foo']);
 
@@ -688,8 +688,8 @@ class SelectTest extends AbstractQueryTest
 
     public function testGroupBy()
     {
-        $this->query->cols(array('*'));
-        $this->query->groupBy(array('c1', 't2.c2'));
+        $this->query->cols(['*']);
+        $this->query->groupBy(['c1', 't2.c2']);
         $expect = '
             SELECT
                 *
@@ -704,7 +704,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testHaving()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->having('c1 = c2')
                      ->having('c3 = :c3', ['c3' => 'foo']);
         $expect = '
@@ -725,7 +725,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testOrHaving()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->orHaving('c1 = c2')
                      ->orHaving('c3 = :c3', ['c3' => 'foo']);
         $expect = '
@@ -746,8 +746,8 @@ class SelectTest extends AbstractQueryTest
 
     public function testOrderBy()
     {
-        $this->query->cols(array('*'));
-        $this->query->orderBy(array('c1', 'UPPER(t2.c2)', ));
+        $this->query->cols(['*']);
+        $this->query->orderBy(['c1', 'UPPER(t2.c2)', ]);
         $expect = '
             SELECT
                 *
@@ -762,7 +762,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testGetterOnLimitAndOffset()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->limit(10);
         $this->query->offset(50);
 
@@ -772,7 +772,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testLimitOffset()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->limit(10);
         $expect = '
             SELECT
@@ -794,7 +794,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testPage()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->page(5);
         $expect = '
             SELECT
@@ -807,7 +807,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testForUpdate()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->forUpdate();
         $expect = '
             SELECT
@@ -820,10 +820,10 @@ class SelectTest extends AbstractQueryTest
 
     public function testUnion()
     {
-        $this->query->cols(array('c1'))
+        $this->query->cols(['c1'])
                      ->from('t1')
                      ->union()
-                     ->cols(array('c2'))
+                     ->cols(['c2'])
                      ->from('t2');
         $expect = '
             SELECT
@@ -843,10 +843,10 @@ class SelectTest extends AbstractQueryTest
 
     public function testUnionAll()
     {
-        $this->query->cols(array('c1'))
+        $this->query->cols(['c1'])
                      ->from('t1')
                      ->unionAll()
-                     ->cols(array('c2'))
+                     ->cols(['c2'])
                      ->from('t2');
         $expect = '
             SELECT
@@ -866,9 +866,9 @@ class SelectTest extends AbstractQueryTest
 
     public function testUnionWithQuery()
     {
-        $next = $this->newQuery()->cols(array('c2'))->from('t2');
+        $next = $this->newQuery()->cols(['c2'])->from('t2');
 
-        $this->query->cols(array('c1'))
+        $this->query->cols(['c1'])
                      ->from('t1')
                      ->union($next);
 
@@ -890,9 +890,9 @@ class SelectTest extends AbstractQueryTest
 
     public function testUnionAllWithQuery()
     {
-        $next = $this->newQuery()->cols(array('c2'))->from('t2');
+        $next = $this->newQuery()->cols(['c2'])->from('t2');
 
-        $this->query->cols(array('c1'))
+        $this->query->cols(['c1'])
                      ->from('t1')
                      ->unionAll($next);
 
@@ -914,10 +914,10 @@ class SelectTest extends AbstractQueryTest
 
     public function testUnionWithQueryChained()
     {
-        $second = $this->newQuery()->cols(array('c2'))->from('t2');
-        $third = $this->newQuery()->cols(array('c3'))->from('t3');
+        $second = $this->newQuery()->cols(['c2'])->from('t2');
+        $third = $this->newQuery()->cols(['c3'])->from('t3');
 
-        $this->query->cols(array('c1'))
+        $this->query->cols(['c1'])
                      ->from('t1')
                      ->union($second)
                      ->unionAll($third);
@@ -945,13 +945,13 @@ class SelectTest extends AbstractQueryTest
 
     public function testUnionWithQueryThenBuildNextBranch()
     {
-        $next = $this->newQuery()->cols(array('c2'))->from('t2');
+        $next = $this->newQuery()->cols(['c2'])->from('t2');
 
-        $this->query->cols(array('c1'))
+        $this->query->cols(['c1'])
                      ->from('t1')
                      ->union($next)
                      ->union()
-                     ->cols(array('c3'))
+                     ->cols(['c3'])
                      ->from('t3');
 
         $expect = '
@@ -978,25 +978,25 @@ class SelectTest extends AbstractQueryTest
     public function testUnionWithQueryTakesTheValuesItBound()
     {
         $next = $this->newQuery()
-            ->cols(array('c2'))
+            ->cols(['c2'])
             ->from('t2')
-            ->where('c2 = :baz', array('baz' => 'dib'));
+            ->where('c2 = :baz', ['baz' => 'dib']);
 
-        $this->query->cols(array('c1'))
+        $this->query->cols(['c1'])
                      ->from('t1')
-                     ->where('c1 = :foo', array('foo' => 'bar'))
+                     ->where('c1 = :foo', ['foo' => 'bar'])
                      ->union($next);
 
-        $expect = array('foo' => 'bar', 'baz' => 'dib');
+        $expect = ['foo' => 'bar', 'baz' => 'dib'];
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);
     }
 
     public function testUnionWithQueryRendersItAsItWasPassed()
     {
-        $next = $this->newQuery()->cols(array('c2'))->from('t2');
+        $next = $this->newQuery()->cols(['c2'])->from('t2');
 
-        $this->query->cols(array('c1'))->from('t1')->union($next);
+        $this->query->cols(['c1'])->from('t1')->union($next);
 
         // the branch was rendered when it was passed, so this does not
         // reach back into the union.
@@ -1021,18 +1021,18 @@ class SelectTest extends AbstractQueryTest
     public function testUnionWithQuerySharingAPlaceholder()
     {
         $next = $this->newQuery()
-            ->cols(array('c2'))
+            ->cols(['c2'])
             ->from('t2')
-            ->where('owner_id = :owner_id', array('owner_id' => 88));
+            ->where('owner_id = :owner_id', ['owner_id' => 88]);
 
         // both branches filter on the one value, as in a union of two views
         // of the same owner
-        $this->query->cols(array('c1'))
+        $this->query->cols(['c1'])
                      ->from('t1')
-                     ->where('owner_id = :owner_id', array('owner_id' => 88))
+                     ->where('owner_id = :owner_id', ['owner_id' => 88])
                      ->union($next);
 
-        $expect = array('owner_id' => 88);
+        $expect = ['owner_id' => 88];
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);
     }
@@ -1040,13 +1040,13 @@ class SelectTest extends AbstractQueryTest
     public function testUnionWithQueryClaimingABoundName()
     {
         $next = $this->newQuery()
-            ->cols(array('c2'))
+            ->cols(['c2'])
             ->from('t2')
-            ->where('c2 = :foo', array('foo' => 'dib'));
+            ->where('c2 = :foo', ['foo' => 'dib']);
 
-        $this->query->cols(array('c1'))
+        $this->query->cols(['c1'])
                      ->from('t1')
-                     ->where('c1 = :foo', array('foo' => 'bar'));
+                     ->where('c1 = :foo', ['foo' => 'bar']);
 
         $this->expectException(\Aura\SqlQuery\Exception\LogicException::class);
         $this->expectExceptionMessage("The placeholder ':foo'");
@@ -1055,12 +1055,12 @@ class SelectTest extends AbstractQueryTest
 
     public function testUnionWithQueryThenMoreColumns()
     {
-        $next = $this->newQuery()->cols(array('c2'))->from('t2');
+        $next = $this->newQuery()->cols(['c2'])->from('t2');
 
-        $this->query->cols(array('c1'))
+        $this->query->cols(['c1'])
                      ->from('t1')
                      ->union($next)
-                     ->cols(array('c3'));
+                     ->cols(['c3']);
 
         $this->expectException(\Aura\SqlQuery\Exception\LogicException::class);
         $this->expectExceptionMessage('is the last branch');
@@ -1069,23 +1069,23 @@ class SelectTest extends AbstractQueryTest
 
     public static function provideStateAfterUnionTail()
     {
-        return array(
-            'cols' => array(function ($select) { $select->cols(array('c3')); }),
-            'from' => array(function ($select) { $select->from('t3'); }),
-            'fromRaw' => array(function ($select) { $select->fromRaw('t3'); }),
-            'join' => array(function ($select) { $select->join('LEFT', 't3', 'c1 = c3'); }),
-            'where' => array(function ($select) { $select->where('c1 = 1'); }),
-            'orWhere' => array(function ($select) { $select->orWhere('c1 = 1'); }),
-            'groupBy' => array(function ($select) { $select->groupBy(array('c1')); }),
-            'having' => array(function ($select) { $select->having('COUNT(c1) > 1'); }),
-            'orHaving' => array(function ($select) { $select->orHaving('COUNT(c1) > 1'); }),
-            'orderBy' => array(function ($select) { $select->orderBy(array('c1')); }),
-            'limit' => array(function ($select) { $select->limit(10); }),
-            'offset' => array(function ($select) { $select->offset(10); }),
-            'page' => array(function ($select) { $select->page(2); }),
-            'distinct' => array(function ($select) { $select->distinct(); }),
-            'forUpdate' => array(function ($select) { $select->forUpdate(); }),
-        );
+        return [
+            'cols' => [function ($select) { $select->cols(['c3']); }],
+            'from' => [function ($select) { $select->from('t3'); }],
+            'fromRaw' => [function ($select) { $select->fromRaw('t3'); }],
+            'join' => [function ($select) { $select->join('LEFT', 't3', 'c1 = c3'); }],
+            'where' => [function ($select) { $select->where('c1 = 1'); }],
+            'orWhere' => [function ($select) { $select->orWhere('c1 = 1'); }],
+            'groupBy' => [function ($select) { $select->groupBy(['c1']); }],
+            'having' => [function ($select) { $select->having('COUNT(c1) > 1'); }],
+            'orHaving' => [function ($select) { $select->orHaving('COUNT(c1) > 1'); }],
+            'orderBy' => [function ($select) { $select->orderBy(['c1']); }],
+            'limit' => [function ($select) { $select->limit(10); }],
+            'offset' => [function ($select) { $select->offset(10); }],
+            'page' => [function ($select) { $select->page(2); }],
+            'distinct' => [function ($select) { $select->distinct(); }],
+            'forUpdate' => [function ($select) { $select->forUpdate(); }],
+        ];
     }
 
     /**
@@ -1099,9 +1099,9 @@ class SelectTest extends AbstractQueryTest
     #[\PHPUnit\Framework\Attributes\DataProvider('provideStateAfterUnionTail')]
     public function testUnionWithQueryThenMoreState($add)
     {
-        $next = $this->newQuery()->cols(array('c2'))->from('t2');
+        $next = $this->newQuery()->cols(['c2'])->from('t2');
 
-        $this->query->cols(array('c1'))
+        $this->query->cols(['c1'])
                      ->from('t1')
                      ->union($next);
 
@@ -1130,30 +1130,30 @@ class SelectTest extends AbstractQueryTest
     public function testUnionWithQueryThenAnotherBranchClaimingItsPlaceholder()
     {
         $next = $this->newQuery()
-            ->cols(array('c2'))
+            ->cols(['c2'])
             ->from('t2')
-            ->where('b = :b', array('b' => 2));
+            ->where('b = :b', ['b' => 2]);
 
-        $this->query->cols(array('c1'))
+        $this->query->cols(['c1'])
                      ->from('t1')
                      ->union($next)
                      ->union()
-                     ->cols(array('c3'))
+                     ->cols(['c3'])
                      ->from('t3');
 
         $this->expectException(\Aura\SqlQuery\Exception\LogicException::class);
         $this->expectExceptionMessage("The placeholder ':b'");
-        $this->query->where('b = :b', array('b' => 999));
+        $this->query->where('b = :b', ['b' => 999]);
     }
 
     public function testUnionWithQueryThenBindValues()
     {
         $next = $this->newQuery()
-            ->cols(array('c2'))
+            ->cols(['c2'])
             ->from('t2')
-            ->where('c2 = :c2', array('c2' => 'dib'));
+            ->where('c2 = :c2', ['c2' => 'dib']);
 
-        $this->query->cols(array('c1'))
+        $this->query->cols(['c1'])
                      ->from('t1')
                      ->union($next);
 
@@ -1175,12 +1175,12 @@ class SelectTest extends AbstractQueryTest
 
         $this->assertSameSql($expect, $this->query->__toString());
         $this->assertSameSql($expect, $this->query->__toString());
-        $this->assertSame(array('c2' => 'zim'), $this->query->getBindValues());
+        $this->assertSame(['c2' => 'zim'], $this->query->getBindValues());
     }
 
     public function testUnionWithItself()
     {
-        $this->query->cols(array('c1'))->from('t1');
+        $this->query->cols(['c1'])->from('t1');
 
         $this->expectException(\Aura\SqlQuery\Exception\LogicException::class);
         $this->expectExceptionMessage('Cannot union a query with itself');
@@ -1191,7 +1191,7 @@ class SelectTest extends AbstractQueryTest
     {
         $next = $this->newQuery()->from('t2');
 
-        $this->query->cols(array('c1'))->from('t1');
+        $this->query->cols(['c1'])->from('t1');
 
         try {
             $this->query->union($next);
@@ -1214,16 +1214,16 @@ class SelectTest extends AbstractQueryTest
 
     public function testResetUnionsAfterUnionWithQuery()
     {
-        $next = $this->newQuery()->cols(array('c2'))->from('t2');
+        $next = $this->newQuery()->cols(['c2'])->from('t2');
 
-        $this->query->cols(array('c1'))
+        $this->query->cols(['c1'])
                      ->from('t1')
                      ->union($next)
                      ->resetUnions();
 
         // the supplied branch was union state, and went with the rest of it;
         // what is left is this query, which union() had reset.
-        $this->query->cols(array('c3'))->from('t3');
+        $this->query->cols(['c3'])->from('t3');
 
         $expect = '
             SELECT
@@ -1239,17 +1239,17 @@ class SelectTest extends AbstractQueryTest
     public function testUnionWithQueryInSubSelect()
     {
         $next = $this->newQuery()
-            ->cols(array('amount'))
+            ->cols(['amount'])
             ->from('t2')
-            ->where('owner_id = :owner_id', array('owner_id' => 88));
+            ->where('owner_id = :owner_id', ['owner_id' => 88]);
 
         $branch = $this->newQuery()
-            ->cols(array('amount'))
+            ->cols(['amount'])
             ->from('t1')
-            ->where('owner_id = :owner_id', array('owner_id' => 88));
+            ->where('owner_id = :owner_id', ['owner_id' => 88]);
 
         $this->query
-            ->cols(array('SUM(amount) AS amount'))
+            ->cols(['SUM(amount) AS amount'])
             ->fromSubSelect($branch->union($next), 't');
 
         $expect = '
@@ -1276,7 +1276,7 @@ class SelectTest extends AbstractQueryTest
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
 
-        $expect = array('owner_id' => 88);
+        $expect = ['owner_id' => 88];
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);
     }
@@ -1286,7 +1286,7 @@ class SelectTest extends AbstractQueryTest
         // do these out of order
         $this->query->having('baz IN (?, ?, ?)', ['dib', 'zim', 'gir']);
         $this->query->where('foo = :foo', ['foo' => 'bar']);
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
 
         $expect = '
             SELECT
@@ -1299,19 +1299,19 @@ class SelectTest extends AbstractQueryTest
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
 
-        $expect = array(
+        $expect = [
             0 => 'dib',
             1 => 'zim',
             2 => 'gir',
             'foo' => 'bar',
-        );
+        ];
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);
     }
 
     public function testAddColWithAlias()
     {
-        $this->query->cols(array(
+        $this->query->cols([
             'foo',
             'bar',
             'table.noalias',
@@ -1320,13 +1320,13 @@ class SelectTest extends AbstractQueryTest
             'table.proper' => 'alias_proper',
             'legacy invalid as alias still works',
             'overwrite as alias1',
-        ));
+        ]);
 
         // add separately to make sure we don't overwrite sequential keys
-        $this->query->cols(array(
+        $this->query->cols([
             'baz',
             'dib',
-        ));
+        ]);
 
         $actual = $this->query->__toString();
 
@@ -1352,7 +1352,7 @@ class SelectTest extends AbstractQueryTest
      */
     public function testAddColWithSpaceInsideParens()
     {
-        $this->query->cols(array(
+        $this->query->cols([
             'COUNT(DISTINCT t1.c1)',
             'COUNT(DISTINCT c2)',
             'COUNT(DISTINCT t1.c3) AS c3_count',
@@ -1360,7 +1360,7 @@ class SelectTest extends AbstractQueryTest
             // as the caller wrote it: still valid SQL, just not quoted
             'COUNT(DISTINCT t1.c4) c4_count',
             'convert_tz(t1.open_from, t1.time_zone, @@session.time_zone) open_now',
-        ));
+        ]);
 
         $actual = $this->query->__toString();
         $expect = '
@@ -1380,11 +1380,11 @@ class SelectTest extends AbstractQueryTest
      */
     public function testAddColWithAliasAfterBalancedParens()
     {
-        $this->query->cols(array(
+        $this->query->cols([
             'COUNT(*) tally',
             'COUNT(*) AS total',
             'MAX(t1.c1) hi',
-        ));
+        ]);
 
         $actual = $this->query->__toString();
         $expect = '
@@ -1402,7 +1402,7 @@ class SelectTest extends AbstractQueryTest
      */
     public function testAddColWithAliasAndParenInsideLiteral()
     {
-        $this->query->cols(array(
+        $this->query->cols([
             "CONCAT('(',t1.c1) opener",
             "CONCAT(t1.c2,')') closer",
             "CONCAT('(',t1.c3,')') AS wrapped",
@@ -1412,7 +1412,7 @@ class SelectTest extends AbstractQueryTest
             // the quoter's own literal scan does not follow backslash
             // escapes, so t1.c5 is left unquoted; the alias is still an alias
             "CONCAT('it\\'s(',t1.c5) backslashed",
-        ));
+        ]);
 
         $this->assertTrue($this->query->hasCol('opener'));
         $this->assertTrue($this->query->hasCol('closer'));
@@ -1438,7 +1438,7 @@ class SelectTest extends AbstractQueryTest
      */
     public function testAddColWithUnopenedParen()
     {
-        $this->query->cols(array('t1.c1) alias'));
+        $this->query->cols(['t1.c1) alias']);
 
         $this->assertFalse($this->query->hasCol('alias'));
 
@@ -1452,7 +1452,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testGetCols()
     {
-        $this->query->cols(array('valueBar' => 'aliasFoo'));
+        $this->query->cols(['valueBar' => 'aliasFoo']);
 
         $cols = $this->query->getCols();
 
@@ -1463,7 +1463,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testRemoveColsAlias()
     {
-        $this->query->cols(array('valueBar' => 'aliasFoo', 'valueBaz' => 'aliasBaz'));
+        $this->query->cols(['valueBar' => 'aliasFoo', 'valueBaz' => 'aliasBaz']);
 
         $this->assertTrue($this->query->removeCol('aliasFoo'));
         $cols = $this->query->getCols();
@@ -1475,7 +1475,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testRemoveColsName()
     {
-        $this->query->cols(array('valueBar', 'valueBaz' => 'aliasBaz'));
+        $this->query->cols(['valueBar', 'valueBaz' => 'aliasBaz']);
 
         $this->assertTrue($this->query->removeCol('valueBar'));
         $cols = $this->query->getCols();
@@ -1494,7 +1494,7 @@ class SelectTest extends AbstractQueryTest
     {
         // sub select
         $sub = $this->newQuery()
-            ->cols(array('*'))
+            ->cols(['*'])
             ->from('table1 AS t1');
         $expect = '
             SELECT
@@ -1507,7 +1507,7 @@ class SelectTest extends AbstractQueryTest
 
         // main select
         $select = $this->newQuery()
-            ->cols(array('*'))
+            ->cols(['*'])
             ->from('table2 AS t2')
             ->where("field IN (:field)", ['field' => $sub]);
 
@@ -1528,7 +1528,7 @@ class SelectTest extends AbstractQueryTest
 
     public function testIssue157WhereWithCast()
     {
-        $this->query->cols(array('street_number'))
+        $this->query->cols(['street_number'])
             ->from('addresses')
             ->where('cast(street_number as varchar) like :sn', ['sn' => '10%']);
 
@@ -1547,12 +1547,12 @@ class SelectTest extends AbstractQueryTest
     public function testWhereExistsSubSelect()
     {
         $sub = $this->newQuery()
-            ->cols(array('*'))
+            ->cols(['*'])
             ->from('orders')
             ->where('orders.user_id = users.id');
 
         $select = $this->newQuery()
-            ->cols(array('*'))
+            ->cols(['*'])
             ->from('users')
             ->where('EXISTS (:sub)', ['sub' => $sub]);
 
@@ -1610,7 +1610,7 @@ class SelectTest extends AbstractQueryTest
     {
         // sub select
         $sub = $this->newQuery()
-            ->cols(array('*'))
+            ->cols(['*'])
             ->from('table1 AS t1')
             ->where('t1.foo = :foo', ['foo' => 'bar']);
 
@@ -1627,7 +1627,7 @@ class SelectTest extends AbstractQueryTest
 
         // main select
         $select = $this->newQuery()
-            ->cols(array('*'))
+            ->cols(['*'])
             ->from('table2 AS t2')
             ->where("field IN (:field)", ['field' => $sub])
             ->where("t2.baz = :baz", ['baz' => 'dib']);
@@ -1654,10 +1654,10 @@ class SelectTest extends AbstractQueryTest
         $actual = $select->getStatement();
         $this->assertSameSql($expect, $actual);
 
-        $expect = array(
+        $expect = [
             'foo' => 'bar',
             'baz' => 'dib',
-        );
+        ];
         $actual = $select->getBindValues();
         $this->assertSame($expect, $actual);
     }
@@ -1665,15 +1665,15 @@ class SelectTest extends AbstractQueryTest
     public function testUnionSelectCanHaveSameAliasesInDifferentSelects()
     {
         $select = $this->query
-            ->cols(array(
+            ->cols([
                 '...'
-            ))
+            ])
             ->from('a')
             ->join('INNER', 'c', 'a_cid = c_id')
             ->union()
-            ->cols(array(
+            ->cols([
                 '...'
-            ))
+            ])
             ->from('b')
             ->join('INNER', 'c', 'b_cid = c_id');
 
@@ -1699,20 +1699,20 @@ class SelectTest extends AbstractQueryTest
         // value of its own: the first branch cannot be re-read, so this is the
         // collision a union of two branches already reports
         $select = $this->query
-            ->cols(array('c1'))
+            ->cols(['c1'])
             ->from('t1')
-            ->where('a = :a', array('a' => 1))
+            ->where('a = :a', ['a' => 1])
             ->union()
-            ->cols(array('c2'))
+            ->cols(['c2'])
             ->from('t2')
-            ->where('b = :b', array('b' => 2))
+            ->where('b = :b', ['b' => 2])
             ->union()
-            ->cols(array('c3'))
+            ->cols(['c3'])
             ->from('t3');
 
         $this->expectException(\Aura\SqlQuery\Exception\LogicException::class);
         $this->expectExceptionMessage("The placeholder ':a'");
-        $select->where('a = :a', array('a' => 999));
+        $select->where('a = :a', ['a' => 999]);
     }
 
     /**
@@ -1749,18 +1749,18 @@ class SelectTest extends AbstractQueryTest
      */
     protected function assertNamesHeld(array $expect, $cond)
     {
-        $held = array();
+        $held = [];
 
         foreach ($this->everyNameIn($cond) as $name) {
             $select = $this->newQuery()
-                ->cols(array('c1'))
+                ->cols(['c1'])
                 ->from('t1')
-                ->where($cond, array());
+                ->where($cond, []);
             $select->bindValue($name, 'by hand');
-            $select->union()->cols(array('c2'))->from('t2');
+            $select->union()->cols(['c2'])->from('t2');
 
             try {
-                $select->where("z = :{$name}", array($name => 'of its own'));
+                $select->where("z = :{$name}", [$name => 'of its own']);
             } catch (\Aura\SqlQuery\Exception\LogicException $e) {
                 $held[] = $name;
             }
@@ -1771,28 +1771,28 @@ class SelectTest extends AbstractQueryTest
 
     public static function provideNamesHeldFromABranch()
     {
-        return array(
-            'placeholder' => array(array('a'), 'a = :a'),
-            'literal' => array(array(), "name = ':a'"),
-            'literal either side' => array(array('a'), "x = 'one' AND a = :a AND y = 'two'"),
-            'doubled quote inside' => array(array(), "note = 'it''s :a'"),
-            'doubled quote before' => array(array('a'), "note = 'q''' AND a = :a"),
-            'line comment' => array(array(), 'c1 > 0 -- :a'),
-            'block comment' => array(array(), 'c1 > 0 /* :a */'),
-            'comment then code' => array(array('a'), "c1 > 0 -- :b\nAND a = :a"),
-            'apostrophe in comment' => array(array('a'), "c1 > 0 -- don't\nAND a = :a"),
-            'cast type' => array(array('a'), "c1::text = :a"),
-            'unclosed literal' => array(array('a'), "note = 'unclosed AND a = :a"),
-            'doubled quote leaves it open' => array(array('a'), "note = ':a''"),
-            'unclosed block comment' => array(array('a'), 'c1 > 0 /* unclosed :a'),
+        return [
+            'placeholder' => [['a'], 'a = :a'],
+            'literal' => [[], "name = ':a'"],
+            'literal either side' => [['a'], "x = 'one' AND a = :a AND y = 'two'"],
+            'doubled quote inside' => [[], "note = 'it''s :a'"],
+            'doubled quote before' => [['a'], "note = 'q''' AND a = :a"],
+            'line comment' => [[], 'c1 > 0 -- :a'],
+            'block comment' => [[], 'c1 > 0 /* :a */'],
+            'comment then code' => [['a'], "c1 > 0 -- :b\nAND a = :a"],
+            'apostrophe in comment' => [['a'], "c1 > 0 -- don't\nAND a = :a"],
+            'cast type' => [['a'], "c1::text = :a"],
+            'unclosed literal' => [['a'], "note = 'unclosed AND a = :a"],
+            'doubled quote leaves it open' => [['a'], "note = ':a''"],
+            'unclosed block comment' => [['a'], 'c1 > 0 /* unclosed :a'],
 
             // read no further than the dialects agree. A name kept here is a
             // needless collision report and nothing worse, which is why these
             // are left as they are rather than read into the pattern: every
             // reading added is a chance to swallow a name that is real.
-            'block comment around a comment' => array(array(), 'c1 > 0 /* /* :a */ */'),
-            'gap: nested block comment' => array(array('a'), 'c1 > 0 /* /* q */ :a */'),
-        );
+            'block comment around a comment' => [[], 'c1 > 0 /* /* :a */ */'],
+            'gap: nested block comment' => [['a'], 'c1 > 0 /* /* q */ :a */'],
+        ];
     }
 
     /**
@@ -1822,26 +1822,26 @@ class SelectTest extends AbstractQueryTest
         $prefix = $this->query->getQuoteNamePrefix();
         $suffix = $this->query->getQuoteNameSuffix();
 
-        $this->assertNamesHeld(array(), "x = {$prefix}odd:a name{$suffix}");
+        $this->assertNamesHeld([], "x = {$prefix}odd:a name{$suffix}");
 
         // a closing quote inside the name is written by doubling it, so the
         // name runs on rather than ending there
         $this->assertNamesHeld(
-            array(),
+            [],
             "x = {$prefix}odd{$suffix}{$suffix}:a name{$suffix}"
         );
 
         // and the placeholder standing outside the name is still read
         $this->assertNamesHeld(
-            array('b'),
+            ['b'],
             "x = {$prefix}odd:a name{$suffix} AND b = :b"
         );
 
         // an opener that never closes leaves the rest as SQL, as an unclosed
         // literal does -- including when a doubled quote is what leaves it
         // open, the name running on past the pair rather than ending at it
-        $this->assertNamesHeld(array('a'), "x = {$prefix}unclosed AND a = :a");
-        $this->assertNamesHeld(array('a'), "x = {$prefix}:a{$suffix}{$suffix}");
+        $this->assertNamesHeld(['a'], "x = {$prefix}unclosed AND a = :a");
+        $this->assertNamesHeld(['a'], "x = {$prefix}:a{$suffix}{$suffix}");
     }
 
     public function testUnionHoldsAPlaceholderFromAMiddleBranch()
@@ -1849,24 +1849,24 @@ class SelectTest extends AbstractQueryTest
         // the branch in the middle is neither the newest nor the first, and
         // its name is held on the same terms as either
         $select = $this->query
-            ->cols(array('c1'))
+            ->cols(['c1'])
             ->from('t1')
-            ->where('a = :a', array('a' => 1))
+            ->where('a = :a', ['a' => 1])
             ->union()
-            ->cols(array('c2'))
+            ->cols(['c2'])
             ->from('t2')
-            ->where('b = :b', array('b' => 2))
+            ->where('b = :b', ['b' => 2])
             ->union()
-            ->cols(array('c3'))
+            ->cols(['c3'])
             ->from('t3')
-            ->where('c = :c', array('c' => 3))
+            ->where('c = :c', ['c' => 3])
             ->union()
-            ->cols(array('c4'))
+            ->cols(['c4'])
             ->from('t4');
 
         $this->expectException(\Aura\SqlQuery\Exception\LogicException::class);
         $this->expectExceptionMessage("The placeholder ':b'");
-        $select->where('b = :b', array('b' => 999));
+        $select->where('b = :b', ['b' => 999]);
     }
 
     public function testUnionSharesAMiddleBranchPlaceholderOnTheSameValue()
@@ -1875,19 +1875,19 @@ class SelectTest extends AbstractQueryTest
         // branch already binds is the shared filter a union is often written
         // for
         $select = $this->query
-            ->cols(array('c1'))
+            ->cols(['c1'])
             ->from('t1')
-            ->where('a = :a', array('a' => 1))
+            ->where('a = :a', ['a' => 1])
             ->union()
-            ->cols(array('c2'))
+            ->cols(['c2'])
             ->from('t2')
-            ->where('b = :b', array('b' => 2))
+            ->where('b = :b', ['b' => 2])
             ->union()
-            ->cols(array('c3'))
+            ->cols(['c3'])
             ->from('t3')
-            ->where('b = :b', array('b' => 2));
+            ->where('b = :b', ['b' => 2]);
 
-        $expect = array('a' => 1, 'b' => 2);
+        $expect = ['a' => 1, 'b' => 2];
         $actual = $select->getBindValues();
         $this->assertSame($expect, $actual);
     }
@@ -1895,19 +1895,19 @@ class SelectTest extends AbstractQueryTest
     public function testUnionKeepsTheValuesEveryBranchBound()
     {
         $select = $this->query
-            ->cols(array('c1'))
+            ->cols(['c1'])
             ->from('t1')
-            ->where('a = :a', array('a' => 1))
+            ->where('a = :a', ['a' => 1])
             ->union()
-            ->cols(array('c2'))
+            ->cols(['c2'])
             ->from('t2')
-            ->where('b = :b', array('b' => 2))
+            ->where('b = :b', ['b' => 2])
             ->union()
-            ->cols(array('c3'))
+            ->cols(['c3'])
             ->from('t3')
-            ->where('c = :c', array('c' => 3));
+            ->where('c = :c', ['c' => 3]);
 
-        $expect = array('a' => 1, 'b' => 2, 'c' => 3);
+        $expect = ['a' => 1, 'b' => 2, 'c' => 3];
         $actual = $select->getBindValues();
         $this->assertSame($expect, $actual);
     }
@@ -1917,34 +1917,34 @@ class SelectTest extends AbstractQueryTest
         // read end to end, the stray quote in the first branch would pair
         // with the one in the second and mask the placeholder between them
         $select = $this->query
-            ->cols(array('c1'))
+            ->cols(['c1'])
             ->from('t1')
-            ->where("note = 'unclosed", array())
-            ->where('a = :a', array('a' => 1))
+            ->where("note = 'unclosed", [])
+            ->where('a = :a', ['a' => 1])
             ->union()
-            ->cols(array('c2'))
+            ->cols(['c2'])
             ->from('t2')
-            ->where("note = 'also unclosed", array())
+            ->where("note = 'also unclosed", [])
             ->union()
-            ->cols(array('c3'))
+            ->cols(['c3'])
             ->from('t3');
 
         $this->expectException(\Aura\SqlQuery\Exception\LogicException::class);
         $this->expectExceptionMessage("The placeholder ':a'");
-        $select->where('a = :a', array('a' => 999));
+        $select->where('a = :a', ['a' => 999]);
     }
 
     public function testResetUnion()
     {
         $select = $this->query
-            ->cols(array(
+            ->cols([
                 '...'
-            ))
+            ])
             ->from('a')
             ->union()
-            ->cols(array(
+            ->cols([
                 '...'
-            ))
+            ])
             ->from('b');
 
         // should remove all prior queries and just leave the last.
