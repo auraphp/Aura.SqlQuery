@@ -1109,7 +1109,7 @@ class Select extends AbstractQuery implements SelectInterface
         $spelled = [];
         foreach ($this->union as $branch) {
             preg_match_all($find, $branch, $matches);
-            $spelled += array_flip(array_filter($matches[1], 'strlen'));
+            $spelled += array_flip(array_filter($matches[1], static fn ($name) => $name !== ''));
         }
 
         $this->bind_sources = [];
