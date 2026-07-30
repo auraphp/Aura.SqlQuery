@@ -21,6 +21,15 @@ use Aura\SqlQuery\Exception\LogicException;
  */
 class Update extends AbstractDmlQuery implements UpdateInterface
 {
+    /**
+     *
+     * A builder for the query.
+     *
+     * @var UpdateBuilder
+     *
+     */
+    protected $builder;
+
     use TableListTrait;
 
     use WhereTrait;

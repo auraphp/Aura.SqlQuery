@@ -22,6 +22,15 @@ class Insert extends Common\Insert
 {
     /**
      *
+     * A builder for the query.
+     *
+     * @var InsertBuilder
+     *
+     */
+    protected $builder;
+
+    /**
+     *
      * if true, use a REPLACE sql command instead of INSERT
      *
      * @var bool
@@ -34,7 +43,7 @@ class Insert extends Common\Insert
      * Column values for ON DUPLICATE KEY UPDATE section of query; the key is
      * the column name and the value is the column value.
      *
-     * @param array
+     * @var array|null
      *
      */
     protected $col_on_update_values;

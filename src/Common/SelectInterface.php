@@ -327,7 +327,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * Clears the current select properties, usually called after a union.
      * You may need to call resetUnions() if you have used one
      *
-     * @return null
+     * @return void
      *
      */
     public function reset();

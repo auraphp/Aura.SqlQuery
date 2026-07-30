@@ -19,6 +19,15 @@ use Aura\SqlQuery\Common;
  */
 class Delete extends Common\Delete implements ReturningInterface
 {
+    /**
+     *
+     * A builder for the query.
+     *
+     * @var DeleteBuilder
+     *
+     */
+    protected $builder;
+
     use ReturningTrait;
 
     /**

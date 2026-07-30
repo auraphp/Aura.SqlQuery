@@ -21,6 +21,15 @@ class Select extends Common\Select
 {
     /**
      *
+     * A builder for the query.
+     *
+     * @var SelectBuilder
+     *
+     */
+    protected $builder;
+
+    /**
+     *
      * Builds this query object into a string.
      *
      * @return string

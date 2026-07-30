@@ -21,6 +21,15 @@ use Aura\SqlQuery\Exception\LogicException;
  */
 class Delete extends AbstractDmlQuery implements DeleteInterface
 {
+    /**
+     *
+     * A builder for the query.
+     *
+     * @var DeleteBuilder
+     *
+     */
+    protected $builder;
+
     use WhereTrait;
     use TableListTrait;
 

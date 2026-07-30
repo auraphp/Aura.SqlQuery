@@ -22,7 +22,7 @@ abstract class AbstractDmlQuery extends AbstractQuery
      * Column values for INSERT or UPDATE queries; the key is the column name and the
      * value is the column value.
      *
-     * @param array
+     * @var array
      *
      */
     protected $col_values = [];

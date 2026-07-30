@@ -19,6 +19,15 @@ use Aura\SqlQuery\Common;
  */
 class Insert extends Common\Insert implements ReturningInterface, Common\OnConflictUpdateInterface
 {
+    /**
+     *
+     * A builder for the query.
+     *
+     * @var InsertBuilder
+     *
+     */
+    protected $builder;
+
     use ReturningTrait;
     use Common\OnConflictUpdateTrait;
 

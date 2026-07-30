@@ -1,7 +1,9 @@
-# Start at the highest level that passes clean; raise the level as the
-# 6.x native-types work lands (level 2+ currently fails on $this->builder
-# being typed as AbstractBuilder while queries call dialect-builder methods).
+# Start at the highest level that passes clean; raise the level as the 6.x
+# typing work lands. Level 4 currently reports 8 docblocks that claim a
+# narrower type than the code accepts -- a @param string on a method that
+# tests `instanceof Closure`, and three that compare against null -- so the
+# code is right and the tags are wrong. Fixing those is the next step.
 parameters:
-    level: 1
+    level: 3
     paths:
         - src
