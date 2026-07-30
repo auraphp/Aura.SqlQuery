@@ -23,6 +23,15 @@ class Insert extends AbstractDmlQuery implements InsertInterface
 {
     /**
      *
+     * A builder for the query.
+     *
+     * @var InsertBuilder
+     *
+     */
+    protected $builder;
+
+    /**
+     *
      * The table to insert into (quoted).
      *
      * @var string
@@ -424,7 +433,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * last row, so those names would go missing from a statement that still
      * spells them, and execute() would fail on the unbound placeholder.
      *
-     * @return null
+     * @return void
      *
      */
     protected function finishRow()

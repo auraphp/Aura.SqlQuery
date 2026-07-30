@@ -19,6 +19,15 @@ use Aura\SqlQuery\Common;
  */
 class Update extends Common\Update implements ReturningInterface
 {
+    /**
+     *
+     * A builder for the query.
+     *
+     * @var UpdateBuilder
+     *
+     */
+    protected $builder;
+
     use ReturningTrait;
 
     /**

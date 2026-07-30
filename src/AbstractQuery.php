@@ -104,7 +104,7 @@ abstract class AbstractQuery
      *
      * A helper for quoting identifier names.
      *
-     * @var Common\Quoter
+     * @var Common\QuoterInterface
      *
      */
     protected $quoter;
@@ -127,7 +127,7 @@ abstract class AbstractQuery
      *
      * Constructor.
      *
-     * @param Common\Quoter $quoter A helper for quoting identifier names.
+     * @param Common\QuoterInterface $quoter A helper for quoting identifier names.
      *
      * @param Common\AbstractBuilder $builder A builder for the query.
      *
@@ -518,7 +518,7 @@ abstract class AbstractQuery
      *
      * @param bool $enable Flag status - enabled or not (default true)
      *
-     * @return null
+     * @return void
      *
      */
     protected function setFlag($flag, $enable = true)
@@ -571,7 +571,7 @@ abstract class AbstractQuery
      *
      * @param array $bind arguments to bind to placeholders
      *
-     * @return null
+     * @return void
      *
      */
     protected function addClauseCondWithBind($clause, $andor, $cond, $bind)
@@ -607,7 +607,7 @@ abstract class AbstractQuery
      *
      * @param callable $closure The closure that adds to the clause.
      *
-     * @return null
+     * @return void
      *
      */
     protected function addClauseCondClosure($clause, $andor, $closure)

@@ -20,6 +20,15 @@ use Aura\SqlQuery\Exception;
  */
 class Insert extends Common\Insert implements Common\OnConflictUpdateInterface
 {
+    /**
+     *
+     * A builder for the query.
+     *
+     * @var InsertBuilder
+     *
+     */
+    protected $builder;
+
     use OrConflictTrait;
     use Common\OnConflictUpdateTrait;
 

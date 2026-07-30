@@ -20,6 +20,15 @@ use Aura\SqlQuery\Exception\LogicException;
  */
 class Select extends AbstractQuery implements SelectInterface
 {
+    /**
+     *
+     * A builder for the query.
+     *
+     * @var SelectBuilder
+     *
+     */
+    protected $builder;
+
     use WhereTrait;
     use TableListTrait;
     use LimitOffsetTrait { limit as setLimit; offset as setOffset; }
@@ -67,7 +76,7 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * Is this a SELECT FOR UPDATE?
      *
-     * @var
+     * @var bool
      *
      */
     protected $for_update = false;
@@ -336,7 +345,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @param mixed $val If $key was an integer, the column to be added;
      * otherwise, the column alias.
      *
-     * @return null
+     * @return void
      *
      */
     protected function addCol($key, $val)
@@ -356,7 +365,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @param string $spec The column specification: "col alias",
      * "col AS alias", or something else entirely.
      *
-     * @return null
+     * @return void
      *
      */
     protected function addColWithAlias($spec)
@@ -510,7 +519,7 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @param string $spec The table and alias name.
      *
-     * @return null
+     * @return void
      *
      * @throws LogicException when the reference has already been used.
      *
@@ -865,7 +874,7 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * Updates the limit and offset values when changing pagination.
      *
-     * @return null
+     * @return void
      *
      */
     protected function setPagingLimitOffset()
@@ -1051,7 +1060,7 @@ class Select extends AbstractQuery implements SelectInterface
      * branch's SQL still reads `a = :a` -- the silent overwrite this whole
      * method exists to prevent, arriving one branch later.
      *
-     * @return null
+     * @return void
      *
      */
     protected function resetAfterRendering()
@@ -1162,7 +1171,7 @@ class Select extends AbstractQuery implements SelectInterface
      * Clears the current select properties; generally used after adding a
      * union.
      *
-     * @return null
+     * @return void
      *
      */
     public function reset()

@@ -26,7 +26,7 @@ class QueryFactory
      *
      * What database are we building for?
      *
-     * @param string
+     * @var string
      *
      */
     protected $db;
@@ -35,7 +35,7 @@ class QueryFactory
      *
      * Build "common" query objects regardless of database type?
      *
-     * @param bool
+     * @var bool
      *
      */
     protected $common = false;
@@ -53,7 +53,7 @@ class QueryFactory
      *
      * A Quoter for identifiers.
      *
-     * @param QuoterInterface
+     * @var Common\QuoterInterface|null
      *
      */
     protected $quoter;
@@ -81,7 +81,7 @@ class QueryFactory
      * @param array $last_insert_id_names A map of `table.col` names to
      * last-insert-id names.
      *
-     * @return null
+     * @return void
      *
      */
     public function setLastInsertIdNames(array $last_insert_id_names)
@@ -188,7 +188,7 @@ class QueryFactory
      *
      * Returns the Quoter object for queries; creates one if needed.
      *
-     * @return Common\Quoter
+     * @return Common\QuoterInterface
      *
      */
     protected function getQuoter()
