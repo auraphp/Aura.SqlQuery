@@ -567,7 +567,7 @@ abstract class AbstractQuery
      * @param string $andor Add the condition using this operator, typically
      * 'AND' or 'OR'.
      *
-     * @param string $cond The WHERE condition.
+     * @param string|Closure $cond The WHERE condition.
      *
      * @param array $bind arguments to bind to placeholders
      *

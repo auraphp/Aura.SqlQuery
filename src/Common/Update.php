@@ -166,7 +166,7 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      *
      * @param string $col The column name.
      *
-     * @param string $value The column value expression.
+     * @param string|null $value The column value expression.
      *
      * @return $this
      *

@@ -184,7 +184,7 @@ class Insert extends Common\Insert
      *
      * @param string $col The column name.
      *
-     * @param string $value The column value expression.
+     * @param string|null $value The column value expression.
      *
      * @return $this
      *

@@ -1,9 +1,33 @@
 # Start at the highest level that passes clean; raise the level as the 6.x
-# typing work lands. Level 4 currently reports 8 docblocks that claim a
-# narrower type than the code accepts -- a @param string on a method that
-# tests `instanceof Closure`, and three that compare against null -- so the
-# code is right and the tags are wrong. Fixing those is the next step.
+# typing work lands.
+#
+# Each ignore below carries a count, so it suppresses only the occurrences
+# described here: a new one anywhere in the file fails the run rather than
+# being absorbed silently.
 parameters:
-    level: 3
+    level: 4
     paths:
         - src
+    ignoreErrors:
+        # addClauseCondClosure() empties $this->$clause, hands the query to
+        # the closure, and reads the clause back to see what the closure
+        # added. PHPStan does not model mutation through the closure, so it
+        # still believes the clause is the empty array assigned above: the
+        # test reads as always true and everything after it as unreachable.
+        # The code is correct -- reachable via where(function ($q) { ... }).
+        -
+            identifier: booleanNot.alwaysTrue
+            path: src/AbstractQuery.php
+            count: 1
+        -
+            identifier: deadCode.unreachable
+            path: src/AbstractQuery.php
+            count: 1
+        # getCond() asserts the array key it was handed is an int, which PHP
+        # guarantees for array keys once the string case above has returned.
+        # Kept as a deliberate guard rather than removed; whether it costs
+        # anything at runtime depends on zend.assertions.
+        -
+            identifier: function.alreadyNarrowedType
+            path: src/AbstractQuery.php
+            count: 2

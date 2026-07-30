@@ -659,7 +659,7 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @param string $spec The table specification; "foo" or "foo AS bar".
      *
-     * @param string $cond Join on this condition.
+     * @param string|null $cond Join on this condition.
      *
      * @param array $bind Values to bind to ?-placeholders in the condition.
      *
@@ -683,7 +683,7 @@ class Select extends AbstractQuery implements SelectInterface
      * Fixes a JOIN condition to quote names in the condition and prefix it
      * with a condition type ('ON' is the default and 'USING' is recognized).
      *
-     * @param string $cond Join on this condition.
+     * @param string|null $cond Join on this condition.
      *
      * @param array $bind Values to bind to ?-placeholders in the condition.
      *
@@ -716,7 +716,7 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @param string $spec The table specification; "foo" or "foo AS bar".
      *
-     * @param string $cond Join on this condition.
+     * @param string|null $cond Join on this condition.
      *
      * @param array $bind Values to bind to ?-placeholders in the condition.
      *
@@ -736,7 +736,7 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @param string $spec The table specification; "foo" or "foo AS bar".
      *
-     * @param string $cond Join on this condition.
+     * @param string|null $cond Join on this condition.
      *
      * @param array $bind Values to bind to ?-placeholders in the condition.
      *
@@ -762,7 +762,7 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @param string $name The alias name for the sub-select.
      *
-     * @param string $cond Join on this condition.
+     * @param string|null $cond Join on this condition.
      *
      * @param array $bind Values to bind to ?-placeholders in the condition.
      *
@@ -822,7 +822,7 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * Adds a HAVING condition to the query by AND.
      *
-     * @param string $cond The HAVING condition.
+     * @param string|\Closure $cond The HAVING condition.
      *
      * @param array $bind arguments to bind to placeholders
      *
@@ -839,7 +839,7 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * Adds a HAVING condition to the query by OR.
      *
-     * @param string $cond The HAVING condition.
+     * @param string|\Closure $cond The HAVING condition.
      *
      * @param array $bind arguments to bind to placeholders
      *

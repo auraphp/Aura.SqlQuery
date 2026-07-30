@@ -221,7 +221,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      *
      * @param string $col   The column name.
      *
-     * @param string $value The column value expression.
+     * @param string|null $value The column value expression.
      *
      * @return $this
      *
@@ -394,7 +394,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * Sets a column value directly for the UPDATE on conflict.
      *
      * @param string $col
-     * @param string $value
+     * @param string|null $value
      * @throws BadMethodCallException
      * @return static
      *

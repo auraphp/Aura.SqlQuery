@@ -33,7 +33,7 @@ trait LateralJoinTrait
      *
      * @param string $name The alias name for the sub-select.
      *
-     * @param string $cond Join on this condition. A LATERAL join requires an
+     * @param string|null $cond Join on this condition. A LATERAL join requires an
      * ON clause except on the join types that forbid one, so when no
      * condition is given for the other types, "ON true" is used.
      *

@@ -21,7 +21,7 @@ trait WhereTrait
      *
      * Adds a WHERE condition to the query by AND.
      *
-     * @param string $cond The WHERE condition.
+     * @param string|\Closure $cond The WHERE condition.
      *
      * @param array $bind Values to be bound to placeholders
      *
@@ -40,7 +40,7 @@ trait WhereTrait
      * ?-placeholders, additional arguments to the method will be bound to
      * those placeholders sequentially.
      *
-     * @param string $cond The WHERE condition.
+     * @param string|\Closure $cond The WHERE condition.
      *
      * @param array $bind Values to be bound to placeholders
      *
