@@ -6,6 +6,27 @@ The time between submitting a contribution and its review one may be extensive; 
 
 Thanks!
 
+## Ignoring formatting-only commits in `git blame`
+
+A commit that only reformats code — converting `array()` to `[]`, say — still
+touches every line it rewrites, so `git blame` credits it for lines whose author
+and reason lie further back. `.git-blame-ignore-revs` lists those commits, and
+blame looks through them to the change that actually mattered.
+
+GitHub reads the file on its own. Local `git blame` needs telling once per
+clone, since this is not something a repository can configure for you:
+
+```sh
+git config blame.ignoreRevsFile .git-blame-ignore-revs
+```
+
+Add a commit to the file when it changes formatting and nothing else, with a
+comment naming it. Use the full SHA of the commit that made the change rather
+than the merge commit, and take it after the merge has landed on `6.x`: a
+revision the repository does not have is skipped in silence, so a SHA that is
+wrong, or that a squash merge replaced, leaves blame noisy with nothing to say
+so. Check an affected line with `git blame` afterwards.
+
 ## Running the tests
 
 ```sh

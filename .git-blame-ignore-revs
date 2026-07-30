@@ -1,0 +1,8 @@
+# Commits that changed formatting only, and so should not be blamed for the
+# lines they touched. See CONTRIBUTING.md for how to make git use this file.
+
+# Use short array syntax in src
+8966e329e35bbff966ebc387264b796e6bfca8e4
+
+# Use short array syntax in tests
+dfdc144a84248a0a9ea95207198741159857310a
