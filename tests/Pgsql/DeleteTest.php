@@ -24,7 +24,7 @@ class DeleteTest extends Common\DeleteTest
                     ->where('foo = :foo', ['foo' => 'bar'])
                     ->where('baz = :baz', ['baz' => 'dib'])
                     ->orWhere('zim = gir')
-                    ->returning(array('foo', 'baz', 'zim'));
+                    ->returning(['foo', 'baz', 'zim']);
 
         $actual = $this->query->__toString();
         $expect = "
@@ -41,10 +41,10 @@ class DeleteTest extends Common\DeleteTest
         $this->assertSameSql($expect, $actual);
 
         $actual = $this->query->getBindValues();
-        $expect = array(
+        $expect = [
             'foo' => 'bar',
             'baz' => 'dib',
-        );
+        ];
         $this->assertSame($expect, $actual);
     }
 }

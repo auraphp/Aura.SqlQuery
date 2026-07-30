@@ -52,7 +52,7 @@ class SelectTest extends Common\SelectTest
                     ->distinct()
                     ->noCache()
                     ->from('t1')
-                    ->cols(array('t1.c1', 't1.c2', 't1.c3'));
+                    ->cols(['t1.c1', 't1.c2', 't1.c3']);
 
         $actual = $this->query->__toString();
 
@@ -64,7 +64,7 @@ class SelectTest extends Common\SelectTest
     {
         $this->query->calcFoundRows()
                      ->from('t1')
-                     ->cols(array('t1.c1', 't1.c2', 't1.c3'));
+                     ->cols(['t1.c1', 't1.c2', 't1.c3']);
 
         $actual = $this->query->__toString();
 
@@ -76,7 +76,7 @@ class SelectTest extends Common\SelectTest
     {
         $this->query->cache()
                      ->from('t1')
-                     ->cols(array('t1.c1', 't1.c2', 't1.c3'));
+                     ->cols(['t1.c1', 't1.c2', 't1.c3']);
 
         $actual = $this->query->__toString();
 
@@ -88,7 +88,7 @@ class SelectTest extends Common\SelectTest
     {
         $this->query->noCache()
                      ->from('t1')
-                     ->cols(array('t1.c1', 't1.c2', 't1.c3'));
+                     ->cols(['t1.c1', 't1.c2', 't1.c3']);
 
         $actual = $this->query->__toString();
 
@@ -100,7 +100,7 @@ class SelectTest extends Common\SelectTest
     {
         $this->query->straightJoin()
                      ->from('t1')
-                     ->cols(array('t1.c1', 't1.c2', 't1.c3'));
+                     ->cols(['t1.c1', 't1.c2', 't1.c3']);
 
         $actual = $this->query->__toString();
 
@@ -112,7 +112,7 @@ class SelectTest extends Common\SelectTest
     {
         $this->query->highPriority()
                      ->from('t1')
-                     ->cols(array('t1.c1', 't1.c2', 't1.c3'));
+                     ->cols(['t1.c1', 't1.c2', 't1.c3']);
 
         $actual = $this->query->__toString();
 
@@ -124,7 +124,7 @@ class SelectTest extends Common\SelectTest
     {
         $this->query->smallResult()
                      ->from('t1')
-                     ->cols(array('t1.c1', 't1.c2', 't1.c3'));
+                     ->cols(['t1.c1', 't1.c2', 't1.c3']);
 
         $actual = $this->query->__toString();
 
@@ -136,7 +136,7 @@ class SelectTest extends Common\SelectTest
     {
         $this->query->bigResult()
                      ->from('t1')
-                     ->cols(array('t1.c1', 't1.c2', 't1.c3'));
+                     ->cols(['t1.c1', 't1.c2', 't1.c3']);
 
         $actual = $this->query->__toString();
 
@@ -148,7 +148,7 @@ class SelectTest extends Common\SelectTest
     {
         $this->query->bufferResult()
                      ->from('t1')
-                     ->cols(array('t1.c1', 't1.c2', 't1.c3'));
+                     ->cols(['t1.c1', 't1.c2', 't1.c3']);
 
         $actual = $this->query->__toString();
 
@@ -158,22 +158,22 @@ class SelectTest extends Common\SelectTest
 
     public static function provideNamesHeldFromABranch()
     {
-        return array_merge(Common\SelectTest::provideNamesHeldFromABranch(), array(
-            'backslash escape' => array(array(), "note = 'it\\'s :a'"),
-            'backslash before a backslash' => array(array('a'), "note = 'ends\\\\' AND a = :a"),
-            'hash comment' => array(array(), 'c1 > 0 # :a'),
-            'hash after a literal' => array(array(), "note = 'x' # :a"),
+        return array_merge(Common\SelectTest::provideNamesHeldFromABranch(), [
+            'backslash escape' => [[], "note = 'it\\'s :a'"],
+            'backslash before a backslash' => [['a'], "note = 'ends\\\\' AND a = :a"],
+            'hash comment' => [[], 'c1 > 0 # :a'],
+            'hash after a literal' => [[], "note = 'x' # :a"],
 
             // MySQL wants whitespace after the dashes before it reads them as
             // a comment, so this is an operator and a placeholder
-            'no space after the dashes' => array(array('a'), 'c1 > 0--:a'),
+            'no space after the dashes' => [['a'], 'c1 > 0--:a'],
 
             // read no further than this. A double-quoted string is a string
             // here and an identifier under ANSI_QUOTES, and keeping the name
             // costs a needless collision report where reading it as a string
             // would swallow a real placeholder in every ANSI_QUOTES query.
-            'gap: double-quoted string' => array(array('a'), 'x = ":a"'),
-        ));
+            'gap: double-quoted string' => [['a'], 'x = ":a"'],
+        ]);
     }
 
 }

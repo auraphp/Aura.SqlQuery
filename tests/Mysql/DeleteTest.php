@@ -18,7 +18,7 @@ class DeleteTest extends Common\DeleteTest
     public function testOrderByLimit()
     {
         $this->query->from('t1')
-                    ->orderBy(array('c1', 'c2'))
+                    ->orderBy(['c1', 'c2'])
                     ->limit(10);
 
         $actual = $this->query->__toString();
@@ -45,10 +45,10 @@ class DeleteTest extends Common\DeleteTest
         $this->assertSameSql($expect, $actual);
 
         $actual = $this->query->getBindValues();
-        $expect = array(
+        $expect = [
             'foo' => 'bar',
             'baz' => 'dib',
-        );
+        ];
         $this->assertSame($expect, $actual);
     }
 
@@ -65,10 +65,10 @@ class DeleteTest extends Common\DeleteTest
         $this->assertSameSql($expect, $actual);
 
         $actual = $this->query->getBindValues();
-        $expect = array(
+        $expect = [
             'foo' => 'bar',
             'baz' => 'dib',
-        );
+        ];
         $this->assertSame($expect, $actual);
     }
 
@@ -85,10 +85,10 @@ class DeleteTest extends Common\DeleteTest
         $this->assertSameSql($expect, $actual);
 
         $actual = $this->query->getBindValues();
-        $expect = array(
+        $expect = [
             'foo' => 'bar',
             'baz' => 'dib',
-        );
+        ];
         $this->assertSame($expect, $actual);
     }
 

@@ -60,15 +60,15 @@ abstract class AbstractQueryTest extends TestCase
     public function testBindValues()
     {
         $actual = $this->query->getBindValues();
-        $this->assertSame(array(), $actual);
+        $this->assertSame([], $actual);
 
-        $expect = array('foo' => 'bar', 'baz' => 'dib');
+        $expect = ['foo' => 'bar', 'baz' => 'dib'];
         $this->query->bindValues($expect);
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);
 
-        $this->query->bindValues(array('zim' => 'gir'));
-        $expect = array('foo' => 'bar', 'baz' => 'dib', 'zim' => 'gir');
+        $this->query->bindValues(['zim' => 'gir']);
+        $expect = ['foo' => 'bar', 'baz' => 'dib', 'zim' => 'gir'];
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);
 
@@ -79,10 +79,10 @@ abstract class AbstractQueryTest extends TestCase
     public function testBindValue()
     {
         $this->query->bindValue('foo', 'bar');
-        $this->assertSame(array('foo' => 'bar'), $this->query->getBindValues());
+        $this->assertSame(['foo' => 'bar'], $this->query->getBindValues());
 
         $this->query->bindValue('baz', 'dib');
-        $expect = array('foo' => 'bar', 'baz' => 'dib');
+        $expect = ['foo' => 'bar', 'baz' => 'dib'];
         $this->assertSame($expect, $this->query->getBindValues());
 
         $this->query->resetBindValues();
@@ -96,15 +96,15 @@ abstract class AbstractQueryTest extends TestCase
         // query building it themselves. See #238.
         $this->query->bindValue('foo', 'first');
         $this->query->bindValue('foo', 'second');
-        $this->assertSame(array('foo' => 'second'), $this->query->getBindValues());
+        $this->assertSame(['foo' => 'second'], $this->query->getBindValues());
 
-        $this->query->bindValues(array('foo' => 'third'));
-        $this->assertSame(array('foo' => 'third'), $this->query->getBindValues());
+        $this->query->bindValues(['foo' => 'third']);
+        $this->assertSame(['foo' => 'third'], $this->query->getBindValues());
     }
 
     public function testBindValuesReturnsTheQueryForChaining()
     {
-        $this->assertSame($this->query, $this->query->bindValues(array('foo' => 'bar')));
+        $this->assertSame($this->query, $this->query->bindValues(['foo' => 'bar']));
         $this->assertSame($this->query, $this->query->bindValue('baz', 'dib'));
     }
 }

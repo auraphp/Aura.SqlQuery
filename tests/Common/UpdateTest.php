@@ -43,10 +43,10 @@ class UpdateTest extends AbstractQueryTest
         $this->assertSameSql($expect, $actual);
 
         $actual = $this->query->getBindValues();
-        $expect = array(
+        $expect = [
             'foo' => 'bar',
             'baz' => 'dib',
-        );
+        ];
         $this->assertSame($expect, $actual);
     }
 
@@ -96,7 +96,7 @@ class UpdateTest extends AbstractQueryTest
               . 'odd,name'
               . $this->query->getQuoteNameSuffix();
 
-        $this->query->table($name)->cols(array('c1'));
+        $this->query->table($name)->cols(['c1']);
 
         $actual = $this->query->__toString();
         $expect = "
@@ -119,7 +119,7 @@ class UpdateTest extends AbstractQueryTest
         $suffix = $this->query->getQuoteNameSuffix();
         $name = $prefix . 'odd' . $suffix . $suffix . ',name' . $suffix;
 
-        $this->query->table($name)->cols(array('c1'));
+        $this->query->table($name)->cols(['c1']);
 
         $actual = $this->query->__toString();
         $expect = "

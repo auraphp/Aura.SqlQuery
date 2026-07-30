@@ -9,18 +9,18 @@ class SelectTest extends Common\SelectTest
 
     public static function provideNamesHeldFromABranch()
     {
-        return array_merge(Common\SelectTest::provideNamesHeldFromABranch(), array(
+        return array_merge(Common\SelectTest::provideNamesHeldFromABranch(), [
             // read no further than this. SQL Server names quoted with double
             // quotes are legal under QUOTED_IDENTIFIER, but the brackets are
             // what this builder writes, so a name kept inside a double-quoted
             // one is a needless collision report and nothing worse.
-            'gap: double-quoted identifier' => array(array('a'), 'x = "odd:a name"'),
-        ));
+            'gap: double-quoted identifier' => [['a'], 'x = "odd:a name"'],
+        ]);
     }
 
     public function testLimitOffset()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->limit(10);
         $expect = '
             SELECT TOP 10
@@ -41,7 +41,7 @@ class SelectTest extends Common\SelectTest
 
     public function testPage()
     {
-        $this->query->cols(array('*'));
+        $this->query->cols(['*']);
         $this->query->page(5);
         $expect = '
             SELECT

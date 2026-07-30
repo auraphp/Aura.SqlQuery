@@ -9,9 +9,9 @@ class InsertTest extends AbstractQueryTest
 
     protected function newQuery()
     {
-        $this->query_factory->setLastInsertIdNames(array(
+        $this->query_factory->setLastInsertIdNames([
             'tablex.colx' => 'tablex_colx_alternative_name',
-        ));
+        ]);
         return parent::newQuery();
     }
 
@@ -29,11 +29,11 @@ class InsertTest extends AbstractQueryTest
     public function testCommon()
     {
         $this->query->into('t1')
-                    ->cols(array('c1', 'c2'))
+                    ->cols(['c1', 'c2'])
                     ->col('c3')
                     ->set('c4', 'NOW()')
                     ->set('c5', null)
-                    ->cols(array('cx' => 'cx_value'));
+                    ->cols(['cx' => 'cx_value']);
 
         $actual = $this->query->__toString();
         $expect = '
@@ -57,7 +57,7 @@ class InsertTest extends AbstractQueryTest
         $this->assertSameSql($expect, $actual);
 
         $actual = $this->query->getBindValues();
-        $expect = array('cx' => 'cx_value');
+        $expect = ['cx' => 'cx_value'];
         $this->assertSame($expect, $actual);
     }
 
@@ -81,7 +81,7 @@ class InsertTest extends AbstractQueryTest
     {
         $this->query->into('t1');
 
-        $this->query->cols(array('c1' => 'v1-0', 'c2' => 'v2-0'));
+        $this->query->cols(['c1' => 'v1-0', 'c2' => 'v2-0']);
         $this->query->col('c3', 'v3-0');
         $this->query->set('c4', 'NOW() - 0');
 
@@ -89,13 +89,13 @@ class InsertTest extends AbstractQueryTest
 
         $this->query->col('c3', 'v3-1');
         $this->query->set('c4', 'NOW() - 1');
-        $this->query->cols(array('c2' => 'v2-1', 'c1' => 'v1-1'));
+        $this->query->cols(['c2' => 'v2-1', 'c1' => 'v1-1']);
 
         $this->query->addRow();
 
         $this->query->set('c4', 'NOW() - 2');
         $this->query->col('c1', 'v1-2');
-        $this->query->cols(array('c2' => 'v2-2', 'c3' => 'v3-2'));
+        $this->query->cols(['c2' => 'v2-2', 'c3' => 'v3-2']);
 
         $actual = $this->query->__toString();
         $expect = '
@@ -109,7 +109,7 @@ class InsertTest extends AbstractQueryTest
 
         $this->assertSameSql($expect, $actual);
 
-        $expect = array (
+        $expect = [
             'c1_0' => 'v1-0',
             'c2_0' => 'v2-0',
             'c3_0' => 'v3-0',
@@ -119,7 +119,7 @@ class InsertTest extends AbstractQueryTest
             'c1_2' => 'v1-2',
             'c2_2' => 'v2-2',
             'c3_2' => 'v3-2',
-        );
+        ];
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);
     }
@@ -129,14 +129,14 @@ class InsertTest extends AbstractQueryTest
         $this->query->into('t1');
 
         // the needed cols
-        $this->query->cols(array('c1' => 'v1-0', 'c2' => 'v2-0'));
+        $this->query->cols(['c1' => 'v1-0', 'c2' => 'v2-0']);
         $this->query->col('c3', 'v3-0');
         $this->query->set('c4', 'NOW() - 0');
 
         // add another row
         $this->query->addRow();
         $this->query->set('c4', 'NOW() - 1');
-        $this->query->cols(array('c2' => 'v2-1', 'c1' => 'v1-1'));
+        $this->query->cols(['c2' => 'v2-1', 'c1' => 'v1-1']);
 
         // failed to add c3, should blow up
 
@@ -151,7 +151,7 @@ class InsertTest extends AbstractQueryTest
     {
         $this->query->into('t1');
 
-        $this->query->cols(array('c1' => 'v1-0', 'c2' => 'v2-0'));
+        $this->query->cols(['c1' => 'v1-0', 'c2' => 'v2-0']);
         $this->query->col('c3', 'v3-0');
         $this->query->set('c4', 'NOW() - 0');
 
@@ -159,13 +159,13 @@ class InsertTest extends AbstractQueryTest
 
         $this->query->col('c3', 'v3-1');
         $this->query->set('c4', 'NOW() - 1');
-        $this->query->cols(array('c2' => 'v2-1', 'c1' => 'v1-1'));
+        $this->query->cols(['c2' => 'v2-1', 'c1' => 'v1-1']);
 
         $this->query->addRow();
 
         $this->query->set('c4', 'NOW() - 2');
         $this->query->col('c1', 'v1-2');
-        $this->query->cols(array('c2' => 'v2-2', 'c3' => 'v3-2'));
+        $this->query->cols(['c2' => 'v2-2', 'c3' => 'v3-2']);
 
         // add an empty row
         $this->query->addRow();
@@ -183,7 +183,7 @@ class InsertTest extends AbstractQueryTest
 
         $this->assertSameSql($expect, $actual);
 
-        $expect = array (
+        $expect = [
             'c1_0' => 'v1-0',
             'c2_0' => 'v2-0',
             'c3_0' => 'v3-0',
@@ -193,7 +193,7 @@ class InsertTest extends AbstractQueryTest
             'c1_2' => 'v1-2',
             'c2_2' => 'v2-2',
             'c3_2' => 'v3-2',
-        );
+        ];
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);
     }
@@ -201,23 +201,23 @@ class InsertTest extends AbstractQueryTest
     public function testBulkAddRows()
     {
         $this->query->into('t1');
-        $this->query->addRows(array(
-            array(
+        $this->query->addRows([
+            [
                 'c1' => 'v1-0',
                 'c2' => 'v2-0',
                 'c3' => 'v3-0',
-            ),
-            array(
+            ],
+            [
                 'c1' => 'v1-1',
                 'c2' => 'v2-1',
                 'c3' => 'v3-1',
-            ),
-            array(
+            ],
+            [
                 'c1' => 'v1-2',
                 'c2' => 'v2-2',
                 'c3' => 'v3-2',
-            ),
-        ));
+            ],
+        ]);
 
         $actual = $this->query->__toString();
         $expect = '
@@ -231,7 +231,7 @@ class InsertTest extends AbstractQueryTest
 
         $this->assertSameSql($expect, $actual);
 
-        $expect = array (
+        $expect = [
             'c1_0' => 'v1-0',
             'c2_0' => 'v2-0',
             'c3_0' => 'v3-0',
@@ -241,7 +241,7 @@ class InsertTest extends AbstractQueryTest
             'c1_2' => 'v1-2',
             'c2_2' => 'v2-2',
             'c3_2' => 'v3-2',
-        );
+        ];
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);
     }
@@ -249,13 +249,13 @@ class InsertTest extends AbstractQueryTest
     public function testIssue60_addRowsWithOnlyOneRow()
     {
         $this->query->into('t1');
-        $this->query->addRows(array(
-            array(
+        $this->query->addRows([
+            [
                 'c1' => 'v1-0',
                 'c2' => 'v2-0',
                 'c3' => 'v3-0',
-            ),
-        ));
+            ],
+        ]);
 
         $actual = $this->query->__toString();
         $expect = '
@@ -272,11 +272,11 @@ class InsertTest extends AbstractQueryTest
 
         $this->assertSameSql($expect, $actual);
 
-        $expect = array (
+        $expect = [
             'c1' => 'v1-0',
             'c2' => 'v2-0',
             'c3' => 'v3-0',
-        );
+        ];
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);
     }
@@ -284,29 +284,29 @@ class InsertTest extends AbstractQueryTest
     public function testIssue60_repeatedAddRowsWithOnlyOneRow()
     {
         $this->query->into('t1');
-        $this->query->addRows(array(
-            array(
+        $this->query->addRows([
+            [
                 'c1' => 'v1-0',
                 'c2' => 'v2-0',
                 'c3' => 'v3-0',
-            ),
-        ));
+            ],
+        ]);
 
-        $this->query->addRows(array(
-            array(
+        $this->query->addRows([
+            [
                 'c1' => 'v1-1',
                 'c2' => 'v2-1',
                 'c3' => 'v3-1',
-            ),
-        ));
+            ],
+        ]);
 
-        $this->query->addRows(array(
-            array(
+        $this->query->addRows([
+            [
                 'c1' => 'v1-2',
                 'c2' => 'v2-2',
                 'c3' => 'v3-2',
-            ),
-        ));
+            ],
+        ]);
 
         $actual = $this->query->__toString();
         $expect = '
@@ -320,7 +320,7 @@ class InsertTest extends AbstractQueryTest
 
         $this->assertSameSql($expect, $actual);
 
-        $expect = array (
+        $expect = [
             'c1_0' => 'v1-0',
             'c2_0' => 'v2-0',
             'c3_0' => 'v3-0',
@@ -330,7 +330,7 @@ class InsertTest extends AbstractQueryTest
             'c1_2' => 'v1-2',
             'c2_2' => 'v2-2',
             'c3_2' => 'v3-2',
-        );
+        ];
         $actual = $this->query->getBindValues();
         $this->assertSame($expect, $actual);
     }
