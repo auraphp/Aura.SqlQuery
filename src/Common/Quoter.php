@@ -315,8 +315,8 @@ class Quoter implements QuoterInterface
      */
     protected function replaceNamesIn($text)
     {
-        $is_string_literal = strpos($text, "'") !== false
-                        || strpos($text, '"') !== false;
+        $is_string_literal = str_contains($text, "'")
+                        || str_contains($text, '"');
         if ($is_string_literal) {
             return $text;
         }

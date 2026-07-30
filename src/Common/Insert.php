@@ -474,7 +474,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
         $value = $this->col_values[$col];
 
         // is it *not* a placeholder?
-        if (substr($value, 0, 1) != ':') {
+        if (! str_starts_with($value, ':')) {
             // copy the value as-is
             $this->col_values_bulk[$this->row][$col] = $value;
             return null;
