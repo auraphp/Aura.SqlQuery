@@ -1,9 +1,11 @@
 # Start at the highest level that passes clean; raise the level as the 6.x
-# typing work lands. Level 4 currently reports 8 docblocks that claim a
-# narrower type than the code accepts -- a @param string on a method that
-# tests `instanceof Closure`, and three that compare against null -- so the
-# code is right and the tags are wrong. Fixing those is the next step.
+# typing work lands.
+#
+# Suppressions live inline at the line they describe, not here: a file-scoped
+# ignore would also absorb an unrelated diagnostic introduced later, and the
+# messages PHPStan emits for them are identical wherever they occur, so there
+# is nothing to key a pattern on.
 parameters:
-    level: 3
+    level: 4
     paths:
         - src

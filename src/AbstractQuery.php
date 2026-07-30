@@ -567,7 +567,7 @@ abstract class AbstractQuery
      * @param string $andor Add the condition using this operator, typically
      * 'AND' or 'OR'.
      *
-     * @param string $cond The WHERE condition.
+     * @param string|Closure $cond The WHERE condition.
      *
      * @param array $bind arguments to bind to placeholders
      *
@@ -621,7 +621,11 @@ abstract class AbstractQuery
         // invoke the closure, which will re-populate the $this->$clause
         $closure($this);
 
-        // are there new clause elements?
+        // are there new clause elements? PHPStan does not model the closure
+        // above repopulating the clause, so it still sees the empty array
+        // assigned before the call: this test reads as always true to it, and
+        // everything after it as unreachable.
+        /** @phpstan-ignore booleanNot.alwaysTrue */
         if (! $this->$clause) {
             // no: restore the old ones, and done
             $this->$clause = $set;
@@ -630,6 +634,7 @@ abstract class AbstractQuery
 
         // append an opening parenthesis to the prior set of conditions,
         // with AND/OR as needed ...
+        /** @phpstan-ignore deadCode.unreachable */
         if ($set) {
             $set[] = "{$andor} (";
         } else {
@@ -729,6 +734,10 @@ abstract class AbstractQuery
         if (is_string($key)) {
             return str_replace(':' . $key, $this->inlineArray($val), $cond);
         }
+        // a deliberate guard; PHP guarantees an int key once the string case
+        // above has returned, so PHPStan reports both the assert and the
+        // is_int() inside it as always true
+        /** @phpstan-ignore function.alreadyNarrowedType, function.alreadyNarrowedType */
         assert(is_int($key));
 
         if (preg_match_all('/\?/', $cond, $matches, PREG_OFFSET_CAPTURE) !== false) {

@@ -171,7 +171,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string $spec The table specification; "foo" or "foo AS bar".
      *
-     * @param string $cond Join on this condition.
+     * @param string|null $cond Join on this condition.
      *
      * @return $this
      *
@@ -184,7 +184,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string $spec The table specification; "foo" or "foo AS bar".
      *
-     * @param string $cond Join on this condition.
+     * @param string|null $cond Join on this condition.
      *
      * @param array $bind Values to bind to ?-placeholders in the condition.
      *
@@ -201,7 +201,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string $spec The table specification; "foo" or "foo AS bar".
      *
-     * @param string $cond Join on this condition.
+     * @param string|null $cond Join on this condition.
      *
      * @param array $bind Values to bind to ?-placeholders in the condition.
      *
@@ -224,7 +224,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string $name The alias name for the sub-select.
      *
-     * @param string $cond Join on this condition.
+     * @param string|null $cond Join on this condition.
      *
      * @return $this
      *
@@ -246,7 +246,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * Adds a HAVING condition to the query by AND.
      *
-     * @param string $cond The HAVING condition.
+     * @param string|\Closure $cond The HAVING condition.
      *
      * @param array $bind Values to be bound to placeholders.
      *
@@ -259,7 +259,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * Adds a HAVING condition to the query by OR.
      *
-     * @param string $cond The HAVING condition.
+     * @param string|\Closure $cond The HAVING condition.
      *
      * @param array $bind Values to be bound to placeholders.
      *
