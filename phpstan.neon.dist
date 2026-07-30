@@ -1,33 +1,11 @@
 # Start at the highest level that passes clean; raise the level as the 6.x
 # typing work lands.
 #
-# Each ignore below carries a count, so it suppresses only the occurrences
-# described here: a new one anywhere in the file fails the run rather than
-# being absorbed silently.
+# Suppressions live inline at the line they describe, not here: a file-scoped
+# ignore would also absorb an unrelated diagnostic introduced later, and the
+# messages PHPStan emits for them are identical wherever they occur, so there
+# is nothing to key a pattern on.
 parameters:
     level: 4
     paths:
         - src
-    ignoreErrors:
-        # addClauseCondClosure() empties $this->$clause, hands the query to
-        # the closure, and reads the clause back to see what the closure
-        # added. PHPStan does not model mutation through the closure, so it
-        # still believes the clause is the empty array assigned above: the
-        # test reads as always true and everything after it as unreachable.
-        # The code is correct -- reachable via where(function ($q) { ... }).
-        -
-            identifier: booleanNot.alwaysTrue
-            path: src/AbstractQuery.php
-            count: 1
-        -
-            identifier: deadCode.unreachable
-            path: src/AbstractQuery.php
-            count: 1
-        # getCond() asserts the array key it was handed is an int, which PHP
-        # guarantees for array keys once the string case above has returned.
-        # Kept as a deliberate guard rather than removed; whether it costs
-        # anything at runtime depends on zend.assertions.
-        -
-            identifier: function.alreadyNarrowedType
-            path: src/AbstractQuery.php
-            count: 2
