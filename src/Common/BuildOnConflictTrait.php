@@ -72,7 +72,7 @@ trait BuildOnConflictTrait
      */
     protected function buildConflictUpdateValues(array $update_values)
     {
-        $values = array();
+        $values = [];
         foreach ($update_values as $key => $row) {
             $values[] = $key . ' = ' . $row;
         }

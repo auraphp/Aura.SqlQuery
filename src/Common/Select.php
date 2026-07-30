@@ -32,7 +32,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var array
      *
      */
-    protected $union = array();
+    protected $union = [];
 
     /**
      *
@@ -79,7 +79,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var array
      *
      */
-    protected $cols = array();
+    protected $cols = [];
 
     /**
      *
@@ -88,7 +88,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var array
      *
      */
-    protected $from = array();
+    protected $from = [];
 
     /**
      *
@@ -106,7 +106,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var array
      *
      */
-    protected $join = array();
+    protected $join = [];
 
     /**
      *
@@ -115,7 +115,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var array
      *
      */
-    protected $group_by = array();
+    protected $group_by = [];
 
     /**
      *
@@ -124,7 +124,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var array
      *
      */
-    protected $having = array();
+    protected $having = [];
 
     /**
      *
@@ -151,7 +151,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var array
      *
      */
-    protected $table_refs = array();
+    protected $table_refs = [];
 
     /**
      *
@@ -553,7 +553,7 @@ class Select extends AbstractQuery implements SelectInterface
 
         // an empty spec is nobody's list; leave it to quoteName() as before
         if (empty($names)) {
-            $names = array($spec);
+            $names = [$spec];
         }
 
         foreach ($names as $name) {
@@ -591,7 +591,7 @@ class Select extends AbstractQuery implements SelectInterface
      */
     protected function addFrom($spec)
     {
-        $this->from[] = array($spec);
+        $this->from[] = [$spec];
         $this->from_key ++;
         return $this;
     }
@@ -659,7 +659,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @throws LogicException
      *
      */
-    public function join($join, $spec, $cond = null, array $bind = array())
+    public function join($join, $spec, $cond = null, array $bind = [])
     {
         $join = strtoupper(ltrim("$join JOIN"));
         $this->addTableRef($join, $spec);
@@ -716,7 +716,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @throws LogicException
      *
      */
-    public function innerJoin($spec, $cond = null, array $bind = array())
+    public function innerJoin($spec, $cond = null, array $bind = [])
     {
         return $this->join('INNER', $spec, $cond, $bind);
     }
@@ -736,7 +736,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @throws LogicException
      *
      */
-    public function leftJoin($spec, $cond = null, array $bind = array())
+    public function leftJoin($spec, $cond = null, array $bind = [])
     {
         return $this->join('LEFT', $spec, $cond, $bind);
     }
@@ -762,7 +762,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @throws LogicException
      *
      */
-    public function joinSubSelect($join, $spec, $name, $cond = null, array $bind = array())
+    public function joinSubSelect($join, $spec, $name, $cond = null, array $bind = [])
     {
         $join = strtoupper(ltrim("$join JOIN"));
         $this->addTableRef("$join (SELECT ...) AS", $name);
@@ -1097,13 +1097,13 @@ class Select extends AbstractQuery implements SelectInterface
         // placeholders between them.
         $find = "/{$this->getQuotedNamePattern()}|{$this->text_pattern}"
               . "|(?<!:):(\w+)/s";
-        $spelled = array();
+        $spelled = [];
         foreach ($this->union as $branch) {
             preg_match_all($find, $branch, $matches);
             $spelled += array_flip(array_filter($matches[1], 'strlen'));
         }
 
-        $this->bind_sources = array();
+        $this->bind_sources = [];
         foreach (array_keys($this->bind_values) as $name) {
             if (isset($spelled[$name]) || ctype_digit((string) $name)) {
                 $this->bind_sources[$name] = 'union';
@@ -1113,7 +1113,7 @@ class Select extends AbstractQuery implements SelectInterface
         // every name now belongs to the union or to a CTE, including any a
         // clause of the branch just rendered was sharing: that clause is SQL
         // now, so there is no live claimant left to hand a name back to.
-        $this->bind_shared = array();
+        $this->bind_shared = [];
 
         // put the CTEs' claims back after the union's. A name only a CTE
         // binds passes to it outright; one the union spells as well is held
@@ -1189,7 +1189,7 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function resetCols()
     {
-        $this->cols = array();
+        $this->cols = [];
         return $this;
     }
 
@@ -1202,10 +1202,10 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function resetTables()
     {
-        $this->from = array();
+        $this->from = [];
         $this->from_key = -1;
-        $this->join = array();
-        $this->table_refs = array();
+        $this->join = [];
+        $this->table_refs = [];
         $this->removeBindSources('join');
         $this->removeBindSources('table');
         return $this;
@@ -1220,7 +1220,7 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function resetWhere()
     {
-        $this->where = array();
+        $this->where = [];
         $this->removeBindSources('where');
         return $this;
     }
@@ -1234,7 +1234,7 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function resetGroupBy()
     {
-        $this->group_by = array();
+        $this->group_by = [];
         return $this;
     }
 
@@ -1247,7 +1247,7 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function resetHaving()
     {
-        $this->having = array();
+        $this->having = [];
         $this->removeBindSources('having');
         return $this;
     }
@@ -1261,7 +1261,7 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function resetOrderBy()
     {
-        $this->order_by = array();
+        $this->order_by = [];
         return $this;
     }
 
@@ -1274,7 +1274,7 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function resetUnions()
     {
-        $this->union = array();
+        $this->union = [];
         $this->union_tail = null;
 
         // the rendered branches are gone, so nothing binds their placeholders
@@ -1292,7 +1292,7 @@ class Select extends AbstractQuery implements SelectInterface
      */
     protected function build()
     {
-        $cols = array();
+        $cols = [];
         foreach ($this->cols as $key => $val) {
             if (is_int($key)) {
                 $cols[] = $this->quoter->quoteNamesIn($val);

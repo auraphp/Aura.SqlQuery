@@ -40,7 +40,7 @@ trait TableListTrait
      */
     protected function splitNamesList($spec)
     {
-        $names = array();
+        $names = [];
         $name = '';
         $closer = null;
         $len = strlen($spec);
@@ -84,7 +84,7 @@ trait TableListTrait
 
         $names[] = $name;
 
-        $list = array();
+        $list = [];
         foreach ($names as $one) {
             $one = trim($one);
             if ($one !== '') {

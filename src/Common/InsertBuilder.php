@@ -69,7 +69,7 @@ class InsertBuilder extends AbstractBuilder
     public function buildValuesForBulkInsert(array $col_order, array $col_values_bulk)
     {
         $cols = "    (" . implode(', ', $col_order) . ")";
-        $vals = array();
+        $vals = [];
         foreach ($col_values_bulk as $row_values) {
             $vals[] = "    (" . implode(', ', $row_values) . ")";
         }

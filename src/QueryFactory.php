@@ -47,7 +47,7 @@ class QueryFactory
      * @var array
      *
      */
-    protected $last_insert_id_names = array();
+    protected $last_insert_id_names = [];
 
     /**
      *

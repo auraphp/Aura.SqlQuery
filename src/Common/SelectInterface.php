@@ -193,7 +193,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @throws \Aura\SqlQuery\Exception\LogicException
      *
      */
-    public function innerJoin($spec, $cond = null, array $bind = array());
+    public function innerJoin($spec, $cond = null, array $bind = []);
 
     /**
      *
@@ -210,7 +210,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @throws \Aura\SqlQuery\Exception\LogicException
      *
      */
-    public function leftJoin($spec, $cond = null, array $bind = array());
+    public function leftJoin($spec, $cond = null, array $bind = []);
 
     /**
      *

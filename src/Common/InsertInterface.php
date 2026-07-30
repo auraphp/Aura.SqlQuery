@@ -81,5 +81,5 @@ interface InsertInterface extends QueryInterface, ValuesInterface
      * @return $this
      *
      */
-    public function addRow(array $cols = array());
+    public function addRow(array $cols = []);
 }
