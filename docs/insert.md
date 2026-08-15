@@ -98,13 +98,14 @@ INSERT INTO "employee" (
 
 MySQL is the exception: it allows a CTE only inside the `SELECT` an
 `INSERT ... SELECT` draws from, which this package does not build, so
-`with()` on a MySQL _Insert_ throws
+`with()` and `withRecursive()` on a MySQL _Insert_ throw
 `Aura\SqlQuery\Exception\BadMethodCallException` rather than building a
 statement that could only fail at execute time.
 
 The clause otherwise behaves exactly as it does on a _Select_: see [the WITH
-section of the SELECT page](select.md) for `$spec` as a string or a _Select_,
-several CTEs at once, `withRecursive()`, the placeholder names a CTE claims,
+section of the SELECT page](select.md#with) for `$spec` as a string or a _Select_,
+several CTEs at once, `withRecursive()` -- which renders a plain `WITH` on SQL Server,
+as it does for a _Select_ -- the placeholder names a CTE claims,
 and `resetWith()`.
 
 ## Multiple-Row (Bulk) Insert

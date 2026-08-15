@@ -189,6 +189,7 @@ WHERE
 ```
 
 The clause behaves exactly as it does on a _Select_: see [the WITH section of
-the SELECT page](select.md) for `$spec` as a string or a _Select_, several
-CTEs at once, `withRecursive()`, the placeholder names a CTE claims, and
+the SELECT page](select.md#with) for `$spec` as a string or a _Select_, several
+CTEs at once, `withRecursive()` -- which renders a plain `WITH` on SQL Server,
+as it does for a _Select_ -- the placeholder names a CTE claims, and
 `resetWith()`.
