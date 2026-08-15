@@ -29,6 +29,12 @@
   outside it now has four more methods to declare; extending the concrete
   query, or using Common\WithTrait, supplies them.
 
+- [BRK] AbstractQuery::getStatement() is abstract. Select and AbstractDmlQuery
+  both write clauses above the ones build() renders -- the union branches, the
+  WITH clause -- so nothing was left for the base implementation to do, and a
+  query type extending AbstractQuery directly now says how its statement is
+  assembled rather than inheriting `return $this->build();`.
+
 - [ADD] SELECT queries take common table expressions, via with() and
   withRecursive():
 

@@ -154,13 +154,14 @@ abstract class AbstractQuery
      *
      * Returns this query object as an SQL statement string.
      *
+     * Left to the subclass because a statement is more than the clauses
+     * build() renders: Select writes the union branches above them, and both
+     * it and the data-modifying queries write the WITH clause above that.
+     *
      * @return string
      *
      */
-    public function getStatement()
-    {
-        return $this->build();
-    }
+    abstract public function getStatement();
 
     /**
      *
