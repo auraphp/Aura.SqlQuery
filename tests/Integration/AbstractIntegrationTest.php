@@ -817,4 +817,97 @@ abstract class AbstractIntegrationTest extends TestCase
         $this->assertSame(2, $this->exec($delete));
         $this->assertSame(['Anna', 'Betty'], $this->fetchNames());
     }
+
+    /**
+     * Does this dialect take a WITH clause on INSERT?
+     *
+     * MySQL is the one that does not: it allows a CTE only inside the SELECT
+     * an `INSERT ... SELECT` draws from, which this package does not build.
+     */
+    protected function allowsWithOnInsert(): bool
+    {
+        return true;
+    }
+
+    /**
+     * A CTE against a real server, on the statements that modify data. The
+     * clause has to open the statement ahead of the verb, the CTE name has to
+     * be usable as an ordinary table in the WHERE below it, and the value the
+     * sub-select bound has to survive the trip. See #261.
+     */
+    public function testUpdateWithCte()
+    {
+        $juniors = $this->query_factory->newSelect()
+            ->cols(['id'])
+            ->from('test_employee')
+            ->where('salary < :cutoff', ['cutoff' => 300]);
+
+        $update = $this->query_factory->newUpdate()
+            ->with('juniors', $juniors)
+            ->table('test_employee')
+            ->cols(['salary' => 150])
+            ->where('id IN (SELECT id FROM juniors)');
+
+        $this->assertStatementContains('WITH <<juniors>> AS (', $update);
+        $this->assertSame(['cutoff' => 300, 'salary' => 150], $update->getBindValues());
+
+        $this->assertSame(2, $this->exec($update));
+
+        $actual = $this->pdo
+            ->query('SELECT salary FROM test_employee ORDER BY seq')
+            ->fetchAll(PDO::FETCH_COLUMN);
+        $this->assertSame([150, 150, 300, 400], array_map('intval', $actual));
+    }
+
+    public function testDeleteWithCte()
+    {
+        $seniors = $this->query_factory->newSelect()
+            ->cols(['id'])
+            ->from('test_employee')
+            ->where('salary >= :cutoff', ['cutoff' => 300]);
+
+        $delete = $this->query_factory->newDelete()
+            ->with('seniors', $seniors)
+            ->from('test_employee')
+            ->where('id IN (SELECT id FROM seniors)');
+
+        $this->assertStatementContains('WITH <<seniors>> AS (', $delete);
+        $this->assertSame(['cutoff' => 300], $delete->getBindValues());
+
+        $this->assertSame(2, $this->exec($delete));
+        $this->assertSame(['Anna', 'Betty'], $this->fetchNames());
+    }
+
+    /**
+     * The INSERT this package builds takes VALUES rather than a SELECT, so a
+     * CTE reaches it as a scalar sub-select in one of those values. That is
+     * also the form SQL Server needs, which asks that the statement below the
+     * clause reference the CTE.
+     */
+    public function testInsertWithCte()
+    {
+        if (! $this->allowsWithOnInsert()) {
+            $this->markTestSkipped('This dialect takes no WITH clause on INSERT.');
+        }
+
+        $seniors = $this->query_factory->newSelect()
+            ->cols(['MAX(salary) AS top_salary'])
+            ->from('test_employee')
+            ->where('salary >= :cutoff', ['cutoff' => 300]);
+
+        $insert = $this->query_factory->newInsert()
+            ->with('seniors', $seniors)
+            ->into('test_employee')
+            ->cols(['name' => 'Edna', 'dept_id' => 1, 'seq' => 5])
+            ->set('salary', '(SELECT top_salary FROM seniors)');
+
+        $this->assertStatementContains('WITH <<seniors>> AS (', $insert);
+
+        $this->assertSame(1, $this->exec($insert));
+
+        $actual = $this->pdo
+            ->query('SELECT salary FROM test_employee WHERE seq = 5')
+            ->fetchColumn();
+        $this->assertSame(400, (int) $actual);
+    }
 }

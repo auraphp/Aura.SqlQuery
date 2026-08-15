@@ -31,3 +31,45 @@ $sth = $pdo->prepare($delete->getStatement())
 // execute with bound values
 $sth->execute($delete->getBindValues());
 ```
+
+## WITH
+
+```php
+    ->with($name, $spec, array $cols = array())  // WITH "name" AS ( ... )
+    ->withRecursive($name, $spec, array $cols = array())  // WITH RECURSIVE "name" AS ( ... )
+```
+
+A common table expression prefixes the whole statement, and the name it
+defines is used below it as an ordinary table would be -- typically in the
+`WHERE` that picks the rows to delete:
+
+```php
+$seniors = $queryFactory->newSelect()
+    ->cols(['id'])
+    ->from('employee')
+    ->where('salary >= :cutoff', ['cutoff' => 300]);
+
+$delete = $queryFactory->newDelete()
+    ->with('seniors', $seniors)
+    ->from('employee')
+    ->where('id IN (SELECT id FROM seniors)');
+```
+
+```sql
+WITH "seniors" AS (
+    SELECT
+        id
+    FROM
+        "employee"
+    WHERE
+        salary >= :cutoff
+)
+DELETE FROM "employee"
+WHERE
+    id IN (SELECT id FROM seniors)
+```
+
+The clause behaves exactly as it does on a _Select_: see [the WITH section of
+the SELECT page](select.md) for `$spec` as a string or a _Select_, several
+CTEs at once, `withRecursive()`, the placeholder names a CTE claims, and
+`resetWith()`.

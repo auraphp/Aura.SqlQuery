@@ -7,6 +7,11 @@ class InsertTest extends Common\InsertTest
 {
     protected $db_type = 'sqlsrv';
 
+    protected function withRecursiveKeyword()
+    {
+        return 'WITH';
+    }
+
     /**
      * SQL Server has no REPLACE; asking for it has to say so rather than
      * fatal on an undefined method.

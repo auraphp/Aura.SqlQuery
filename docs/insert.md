@@ -54,6 +54,59 @@ $name = $insert->getLastInsertIdName('id');
 $id = $pdo->lastInsertId($name);
 ```
 
+## WITH
+
+```php
+    ->with($name, $spec, array $cols = array())  // WITH "name" AS ( ... )
+    ->withRecursive($name, $spec, array $cols = array())  // WITH RECURSIVE "name" AS ( ... )
+```
+
+A common table expression prefixes the whole statement. An _Insert_ built here
+takes `VALUES` rather than a `SELECT`, so the CTE is named from a scalar
+sub-select in one of those values:
+
+```php
+$seniors = $queryFactory->newSelect()
+    ->cols(['MAX(salary) AS top_salary'])
+    ->from('employee')
+    ->where('salary >= :cutoff', ['cutoff' => 300]);
+
+$insert = $queryFactory->newInsert()
+    ->with('seniors', $seniors)
+    ->into('employee')
+    ->cols(['name'])
+    ->set('salary', '(SELECT top_salary FROM seniors)');
+```
+
+```sql
+WITH "seniors" AS (
+    SELECT
+        MAX(salary) AS "top_salary"
+    FROM
+        "employee"
+    WHERE
+        salary >= :cutoff
+)
+INSERT INTO "employee" (
+    "name",
+    "salary"
+) VALUES (
+    :name,
+    (SELECT top_salary FROM seniors)
+)
+```
+
+MySQL is the exception: it allows a CTE only inside the `SELECT` an
+`INSERT ... SELECT` draws from, which this package does not build, so
+`with()` on a MySQL _Insert_ throws
+`Aura\SqlQuery\Exception\BadMethodCallException` rather than building a
+statement that could only fail at execute time.
+
+The clause otherwise behaves exactly as it does on a _Select_: see [the WITH
+section of the SELECT page](select.md) for `$spec` as a string or a _Select_,
+several CTEs at once, `withRecursive()`, the placeholder names a CTE claims,
+and `resetWith()`.
+
 ## Multiple-Row (Bulk) Insert
 
 If you want to do a multiple-row or bulk insert, call the `addRow()` method

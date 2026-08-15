@@ -147,3 +147,48 @@ $sth = $pdo->prepare($update->getStatement())
 // execute with bound values
 $sth->execute($update->getBindValues());
 ```
+
+## WITH
+
+```php
+    ->with($name, $spec, array $cols = array())  // WITH "name" AS ( ... )
+    ->withRecursive($name, $spec, array $cols = array())  // WITH RECURSIVE "name" AS ( ... )
+```
+
+A common table expression prefixes the whole statement, and the name it
+defines is used below it as an ordinary table would be -- typically in the
+`WHERE` that picks the rows to update:
+
+```php
+$juniors = $queryFactory->newSelect()
+    ->cols(['id'])
+    ->from('employee')
+    ->where('salary < :cutoff', ['cutoff' => 300]);
+
+$update = $queryFactory->newUpdate()
+    ->with('juniors', $juniors)
+    ->table('employee')
+    ->cols(['salary'])
+    ->where('id IN (SELECT id FROM juniors)');
+```
+
+```sql
+WITH "juniors" AS (
+    SELECT
+        id
+    FROM
+        "employee"
+    WHERE
+        salary < :cutoff
+)
+UPDATE "employee"
+SET
+    "salary" = :salary
+WHERE
+    id IN (SELECT id FROM juniors)
+```
+
+The clause behaves exactly as it does on a _Select_: see [the WITH section of
+the SELECT page](select.md) for `$spec` as a string or a _Select_, several
+CTEs at once, `withRecursive()`, the placeholder names a CTE claims, and
+`resetWith()`.

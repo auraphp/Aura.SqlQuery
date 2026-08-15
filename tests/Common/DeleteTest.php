@@ -12,7 +12,21 @@ use Aura\SqlQuery\AbstractQueryTest;
 
 class DeleteTest extends AbstractQueryTest
 {
+    use WithTestTrait;
+
     protected $query_type = 'delete';
+
+    protected function withBody()
+    {
+        $this->query
+            ->from('t1')
+            ->where('id IN (SELECT c1 FROM cte)');
+        return '
+            DELETE FROM <<t1>>
+            WHERE
+                id IN (SELECT c1 FROM cte)
+        ';
+    }
 
     /**
      *

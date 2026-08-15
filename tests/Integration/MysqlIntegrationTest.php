@@ -15,6 +15,11 @@ class MysqlIntegrationTest extends AbstractIntegrationTest
 {
     protected string $db_type = 'mysql';
 
+    protected function allowsWithOnInsert(): bool
+    {
+        return false;
+    }
+
     protected function newPdo(): PDO
     {
         $dsn = getenv('DB_MYSQL_DSN');
