@@ -154,6 +154,14 @@ that `onDuplicateKeyUpdateCols(['name'])` with no value emits a *new* placeholde
 for you to bind, where the `doUpdateCols(['name'])` of those dialects reuses the
 value you tried to insert.
 
+MySQL takes no `WITH` clause on INSERT: it allows a CTE only inside the
+`SELECT` an `INSERT ... SELECT` draws from, which this package does not build.
+`with()` and `withRecursive()` on a MySQL _Insert_ therefore throw
+`Aura\SqlQuery\Exception\BadMethodCallException`, rather than building a
+statement that could only fail at execute time. UPDATE and DELETE take the
+clause as the other dialects do; see [the UPDATE page](./update.md) and
+[the DELETE page](./delete.md).
+
 ## UPDATE
 
 - `lowPriority()` to add or remove `LOW_PRIORITY` flag

@@ -118,40 +118,4 @@ class SelectBuilder extends AbstractBuilder
 
         return PHP_EOL . 'FOR UPDATE';
     }
-
-    /**
-     *
-     * Builds the WITH clause.
-     *
-     * @param array $with The CTE elements.
-     *
-     * @param bool $recursive True if recursive, false if not.
-     *
-     * @return string
-     *
-     */
-    public function buildWith(array $with, $recursive = false)
-    {
-        if (empty($with)) {
-            return ''; // not applicable
-        }
-
-        $keyword = $recursive && $this->allowsRecursiveKeyword()
-            ? 'WITH RECURSIVE'
-            : 'WITH';
-
-        return $keyword . ' ' . implode(',' . PHP_EOL, $with) . PHP_EOL;
-    }
-
-    /**
-     *
-     * Does this dialect allow the RECURSIVE keyword in WITH?
-     *
-     * @return bool
-     *
-     */
-    protected function allowsRecursiveKeyword()
-    {
-        return true;
-    }
 }

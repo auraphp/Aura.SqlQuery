@@ -8,6 +8,31 @@ class InsertTest extends Common\InsertTest
 {
     protected $db_type = 'mysql';
 
+    protected function supportsWith()
+    {
+        return false;
+    }
+
+    /**
+     *
+     * MySQL allows a CTE only inside the SELECT an `INSERT ... SELECT` draws
+     * from, which this package does not build; the clause is refused rather
+     * than rendered into a statement that can only fail at execute time.
+     *
+     */
+    public function testWithIsRefused()
+    {
+        $this->expectException('Aura\\SqlQuery\\Exception\\BadMethodCallException');
+        $this->expectExceptionMessage('MySQL does not allow a WITH clause on INSERT.');
+        $this->query->with('cte', $this->query_factory->newSelect());
+    }
+
+    public function testWithRecursiveIsRefused()
+    {
+        $this->expectException('Aura\\SqlQuery\\Exception\\BadMethodCallException');
+        $this->query->withRecursive('cte', $this->query_factory->newSelect());
+    }
+
     protected $expected_sql_no_cols = "
         INSERT INTO <<t1>> () VALUES ()
     ";

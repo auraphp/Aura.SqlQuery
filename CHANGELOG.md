@@ -2,6 +2,39 @@
 
 ## 6.0.0 (unreleased)
 
+- [ADD] INSERT, UPDATE and DELETE queries take common table expressions too,
+  via the same with() and withRecursive():
+
+        $delete->with('seniors', $seniors)
+               ->from('employee')
+               ->where('id IN (SELECT id FROM seniors)');
+
+  The clause is the one SELECT already had -- WithTrait moved up to
+  AbstractDmlQuery and buildWith() to Common\AbstractBuilder -- so a CTE
+  behaves the same wherever it is written: the sub-select is rendered on the
+  spot with the values it bound, RECURSIVE is spelled once for the clause,
+  and resetWith() releases the names.
+
+  MySQL is the one dialect that takes no WITH on INSERT: it allows a CTE only
+  inside the SELECT an `INSERT ... SELECT` draws from, which this package does
+  not build, so Mysql\Insert::with() throws BadMethodCallException rather than
+  building a statement that could only fail at execute time. UPDATE and DELETE
+  are unaffected there. SQL Server still infers the recursion and rejects the
+  keyword, so withRecursive() renders a plain WITH on all four query types.
+  Fixes #261.
+
+- [BRK] InsertInterface, UpdateInterface and DeleteInterface extend
+  WithInterface, the way SelectInterface already did. Nothing shipped by this
+  package changes hands, but an implementation of one of those interfaces
+  outside it now has four more methods to declare; extending the concrete
+  query, or using Common\WithTrait, supplies them.
+
+- [BRK] AbstractQuery::getStatement() is abstract. Select and AbstractDmlQuery
+  both write clauses above the ones build() renders -- the union branches, the
+  WITH clause -- so nothing was left for the base implementation to do, and a
+  query type extending AbstractQuery directly now says how its statement is
+  assembled rather than inheriting `return $this->build();`.
+
 - [ADD] SELECT queries take common table expressions, via with() and
   withRecursive():
 

@@ -19,6 +19,8 @@ use Aura\SqlQuery\Common;
  */
 class SelectBuilder extends Common\SelectBuilder
 {
+    use NoRecursiveKeywordTrait;
+
     /**
      *
      * Override so that LIMIT equivalent will be applied by applyLimit().
@@ -70,17 +72,5 @@ class SelectBuilder extends Common\SelectBuilder
         // a sub-clause of the ORDER clause. cannot use FETCH without OFFSET.
         return $stm . PHP_EOL . "OFFSET {$offset} ROWS "
                     . "FETCH NEXT {$limit} ROWS ONLY";
-    }
-
-    /**
-     *
-     * SQL Server does not support the RECURSIVE keyword in CTE.
-     *
-     * @return bool
-     *
-     */
-    protected function allowsRecursiveKeyword()
-    {
-        return false;
     }
 }

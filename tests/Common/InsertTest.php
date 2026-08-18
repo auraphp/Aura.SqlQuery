@@ -5,7 +5,21 @@ use Aura\SqlQuery\AbstractQueryTest;
 
 class InsertTest extends AbstractQueryTest
 {
+    use WithTestTrait;
+
     protected $query_type = 'insert';
+
+    protected function withBody()
+    {
+        $this->query->into('t1')->cols(['c1']);
+        return '
+            INSERT INTO <<t1>> (
+                <<c1>>
+            ) VALUES (
+                :c1
+            )
+        ';
+    }
 
     protected function newQuery()
     {

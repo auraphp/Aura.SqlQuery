@@ -40,28 +40,6 @@ trait WithTrait
 
     /**
      *
-     * Renders a sub-SELECT and takes over the values it bound.
-     *
-     * Declared here because it is not part of AbstractQuery: it belongs to
-     * Select, which is the only query this trait can be mixed into today.
-     * Using the trait on a query without it is a fatal error at the call
-     * rather than a silent one, and adding CTEs to INSERT, UPDATE or DELETE
-     * means giving them this first.
-     *
-     * @param string|SelectInterface $spec A sub-SELECT specification.
-     *
-     * @param string $indent Indent each line with this string.
-     *
-     * @param string $source The part of this query the sub-select is being
-     * rendered into, which claims the names it binds.
-     *
-     * @return string
-     *
-     */
-    abstract protected function subSelect($spec, $indent, $source = 'table');
-
-    /**
-     *
      * Adds a common table expression (CTE) to the query.
      *
      * The CTE is rendered on the spot rather than kept as an object, as a

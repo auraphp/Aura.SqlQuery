@@ -154,13 +154,14 @@ abstract class AbstractQuery
      *
      * Returns this query object as an SQL statement string.
      *
+     * Left to the subclass because a statement is more than the clauses
+     * build() renders: Select writes the union branches above them, and both
+     * it and the data-modifying queries write the WITH clause above that.
+     *
      * @return string
      *
      */
-    public function getStatement()
-    {
-        return $this->build();
-    }
+    abstract public function getStatement();
 
     /**
      *
@@ -381,6 +382,32 @@ abstract class AbstractQuery
         }
 
         return $this;
+    }
+
+    /**
+     *
+     * Formats a sub-SELECT statement, binding values from a Select object as
+     * needed.
+     *
+     * @param string|SelectInterface $spec A sub-SELECT specification.
+     *
+     * @param string $indent Indent each line with this string.
+     *
+     * @param string $source The part of this query the sub-select is being
+     * rendered into, which claims the names it binds.
+     *
+     * @return string The sub-SELECT string.
+     *
+     */
+    protected function subSelect($spec, $indent, $source = 'table')
+    {
+        if ($spec instanceof SelectInterface) {
+            $this->bindValuesFromSelect($spec, $source);
+        }
+
+        return PHP_EOL . $indent
+            . ltrim(preg_replace('/^/m', $indent, (string) $spec))
+            . PHP_EOL;
     }
 
     /**

@@ -272,6 +272,33 @@ class Insert extends Common\Insert
 
     /**
      *
+     * MySQL is the one dialect here that does not take a WITH clause on
+     * INSERT: it allows a CTE only inside the SELECT an `INSERT ... SELECT`
+     * draws from, which this package does not build. Rendering the clause
+     * anyway would produce a statement that can only fail at execute time,
+     * and it would fail there with a bare syntax error naming the WITH the
+     * caller wrote deliberately. So it is refused here instead.
+     *
+     * @param string $name The CTE name.
+     *
+     * @param string|Common\SelectInterface $spec The CTE specification.
+     *
+     * @param array $cols Optional column list for the CTE.
+     *
+     * @return $this
+     *
+     * @throws Exception\BadMethodCallException always.
+     *
+     */
+    public function with($name, $spec, array $cols = [])
+    {
+        throw new Exception\BadMethodCallException(
+            'MySQL does not allow a WITH clause on INSERT.'
+        );
+    }
+
+    /**
+     *
      * Builds this query object into a string.
      *
      * @return string

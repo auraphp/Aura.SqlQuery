@@ -5,7 +5,24 @@ use Aura\SqlQuery\AbstractQueryTest;
 
 class UpdateTest extends AbstractQueryTest
 {
+    use WithTestTrait;
+
     protected $query_type = 'update';
+
+    protected function withBody()
+    {
+        $this->query
+            ->table('t1')
+            ->cols(['c1'])
+            ->where('id IN (SELECT c1 FROM cte)');
+        return '
+            UPDATE <<t1>>
+            SET
+                <<c1>> = :c1
+            WHERE
+                id IN (SELECT c1 FROM cte)
+        ';
+    }
 
     public function testExceptionWithNoCols()
     {

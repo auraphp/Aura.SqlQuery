@@ -8,6 +8,8 @@
  */
 namespace Aura\SqlQuery;
 
+use Aura\SqlQuery\Common\WithTrait;
+
 /**
  *
  * Abstract query object for data manipulation (Insert, Update, and Delete).
@@ -17,6 +19,8 @@ namespace Aura\SqlQuery;
  */
 abstract class AbstractDmlQuery extends AbstractQuery
 {
+    use WithTrait;
+
     /**
      *
      * Column values for INSERT or UPDATE queries; the key is the column name and the
@@ -26,6 +30,25 @@ abstract class AbstractDmlQuery extends AbstractQuery
      *
      */
     protected $col_values = [];
+
+    /**
+     *
+     * Returns this query object as an SQL statement string.
+     *
+     * The WITH clause belongs to the statement rather than to a clause of it:
+     * it is written once, at the top. It is prefixed here rather than in
+     * build() for the same reason Select does it here -- build() is what the
+     * dialects override and post-process, and each of them expects the string
+     * it produces to begin with the verb.
+     *
+     * @return string An SQL statement string.
+     *
+     */
+    public function getStatement()
+    {
+        return $this->builder->buildWith($this->with, $this->with_recursive)
+             . $this->build();
+    }
 
     /**
      *

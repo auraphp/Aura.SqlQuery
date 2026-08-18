@@ -627,32 +627,6 @@ class Select extends AbstractQuery implements SelectInterface
 
     /**
      *
-     * Formats a sub-SELECT statement, binding values from a Select object as
-     * needed.
-     *
-     * @param string|SelectInterface $spec A sub-SELECT specification.
-     *
-     * @param string $indent Indent each line with this string.
-     *
-     * @param string $source The part of this query the sub-select is being
-     * rendered into, which claims the names it binds.
-     *
-     * @return string The sub-SELECT string.
-     *
-     */
-    protected function subSelect($spec, $indent, $source = 'table')
-    {
-        if ($spec instanceof SelectInterface) {
-            $this->bindValuesFromSelect($spec, $source);
-        }
-
-        return PHP_EOL . $indent
-            . ltrim(preg_replace('/^/m', $indent, (string) $spec))
-            . PHP_EOL;
-    }
-
-    /**
-     *
      * Adds a JOIN table and columns to the query.
      *
      * @param string $join The join type: inner, left, natural, etc.
