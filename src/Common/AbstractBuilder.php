@@ -22,7 +22,7 @@ abstract class AbstractBuilder
      *
      * Builds the flags as a space-separated string.
      *
-     * @param array $flags The flags to build.
+     * @param array<string, true> $flags The flags to build.
      *
      * @return string
      *
@@ -40,7 +40,7 @@ abstract class AbstractBuilder
      *
      * Builds the WITH clause.
      *
-     * @param array $with The CTE elements.
+     * @param array<string, string> $with The CTE elements.
      *
      * @param bool $recursive True if recursive, false if not.
      *
@@ -76,7 +76,7 @@ abstract class AbstractBuilder
      *
      * Builds the `WHERE` clause of the statement.
      *
-     * @param array $where The WHERE elements.
+     * @param list<string> $where The WHERE elements.
      *
      * @return string
      *
@@ -94,7 +94,7 @@ abstract class AbstractBuilder
      *
      * Builds the `ORDER BY ...` clause of the statement.
      *
-     * @param array $order_by The ORDER BY elements.
+     * @param list<string> $order_by The ORDER BY elements.
      *
      * @return string
      *

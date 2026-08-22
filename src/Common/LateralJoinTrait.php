@@ -37,7 +37,8 @@ trait LateralJoinTrait
      * ON clause except on the join types that forbid one, so when no
      * condition is given for the other types, "ON true" is used.
      *
-     * @param array $bind Values to bind to ?-placeholders in the condition.
+     * @param array<int|string, mixed> $bind Values to bind to
+     * ?-placeholders in the condition.
      *
      * @return $this
      *

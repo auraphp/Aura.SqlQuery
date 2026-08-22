@@ -35,7 +35,8 @@ trait TableListTrait
      *
      * @param string $spec One or more table names, comma-separated.
      *
-     * @return array The individual names, trimmed, with empty parts dropped.
+     * @return list<string> The individual names, trimmed, with empty parts
+     * dropped.
      *
      */
     protected function splitNamesList($spec)

@@ -21,7 +21,7 @@ trait ReturningTrait
      *
      * The columns to be returned.
      *
-     * @var array
+     * @var list<string>
      *
      */
     protected $returning = [];
@@ -33,7 +33,8 @@ trait ReturningTrait
      * Multiple calls to returning() will append to the list of columns, not
      * overwrite the previous columns.
      *
-     * @param array $cols The column(s) to add to the query.
+     * @param array<array-key, string> $cols The column(s) to add to the
+     * query.
      *
      * @return $this
      *
