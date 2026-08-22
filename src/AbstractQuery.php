@@ -415,7 +415,7 @@ abstract class AbstractQuery
      *
      * Reports two parts of the query claiming one placeholder name.
      *
-     * @param string $name The placeholder name.
+     * @param int|string $name The placeholder name.
      *
      * @param string $prior The part of the query holding the name.
      *
