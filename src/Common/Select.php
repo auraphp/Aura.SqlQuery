@@ -1083,6 +1083,11 @@ class Select extends AbstractQuery implements SelectInterface
         $spelled = [];
         foreach ($this->union as $branch) {
             preg_match_all($find, $branch, $matches);
+            // 'strlen' as a callable string is the idiom for dropping the
+            // empty captures the alternation leaves behind, and reads better
+            // than the closure that would satisfy the callable(string): bool
+            // PHPStan wants; keeping it costs this one line.
+            /** @phpstan-ignore argument.type */
             $spelled += array_flip(array_filter($matches[1], 'strlen'));
         }
 

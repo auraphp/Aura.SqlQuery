@@ -57,7 +57,8 @@ interface QueryInterface
      *
      * Adds values to bind into the query; merges with existing values.
      *
-     * @param array $bind_values Values to bind to the query.
+     * @param array<int|string, mixed> $bind_values Values to bind to the
+     * query.
      *
      * @return $this
      *
@@ -68,7 +69,7 @@ interface QueryInterface
      *
      * Binds a single value to the query.
      *
-     * @param string $name The placeholder name or number.
+     * @param int|string $name The placeholder name or number.
      *
      * @param mixed $value The value to bind to the placeholder.
      *
@@ -81,7 +82,7 @@ interface QueryInterface
      *
      * Gets the values to bind into the query.
      *
-     * @return array
+     * @return array<int|string, mixed>
      *
      */
     public function getBindValues();
