@@ -25,7 +25,7 @@ abstract class AbstractQuery
      *
      * Data to be bound to the query.
      *
-     * @var array
+     * @var array<int|string, mixed>
      *
      */
     protected $bind_values = [];
@@ -35,7 +35,7 @@ abstract class AbstractQuery
      * Which part of the query bound each placeholder name; null means it was
      * bound by hand. Keys match $bind_values.
      *
-     * @var array
+     * @var array<int|string, string>
      *
      */
     protected $bind_sources = [];
@@ -47,7 +47,7 @@ abstract class AbstractQuery
      * stays with the union, but the name is not free while this clause is
      * still using it. Keys match $bind_sources.
      *
-     * @var array
+     * @var array<int|string, string>
      *
      */
     protected $bind_shared = [];
@@ -56,7 +56,7 @@ abstract class AbstractQuery
      *
      * Human-readable names for the $bind_sources values, for error messages.
      *
-     * @var array
+     * @var array<string, string>
      *
      */
     protected $bind_source_labels = [
@@ -77,7 +77,7 @@ abstract class AbstractQuery
      *
      * The list of WHERE conditions.
      *
-     * @var array
+     * @var list<string>
      *
      */
     protected $where = [];
@@ -86,7 +86,7 @@ abstract class AbstractQuery
      *
      * ORDER BY these columns.
      *
-     * @var array
+     * @var list<string>
      *
      */
     protected $order_by = [];
@@ -95,7 +95,7 @@ abstract class AbstractQuery
      *
      * The list of flags.
      *
-     * @var array
+     * @var array<string, true>
      *
      */
     protected $flags = [];
@@ -200,7 +200,8 @@ abstract class AbstractQuery
      *
      * Binds multiple values to placeholders; merges with existing values.
      *
-     * @param array $bind_values Values to bind to placeholders.
+     * @param array<int|string, mixed> $bind_values Values to bind to
+     * placeholders.
      *
      * @return $this
      *
@@ -470,7 +471,7 @@ abstract class AbstractQuery
      *
      * Gets the values to bind to placeholders.
      *
-     * @return array
+     * @return array<int|string, mixed>
      *
      */
     public function getBindValues()
@@ -596,7 +597,8 @@ abstract class AbstractQuery
      *
      * @param string|Closure $cond The WHERE condition.
      *
-     * @param array $bind arguments to bind to placeholders
+     * @param array<int|string, mixed> $bind arguments to bind to
+     * placeholders
      *
      * @return void
      *
@@ -686,8 +688,8 @@ abstract class AbstractQuery
      *
      * @param string $cond The condition with sequential placeholders.
      *
-     * @param array $bind_values The values to bind to the sequential
-     * placeholders under their named versions.
+     * @param array<int|string, mixed> $bind_values The values to bind to the
+     * sequential placeholders under their named versions.
      *
      * @param string $clause The source clause name.
      *
@@ -719,6 +721,16 @@ abstract class AbstractQuery
         return $cond;
     }
 
+    /**
+     *
+     * Binds each value of an array under a generated name, and returns the
+     * placeholder list to write in place of the array.
+     *
+     * @param array<array-key, mixed> $array The values to bind.
+     *
+     * @return string The comma-separated placeholder names.
+     *
+     */
     protected function inlineArray(array $array)
     {
         $keys = [];
@@ -735,7 +747,8 @@ abstract class AbstractQuery
      *
      * Adds a column order to the query.
      *
-     * @param array $spec The columns and direction to order by.
+     * @param array<array-key, string> $spec The columns and direction to
+     * order by.
      *
      * @return $this
      *
@@ -749,10 +762,10 @@ abstract class AbstractQuery
     }
 
     /**
-     * @param int|string $key
-     * @param string     $cond
-     * @param array      $val
-     * @param int        $index
+     * @param int|string               $key
+     * @param string                   $cond
+     * @param array<array-key, mixed>  $val
+     * @param int                      $index
      *
      * @return string
      */
