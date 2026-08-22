@@ -21,7 +21,8 @@ interface OrderByInterface
      *
      * Adds a column order to the query.
      *
-     * @param array $spec The columns and direction to order by.
+     * @param array<array-key, string> $spec The columns and direction to
+     * order by.
      *
      * @return $this
      *

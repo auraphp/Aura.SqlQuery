@@ -21,7 +21,7 @@ trait BuildReturningTrait
      *
      * Builds the `RETURNING` clause of the statement.
      *
-     * @param array $returning Return these columns.
+     * @param list<string> $returning Return these columns.
      *
      * @return string
      *

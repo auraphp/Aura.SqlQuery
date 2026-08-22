@@ -25,7 +25,8 @@ interface WithInterface
      *
      * @param string|SelectInterface $spec The CTE specification.
      *
-     * @param array $cols Optional column list for the CTE.
+     * @param array<array-key, string> $cols Optional column list for the
+     * CTE.
      *
      * @return $this
      *
@@ -40,7 +41,8 @@ interface WithInterface
      *
      * @param string|SelectInterface $spec The CTE specification.
      *
-     * @param array $cols Optional column list for the CTE.
+     * @param array<array-key, string> $cols Optional column list for the
+     * CTE.
      *
      * @return $this
      *

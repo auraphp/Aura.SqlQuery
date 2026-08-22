@@ -23,7 +23,8 @@ trait WhereTrait
      *
      * @param string|\Closure $cond The WHERE condition.
      *
-     * @param array $bind Values to be bound to placeholders
+     * @param array<int|string, mixed> $bind Values to be bound to
+     * placeholders
      *
      * @return $this
      *
@@ -42,7 +43,8 @@ trait WhereTrait
      *
      * @param string|\Closure $cond The WHERE condition.
      *
-     * @param array $bind Values to be bound to placeholders
+     * @param array<int|string, mixed> $bind Values to be bound to
+     * placeholders
      *
      * @return $this
      *

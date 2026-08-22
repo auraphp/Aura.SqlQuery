@@ -24,7 +24,7 @@ trait WithTrait
      *
      * The common table expressions, already rendered, keyed by name.
      *
-     * @var array
+     * @var array<string, string>
      *
      */
     protected $with = [];
@@ -55,7 +55,8 @@ trait WithTrait
      *
      * @param string|SelectInterface $spec The CTE specification.
      *
-     * @param array $cols Optional column list for the CTE.
+     * @param array<array-key, string> $cols Optional column list for the
+     * CTE.
      *
      * @return $this
      *
@@ -137,7 +138,8 @@ trait WithTrait
      *
      * @param string|SelectInterface $spec The CTE specification.
      *
-     * @param array $cols Optional column list for the CTE.
+     * @param array<array-key, string> $cols Optional column list for the
+     * CTE.
      *
      * @return $this
      *
