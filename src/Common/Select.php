@@ -38,7 +38,7 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * An array of union SELECT statements.
      *
-     * @var array
+     * @var list<string>
      *
      */
     protected $union = [];
@@ -85,7 +85,7 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * The columns to be selected.
      *
-     * @var array
+     * @var array<int|string, string>
      *
      */
     protected $cols = [];
@@ -94,7 +94,7 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * Select from these tables; includes JOIN clauses.
      *
-     * @var array
+     * @var list<list<string>>
      *
      */
     protected $from = [];
@@ -112,7 +112,7 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * Tracks which JOIN clauses are attached to which FROM tables.
      *
-     * @var array
+     * @var array<int, list<string>>
      *
      */
     protected $join = [];
@@ -121,7 +121,7 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * GROUP BY these columns.
      *
-     * @var array
+     * @var list<string>
      *
      */
     protected $group_by = [];
@@ -130,7 +130,7 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * The list of HAVING conditions.
      *
-     * @var array
+     * @var list<string>
      *
      */
     protected $having = [];
@@ -157,7 +157,7 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * Tracks table references to avoid duplicate identifiers.
      *
-     * @var array
+     * @var array<string, string>
      *
      */
     protected $table_refs = [];
@@ -321,8 +321,9 @@ class Select extends AbstractQuery implements SelectInterface
      * Multiple calls to cols() will append to the list of columns, not
      * overwrite the previous columns.
      *
-     * @param array $cols The column(s) to add to the query. The elements can be
-     * any mix of these: `array("col", "col AS alias", "col" => "alias")`
+     * @param array<int|string, string> $cols The column(s) to add to the
+     * query. The elements can be any mix of these:
+     * `array("col", "col AS alias", "col" => "alias")`
      *
      * @return $this
      *
@@ -503,7 +504,7 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * Returns a list of columns.
      *
-     * @return array
+     * @return array<int|string, string>
      *
      */
     public function getCols()
@@ -635,7 +636,8 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @param string|null $cond Join on this condition.
      *
-     * @param array $bind Values to bind to ?-placeholders in the condition.
+     * @param array<int|string, mixed> $bind Values to bind to
+     * ?-placeholders in the condition.
      *
      * @return $this
      *
@@ -659,7 +661,8 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @param string|null $cond Join on this condition.
      *
-     * @param array $bind Values to bind to ?-placeholders in the condition.
+     * @param array<int|string, mixed> $bind Values to bind to
+     * ?-placeholders in the condition.
      *
      * @return string
      *
@@ -692,7 +695,8 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @param string|null $cond Join on this condition.
      *
-     * @param array $bind Values to bind to ?-placeholders in the condition.
+     * @param array<int|string, mixed> $bind Values to bind to
+     * ?-placeholders in the condition.
      *
      * @return $this
      *
@@ -712,7 +716,8 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @param string|null $cond Join on this condition.
      *
-     * @param array $bind Values to bind to ?-placeholders in the condition.
+     * @param array<int|string, mixed> $bind Values to bind to
+     * ?-placeholders in the condition.
      *
      * @return $this
      *
@@ -738,7 +743,8 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @param string|null $cond Join on this condition.
      *
-     * @param array $bind Values to bind to ?-placeholders in the condition.
+     * @param array<int|string, mixed> $bind Values to bind to
+     * ?-placeholders in the condition.
      *
      * @return $this
      *
@@ -779,7 +785,7 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * Adds grouping to the query.
      *
-     * @param array $spec The column(s) to group by.
+     * @param array<array-key, string> $spec The column(s) to group by.
      *
      * @return $this
      *
@@ -798,7 +804,8 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @param string|\Closure $cond The HAVING condition.
      *
-     * @param array $bind arguments to bind to placeholders
+     * @param array<int|string, mixed> $bind arguments to bind to
+     * placeholders
      *
      * @return $this
      *
@@ -815,7 +822,8 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @param string|\Closure $cond The HAVING condition.
      *
-     * @param array $bind arguments to bind to placeholders
+     * @param array<int|string, mixed> $bind arguments to bind to
+     * placeholders
      *
      * @return $this
      *
@@ -1343,7 +1351,8 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * Adds a column order to the query.
      *
-     * @param array $spec The columns and direction to order by.
+     * @param array<array-key, string> $spec The columns and direction to
+     * order by.
      *
      * @return $this
      *

@@ -23,7 +23,7 @@ class SelectBuilder extends AbstractBuilder
      *
      * Builds the columns portion of the SELECT.
      *
-     * @param array $cols The columns.
+     * @param list<string> $cols The columns.
      *
      * @return string
      *
@@ -42,9 +42,9 @@ class SelectBuilder extends AbstractBuilder
      *
      * Builds the FROM clause.
      *
-     * @param array $from The FROM elements.
+     * @param list<list<string>> $from The FROM elements.
      *
-     * @param array $join The JOIN elements.
+     * @param array<int, list<string>> $join The JOIN elements.
      *
      * @return string
      *
@@ -69,7 +69,7 @@ class SelectBuilder extends AbstractBuilder
      *
      * Builds the GROUP BY clause.
      *
-     * @param array $group_by The GROUP BY elements.
+     * @param list<string> $group_by The GROUP BY elements.
      *
      * @return string
      *
@@ -87,7 +87,7 @@ class SelectBuilder extends AbstractBuilder
      *
      * Builds the HAVING clause.
      *
-     * @param array $having The HAVING elements.
+     * @param list<string> $having The HAVING elements.
      *
      * @return string
      *
