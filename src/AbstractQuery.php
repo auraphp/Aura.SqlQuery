@@ -220,7 +220,7 @@ abstract class AbstractQuery
      *
      * Binds a single value to the query.
      *
-     * @param string $name The placeholder name or number.
+     * @param int|string $name The placeholder name or number.
      *
      * @param mixed $value The value to bind to the placeholder.
      *
@@ -247,7 +247,7 @@ abstract class AbstractQuery
      * always overwrite: rebinding before execution, and reusing a query
      * object with fresh values, are both legitimate.
      *
-     * @param string $name The placeholder name or number.
+     * @param int|string $name The placeholder name or number.
      *
      * @param mixed $value The value to bind to the placeholder.
      *

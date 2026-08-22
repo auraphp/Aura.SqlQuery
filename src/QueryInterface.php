@@ -68,7 +68,7 @@ interface QueryInterface
      *
      * Binds a single value to the query.
      *
-     * @param string $name The placeholder name or number.
+     * @param int|string $name The placeholder name or number.
      *
      * @param mixed $value The value to bind to the placeholder.
      *
