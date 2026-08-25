@@ -23,9 +23,10 @@ trait BuildOnConflictTrait
      *
      * Builds the `ON CONFLICT` clause of the statement.
      *
-     * @param string|array $target The conflict target.
-     * @param array $update_values The columns and values to update.
-     * @param array $where Optional WHERE conditions.
+     * @param string|null $target The conflict target.
+     * @param array<string, string> $update_values The columns and values
+     * to update.
+     * @param list<string> $where Optional WHERE conditions.
      * @param bool $ignore Whether the ignore clause is enabled.
      * @return string
      * @throws Exception\LogicException
@@ -66,7 +67,7 @@ trait BuildOnConflictTrait
      *
      * Builds the conflict update values.
      *
-     * @param array $update_values
+     * @param array<string, string> $update_values
      * @return string
      *
      */
@@ -83,7 +84,7 @@ trait BuildOnConflictTrait
      *
      * Builds the conflict update WHERE clause.
      *
-     * @param array $where
+     * @param list<string> $where
      * @return string
      *
      */

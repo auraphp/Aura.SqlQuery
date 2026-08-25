@@ -35,7 +35,10 @@ interface InsertInterface extends QueryInterface, ValuesInterface, WithInterface
      * Sets the map of fully-qualified `table.column` names to last-insert-id
      * names. Generally useful only for extended tables in Postgres.
      *
-     * @param array $last_insert_id_names The list of ID names.
+     * @param array<string, string> $last_insert_id_names The list of ID
+     * names.
+     *
+     * @return void
      *
      */
     public function setLastInsertIdNames(array $last_insert_id_names);
@@ -56,8 +59,9 @@ interface InsertInterface extends QueryInterface, ValuesInterface, WithInterface
      *
      * Adds multiple rows for bulk insert.
      *
-     * @param array $rows An array of rows, where each element is an array of
-     * column key-value pairs. The values are bound to placeholders.
+     * @param array<array-key, array<int|string, mixed>> $rows An array of
+     * rows, where each element is an array of column key-value pairs. The
+     * values are bound to placeholders.
      *
      * @return $this
      *
@@ -75,8 +79,8 @@ interface InsertInterface extends QueryInterface, ValuesInterface, WithInterface
      * `set()` to work with the newly-added row. Calling `addRow()` again will
      * finish off the current row and start a new one.
      *
-     * @param array $cols An array of column key-value pairs; the values are
-     * bound to placeholders.
+     * @param array<int|string, mixed> $cols An array of column key-value
+     * pairs; the values are bound to placeholders.
      *
      * @return $this
      *

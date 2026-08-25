@@ -26,7 +26,7 @@ abstract class AbstractDmlQuery extends AbstractQuery
      * Column values for INSERT or UPDATE queries; the key is the column name and the
      * value is the column value.
      *
-     * @var array
+     * @var array<string, string>
      *
      */
     protected $col_values = [];
@@ -69,7 +69,7 @@ abstract class AbstractDmlQuery extends AbstractQuery
      *
      * @param string $col The column name.
      *
-     * @param array $value Value of the column
+     * @param mixed ...$value Value of the column
      *
      * @return $this
      *
@@ -90,9 +90,9 @@ abstract class AbstractDmlQuery extends AbstractQuery
      * pair, the key is treated as the column name and the value is bound to
      * that column.
      *
-     * @param array $cols A list of column names, optionally as key-value
-     * pairs where the key is a column name and the value is a bind value for
-     * that column.
+     * @param array<int|string, mixed> $cols A list of column names,
+     * optionally as key-value pairs where the key is a column name and the
+     * value is a bind value for that column.
      *
      * @return $this
      *

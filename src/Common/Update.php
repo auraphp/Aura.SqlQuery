@@ -132,7 +132,7 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      *
      * @param string $col The column name.
      *
-     * @param array $value
+     * @param mixed ...$value
      *
      * @return $this
      */
@@ -147,9 +147,9 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      * pair, the key is treated as the column name and the value is bound to
      * that column.
      *
-     * @param array $cols A list of column names, optionally as key-value
-     * pairs where the key is a column name and the value is a bind value for
-     * that column.
+     * @param array<int|string, mixed> $cols A list of column names,
+     * optionally as key-value pairs where the key is a column name and the
+     * value is a bind value for that column.
      *
      * @return $this
      *

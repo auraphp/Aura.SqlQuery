@@ -36,7 +36,7 @@ class InsertBuilder extends AbstractBuilder
      *
      * Builds the inserted columns and values of the statement.
      *
-     * @param array $col_values The column names and values.
+     * @param array<string, string> $col_values The column names and values.
      *
      * @return string
      *
@@ -58,10 +58,10 @@ class InsertBuilder extends AbstractBuilder
      *
      * Builds the bulk-inserted columns and values of the statement.
      *
-     * @param array $col_order The column names to insert, in order.
+     * @param list<string> $col_order The column names to insert, in order.
      *
-     * @param array $col_values_bulk The bulk-insert values, in the same order
-     * the column names.
+     * @param array<int, array<string, string>> $col_values_bulk The
+     * bulk-insert values, in the same order the column names.
      *
      * @return string
      *
