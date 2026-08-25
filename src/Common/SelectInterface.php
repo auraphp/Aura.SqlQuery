@@ -79,7 +79,8 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * Multiple calls to cols() will append to the list of columns, not
      * overwrite the previous columns.
      *
-     * @param array $cols The column(s) to add to the query.
+     * @param array<int|string, string> $cols The column(s) to add to the
+     * query.
      *
      * @return $this
      *
@@ -121,7 +122,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * Returns a list of columns.
      *
-     * @return array
+     * @return array<int|string, string>
      *
      */
     public function getCols();
@@ -186,7 +187,8 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string|null $cond Join on this condition.
      *
-     * @param array $bind Values to bind to ?-placeholders in the condition.
+     * @param array<int|string, mixed> $bind Values to bind to
+     * ?-placeholders in the condition.
      *
      * @return $this
      *
@@ -203,7 +205,8 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string|null $cond Join on this condition.
      *
-     * @param array $bind Values to bind to ?-placeholders in the condition.
+     * @param array<int|string, mixed> $bind Values to bind to
+     * ?-placeholders in the condition.
      *
      * @return $this
      *
@@ -235,7 +238,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * Adds grouping to the query.
      *
-     * @param array $spec The column(s) to group by.
+     * @param array<array-key, string> $spec The column(s) to group by.
      *
      * @return $this
      *
@@ -248,7 +251,8 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string|\Closure $cond The HAVING condition.
      *
-     * @param array $bind Values to be bound to placeholders.
+     * @param array<int|string, mixed> $bind Values to be bound to
+     * placeholders.
      *
      * @return $this
      *
@@ -261,7 +265,8 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string|\Closure $cond The HAVING condition.
      *
-     * @param array $bind Values to be bound to placeholders.
+     * @param array<int|string, mixed> $bind Values to be bound to
+     * placeholders.
      *
      * @return $this
      *
