@@ -1,6 +1,6 @@
 # CHANGELOG 
 
-## 6.0.0 (unreleased)
+## 7.0.0 (unreleased)
 
 - [ADD] INSERT, UPDATE and DELETE queries take common table expressions too,
   via the same with() and withRecursive():

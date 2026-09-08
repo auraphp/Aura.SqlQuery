@@ -10,8 +10,8 @@ namespace Aura\SqlQuery;
 
 /**
  *
- * Retained so that pre-6.x `catch (Aura\SqlQuery\Exception $e)` blocks
- * keep catching all package exceptions; to be removed in 7.x.
+ * Retained so that pre-7.x `catch (Aura\SqlQuery\Exception $e)` blocks
+ * keep catching all package exceptions; to be removed in 8.x.
  *
  * @package Aura.SqlQuery
  *
