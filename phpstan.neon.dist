@@ -1,4 +1,4 @@
-# Start at the highest level that passes clean; raise the level as the 6.x
+# Start at the highest level that passes clean; raise the level as the 7.x
 # typing work lands.
 #
 # Suppressions live inline at the line they describe, not here: a file-scoped

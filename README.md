@@ -24,9 +24,9 @@ without compromising flexibility. For specifics, please examine the package
 
 ## Quality
 
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/auraphp/Aura.SqlQuery/badges/quality-score.png?b=6.x)](https://scrutinizer-ci.com/g/auraphp/Aura.SqlQuery/)
-[![codecov](https://codecov.io/gh/auraphp/Aura.SqlQuery/branch/6.x/graph/badge.svg?token=UASDouLxyc)](https://codecov.io/gh/auraphp/Aura.SqlQuery)
-[![Continuous Integration](https://github.com/auraphp/Aura.SqlQuery/actions/workflows/continuous-integration.yml/badge.svg?branch=6.x)](https://github.com/auraphp/Aura.SqlQuery/actions/workflows/continuous-integration.yml)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/auraphp/Aura.SqlQuery/badges/quality-score.png?b=7.x)](https://scrutinizer-ci.com/g/auraphp/Aura.SqlQuery/)
+[![codecov](https://codecov.io/gh/auraphp/Aura.SqlQuery/branch/7.x/graph/badge.svg?token=UASDouLxyc)](https://codecov.io/gh/auraphp/Aura.SqlQuery)
+[![Continuous Integration](https://github.com/auraphp/Aura.SqlQuery/actions/workflows/continuous-integration.yml/badge.svg?branch=7.x)](https://github.com/auraphp/Aura.SqlQuery/actions/workflows/continuous-integration.yml)
 
 This project adheres to [Semantic Versioning](http://semver.org/).
 

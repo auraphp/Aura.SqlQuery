@@ -22,7 +22,7 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 
 Add a commit to the file when it changes formatting and nothing else, with a
 comment naming it. Use the full SHA of the commit that made the change rather
-than the merge commit, and take it after the merge has landed on `6.x`: a
+than the merge commit, and take it after the merge has landed on `7.x`: a
 revision the repository does not have is skipped in silence, so a SHA that is
 wrong, or that a squash merge replaced, leaves blame noisy with nothing to say
 so. Check an affected line with `git blame` afterwards.
