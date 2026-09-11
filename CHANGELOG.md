@@ -4,10 +4,11 @@
 
 - [BRK] Every method declares a native return type, the two constructors
   aside, where PHP allows none. As with the parameters, the type is the one
-  the docblock already claimed, which for the 117 fluent setters documented
-  `@return $this` means `static`: a subclass overriding one has to declare
-  `static` too, or it will fatal on load. Callers get a type they can rely
-  on where before they had a promise in a comment.
+  the docblock already claimed, which for the 155 methods documented
+  `@return $this` means `static` -- 166 declare it once the handful already
+  saying `static` are counted in. A subclass overriding any of them has to
+  declare `static` too, or it will fatal on load. Callers get a type they can
+  rely on where before they had a promise in a comment.
 
   Three docblocks turned out to be wrong rather than merely absent, and the
   declaration follows the code. Quoter::quoteNamesIn() and replaceNamesIn()
