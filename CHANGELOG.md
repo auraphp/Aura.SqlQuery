@@ -2,6 +2,27 @@
 
 ## 7.0.0 (unreleased)
 
+- [BRK] Every parameter in the package declares a native type, taken from the
+  type its docblock already claimed. This breaks subclasses, not callers: a
+  userland class overriding, say, Quoter::quoteName($spec) must declare a
+  matching signature or it will fatal on load, while code that merely calls
+  the package is unaffected -- the package does not declare strict_types, so
+  PHP coerces a scalar at the boundary the way it always has, and `limit('5')`
+  still means `LIMIT 5`.
+
+  One edge is worth naming. A value that cannot coerce now throws a TypeError
+  where the cast inside used to swallow it, so `limit('abc')` says so instead
+  of quietly meaning `LIMIT 0`. The casts those methods carried are gone, the
+  declaration having taken their job.
+
+  Two parameters are wider than their docblock said rather than narrower:
+  fromSubSelect() and joinSubSelect() take string|SelectInterface, not
+  string|Select. That is what the code already accepted -- subSelect() has
+  taken the interface all along -- and the docblocks now say so.
+
+  Return types are a separate change; the parameters come first because they
+  are what a subclass must match.
+
 - [ADD] INSERT, UPDATE and DELETE queries take common table expressions too,
   via the same with() and withRecursive():
 

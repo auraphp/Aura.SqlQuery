@@ -26,7 +26,7 @@ class InsertBuilder extends AbstractBuilder
      * @return string
      *
      */
-    public function buildInto($into)
+    public function buildInto(string $into)
     {
         return " INTO {$into}";
     }

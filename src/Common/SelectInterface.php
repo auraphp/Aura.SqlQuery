@@ -28,7 +28,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function setPaging($paging);
+    public function setPaging(int $paging);
 
     /**
      *
@@ -49,7 +49,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function forUpdate($enable = true);
+    public function forUpdate(bool $enable = true);
 
     /**
      *
@@ -61,7 +61,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function distinct($enable = true);
+    public function distinct(bool $enable = true);
 
     /**
      *
@@ -96,7 +96,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return bool
      *
      */
-    public function removeCol($alias);
+    public function removeCol(string $alias);
 
     /**
      *
@@ -107,7 +107,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return bool
      *
      */
-    public function hasCol($alias);
+    public function hasCol(string $alias);
 
     /**
      *
@@ -136,7 +136,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function from($spec);
+    public function from(string $spec);
 
     /**
      *
@@ -148,13 +148,13 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function fromRaw($spec);
+    public function fromRaw(string $spec);
 
     /**
      *
      * Adds an aliased sub-select to the query.
      *
-     * @param string|Select $spec If a Select object, use as the sub-select;
+     * @param string|SelectInterface $spec If a Select object, use as the sub-select;
      * if a string, the sub-select string.
      *
      * @param string $name The alias name for the sub-select.
@@ -162,7 +162,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function fromSubSelect($spec, $name);
+    public function fromSubSelect(string|SelectInterface $spec, string $name);
 
     /**
      *
@@ -177,7 +177,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function join($join, $spec, $cond = null);
+    public function join(string $join, string $spec, ?string $cond = null);
 
     /**
      *
@@ -195,7 +195,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @throws \Aura\SqlQuery\Exception\LogicException
      *
      */
-    public function innerJoin($spec, $cond = null, array $bind = []);
+    public function innerJoin(string $spec, ?string $cond = null, array $bind = []);
 
     /**
      *
@@ -213,7 +213,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @throws \Aura\SqlQuery\Exception\LogicException
      *
      */
-    public function leftJoin($spec, $cond = null, array $bind = []);
+    public function leftJoin(string $spec, ?string $cond = null, array $bind = []);
 
     /**
      *
@@ -221,7 +221,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string $join The join type: inner, left, natural, etc.
      *
-     * @param string|Select $spec If a Select
+     * @param string|SelectInterface $spec If a Select
      * object, use as the sub-select; if a string, the sub-select
      * command string.
      *
@@ -232,7 +232,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function joinSubSelect($join, $spec, $name, $cond = null);
+    public function joinSubSelect(string $join, string|SelectInterface $spec, string $name, ?string $cond = null);
 
     /**
      *
@@ -257,7 +257,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function having($cond, array $bind = []);
+    public function having(string|\Closure $cond, array $bind = []);
 
     /**
      *
@@ -273,7 +273,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @see having()
      *
      */
-    public function orHaving($cond, array $bind = []);
+    public function orHaving(string|\Closure $cond, array $bind = []);
 
     /**
      *
@@ -284,7 +284,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function page($page);
+    public function page(int $page);
 
     /**
      *

@@ -35,9 +35,9 @@ trait LimitTrait
      * @return $this
      *
      */
-    public function limit($limit)
+    public function limit(int $limit)
     {
-        $this->limit = (int) $limit;
+        $this->limit = $limit;
         return $this;
     }
 

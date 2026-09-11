@@ -28,7 +28,7 @@ interface ValuesInterface
      *
      * @return $this
      */
-    public function col($col, ...$value);
+    public function col(string $col, mixed ...$value);
 
     /**
      *
@@ -57,5 +57,5 @@ interface ValuesInterface
      * @return $this
      *
      */
-    public function set($col, $value);
+    public function set(string $col, ?string $value);
 }

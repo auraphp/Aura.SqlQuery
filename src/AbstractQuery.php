@@ -132,7 +132,7 @@ abstract class AbstractQuery
      * @param Common\AbstractBuilder $builder A builder for the query.
      *
      */
-    public function __construct(QuoterInterface $quoter, $builder)
+    public function __construct(QuoterInterface $quoter, Common\AbstractBuilder $builder)
     {
         $this->quoter = $quoter;
         $this->builder = $builder;
@@ -227,7 +227,7 @@ abstract class AbstractQuery
      * @return $this
      *
      */
-    public function bindValue($name, $value)
+    public function bindValue(int|string $name, mixed $value)
     {
         return $this->bindValueFrom($name, $value, null);
     }
@@ -262,7 +262,7 @@ abstract class AbstractQuery
      * claim one placeholder name.
      *
      */
-    protected function bindValueFrom($name, $value, $source)
+    protected function bindValueFrom(int|string $name, mixed $value, ?string $source)
     {
         $prior = isset($this->bind_sources[$name])
             ? $this->bind_sources[$name]
@@ -376,7 +376,7 @@ abstract class AbstractQuery
      * @return $this
      *
      */
-    protected function bindValuesFromSelect(SelectInterface $select, $source)
+    protected function bindValuesFromSelect(SelectInterface $select, string $source)
     {
         foreach ($select->getBindValues() as $name => $value) {
             $this->bindValueFrom($name, $value, $source);
@@ -400,7 +400,7 @@ abstract class AbstractQuery
      * @return string The sub-SELECT string.
      *
      */
-    protected function subSelect($spec, $indent, $source = 'table')
+    protected function subSelect(string|SelectInterface $spec, string $indent, string $source = 'table')
     {
         if ($spec instanceof SelectInterface) {
             $this->bindValuesFromSelect($spec, $source);
@@ -426,7 +426,7 @@ abstract class AbstractQuery
      * @throws Exception\LogicException always.
      *
      */
-    protected function throwCollision($name, $prior, $source)
+    protected function throwCollision(int|string $name, string $prior, string $source)
     {
         $was = isset($this->bind_source_labels[$prior])
             ? $this->bind_source_labels[$prior]
@@ -508,7 +508,7 @@ abstract class AbstractQuery
      * @return $this
      *
      */
-    protected function removeBindSources($source)
+    protected function removeBindSources(string $source)
     {
         // drop the record of who claimed the name, but keep the value: the
         // clause resets never removed bound values, and union() depends on
@@ -549,7 +549,7 @@ abstract class AbstractQuery
      * @return void
      *
      */
-    protected function setFlag($flag, $enable = true)
+    protected function setFlag(string $flag, bool $enable = true)
     {
         if ($enable) {
             $this->flags[$flag] = true;
@@ -567,7 +567,7 @@ abstract class AbstractQuery
      * @return bool
      *
      */
-    protected function hasFlag($flag)
+    protected function hasFlag(string $flag)
     {
         return isset($this->flags[$flag]);
     }
@@ -603,7 +603,7 @@ abstract class AbstractQuery
      * @return void
      *
      */
-    protected function addClauseCondWithBind($clause, $andor, $cond, $bind)
+    protected function addClauseCondWithBind(string $clause, string $andor, string|Closure $cond, array $bind)
     {
         if ($cond instanceof Closure) {
             $this->addClauseCondClosure($clause, $andor, $cond);
@@ -639,7 +639,7 @@ abstract class AbstractQuery
      * @return void
      *
      */
-    protected function addClauseCondClosure($clause, $andor, $closure)
+    protected function addClauseCondClosure(string $clause, string $andor, callable $closure)
     {
         // retain the prior set of conditions, and temporarily reset the clause
         // for the closure to work with (otherwise there will be an extraneous
@@ -696,7 +696,7 @@ abstract class AbstractQuery
      * @return string The rebuilt condition string.
      *
      */
-    protected function rebuildCondAndBindValues($cond, array $bind_values, $clause = 'cond')
+    protected function rebuildCondAndBindValues(string $cond, array $bind_values, string $clause = 'cond')
     {
         $index = 0;
         $selects = [];
@@ -769,7 +769,7 @@ abstract class AbstractQuery
      *
      * @return string
      */
-    private function getCond($key, $cond, array $val, $index)
+    private function getCond(int|string $key, string $cond, array $val, int $index)
     {
         if (is_string($key)) {
             return str_replace(':' . $key, $this->inlineArray($val), $cond);

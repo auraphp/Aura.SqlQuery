@@ -249,9 +249,9 @@ class Select extends AbstractQuery implements SelectInterface
      * @return $this
      *
      */
-    public function setPaging($paging)
+    public function setPaging(int $paging)
     {
-        $this->paging = (int) $paging;
+        $this->paging = $paging;
         if ($this->page) {
             $this->setPagingLimitOffset();
         }
@@ -280,9 +280,9 @@ class Select extends AbstractQuery implements SelectInterface
      * @return $this
      *
      */
-    public function forUpdate($enable = true)
+    public function forUpdate(bool $enable = true)
     {
-        $this->for_update = (bool) $enable;
+        $this->for_update = $enable;
         return $this;
     }
 
@@ -296,7 +296,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @return $this
      *
      */
-    public function distinct($enable = true)
+    public function distinct(bool $enable = true)
     {
         $this->setFlag('DISTINCT', $enable);
         return $this;
@@ -349,7 +349,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @return void
      *
      */
-    protected function addCol($key, $val)
+    protected function addCol(mixed $key, mixed $val)
     {
         if (is_string($key)) {
             // [col => alias]
@@ -369,7 +369,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @return void
      *
      */
-    protected function addColWithAlias($spec)
+    protected function addColWithAlias(string $spec)
     {
         $parts = explode(' ', $spec);
         $count = count($parts);
@@ -402,7 +402,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @return bool
      *
      */
-    protected function isCompleteExpr($expr)
+    protected function isCompleteExpr(string $expr)
     {
         $depth = 0;
         $quote = null;
@@ -457,7 +457,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @return bool
      *
      */
-    public function removeCol($alias)
+    public function removeCol(string $alias)
     {
         if (isset($this->cols[$alias])) {
             unset($this->cols[$alias]);
@@ -483,7 +483,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @return bool
      *
      */
-    public function hasCol($alias)
+    public function hasCol(string $alias)
     {
         return isset($this->cols[$alias]) || array_search($alias, $this->cols) !== false;
     }
@@ -525,7 +525,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @throws LogicException when the reference has already been used.
      *
      */
-    protected function addTableRef($type, $spec)
+    protected function addTableRef(string $type, string $spec)
     {
         $name = $spec;
 
@@ -557,7 +557,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @return $this
      *
      */
-    public function from($spec)
+    public function from(string $spec)
     {
         $names = $this->splitNamesList($spec);
 
@@ -584,7 +584,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @return $this
      *
      */
-    public function fromRaw($spec)
+    public function fromRaw(string $spec)
     {
         $this->addTableRef('FROM', $spec);
         return $this->addFrom($spec);
@@ -599,7 +599,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @return $this
      *
      */
-    protected function addFrom($spec)
+    protected function addFrom(string $spec)
     {
         $this->from[] = [$spec];
         $this->from_key ++;
@@ -610,7 +610,7 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * Adds an aliased sub-select to the query.
      *
-     * @param string|Select $spec If a Select object, use as the sub-select;
+     * @param string|SelectInterface $spec If a Select object, use as the sub-select;
      * if a string, the sub-select string.
      *
      * @param string $name The alias name for the sub-select.
@@ -618,7 +618,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @return $this
      *
      */
-    public function fromSubSelect($spec, $name)
+    public function fromSubSelect(string|SelectInterface $spec, string $name)
     {
         $this->addTableRef('FROM (SELECT ...) AS', $name);
         $spec = $this->subSelect($spec, '        ');
@@ -644,7 +644,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @throws LogicException
      *
      */
-    public function join($join, $spec, $cond = null, array $bind = [])
+    public function join(string $join, string $spec, ?string $cond = null, array $bind = [])
     {
         $join = strtoupper(ltrim("$join JOIN"));
         $this->addTableRef($join, $spec);
@@ -667,7 +667,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @return string
      *
      */
-    protected function fixJoinCondition($cond, array $bind)
+    protected function fixJoinCondition(?string $cond, array $bind)
     {
         if (! $cond) {
             return '';
@@ -703,7 +703,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @throws LogicException
      *
      */
-    public function innerJoin($spec, $cond = null, array $bind = [])
+    public function innerJoin(string $spec, ?string $cond = null, array $bind = [])
     {
         return $this->join('INNER', $spec, $cond, $bind);
     }
@@ -724,7 +724,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @throws LogicException
      *
      */
-    public function leftJoin($spec, $cond = null, array $bind = [])
+    public function leftJoin(string $spec, ?string $cond = null, array $bind = [])
     {
         return $this->join('LEFT', $spec, $cond, $bind);
     }
@@ -735,7 +735,7 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @param string $join The join type: inner, left, natural, etc.
      *
-     * @param string|Select $spec If a Select
+     * @param string|SelectInterface $spec If a Select
      * object, use as the sub-select; if a string, the sub-select
      * command string.
      *
@@ -751,7 +751,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @throws LogicException
      *
      */
-    public function joinSubSelect($join, $spec, $name, $cond = null, array $bind = [])
+    public function joinSubSelect(string $join, string|SelectInterface $spec, string $name, ?string $cond = null, array $bind = [])
     {
         $join = strtoupper(ltrim("$join JOIN"));
         $this->addTableRef("$join (SELECT ...) AS", $name);
@@ -774,7 +774,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @return $this
      *
      */
-    protected function addJoin($spec)
+    protected function addJoin(string $spec)
     {
         $from_key = ($this->from_key == -1) ? 0 : $this->from_key;
         $this->join[$from_key][] = $spec;
@@ -810,7 +810,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @return $this
      *
      */
-    public function having($cond, array $bind = [])
+    public function having(string|\Closure $cond, array $bind = [])
     {
         $this->addClauseCondWithBind('having', 'AND', $cond, $bind);
         return $this;
@@ -830,7 +830,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @see having()
      *
      */
-    public function orHaving($cond, array $bind = [])
+    public function orHaving(string|\Closure $cond, array $bind = [])
     {
         $this->addClauseCondWithBind('having', 'OR', $cond, $bind);
         return $this;
@@ -845,9 +845,9 @@ class Select extends AbstractQuery implements SelectInterface
      * @return $this
      *
      */
-    public function page($page)
+    public function page(int $page)
     {
-        $this->page = (int) $page;
+        $this->page = $page;
         $this->setPagingLimitOffset();
         return $this;
     }
@@ -947,7 +947,7 @@ class Select extends AbstractQuery implements SelectInterface
      * union belongs to.
      *
      */
-    protected function addUnion($type, ?SelectInterface $select)
+    protected function addUnion(string $type, ?SelectInterface $select)
     {
         // a query cannot be a branch of itself: it is being rendered into the
         // union at the moment it would have to stand apart from it, and each
@@ -1318,7 +1318,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @return $this
      *
      */
-    public function limit($limit)
+    public function limit(int $limit)
     {
         $this->setLimit($limit);
         if ($this->page) {
@@ -1337,7 +1337,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @return $this
      *
      */
-    public function offset($offset)
+    public function offset(int $offset)
     {
         $this->setOffset($offset);
         if ($this->page) {

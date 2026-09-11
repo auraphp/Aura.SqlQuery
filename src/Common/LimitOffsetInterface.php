@@ -26,7 +26,7 @@ interface LimitOffsetInterface extends LimitInterface
      * @return $this
      *
      */
-    public function offset($offset);
+    public function offset(int $offset);
 
     /**
      *

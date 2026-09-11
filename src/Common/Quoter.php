@@ -82,7 +82,7 @@ class Quoter implements QuoterInterface
      * @see quoteNameWithSeparator()
      *
      */
-    public function quoteName($spec)
+    public function quoteName(string $spec)
     {
         $spec = trim($spec);
 
@@ -117,7 +117,7 @@ class Quoter implements QuoterInterface
      * @return string The quoted identifier name.
      *
      */
-    protected function quoteNameWithSeparator($spec, $sep, $pos)
+    protected function quoteNameWithSeparator(string $spec, string $sep, int $pos)
     {
         $len = strlen($sep);
         $part1 = $this->quoteName(substr($spec, 0, $pos));
@@ -143,7 +143,7 @@ class Quoter implements QuoterInterface
      * @see replaceNamesIn()
      *
      */
-    public function quoteNamesIn($text)
+    public function quoteNamesIn(string $text)
     {
         $list = $this->getListForQuoteNamesIn($text);
         $last = count($list) - 1;
@@ -169,7 +169,7 @@ class Quoter implements QuoterInterface
      * @return array
      *
      */
-    protected function getListForQuoteNamesIn($text)
+    protected function getListForQuoteNamesIn(string $text)
     {
         // look for ', ", \', or \" in the string.
         // match closing quotes against the same number of opening quotes.
@@ -205,7 +205,7 @@ class Quoter implements QuoterInterface
      * @return string The quoted name.
      *
      */
-    protected function quoteNamesInLoop($val, $is_last)
+    protected function quoteNamesInLoop(string $val, bool $is_last)
     {
         if ($is_last) {
             return $this->replaceNamesAndAliasIn($val);
@@ -222,7 +222,7 @@ class Quoter implements QuoterInterface
      * @return string The quoted name.
      *
      */
-    protected function replaceNamesAndAliasIn($val)
+    protected function replaceNamesAndAliasIn(string $val)
     {
         $quoted = $this->replaceNamesIn($val);
         $pos = $this->findAliasSeparator($quoted);
@@ -244,7 +244,7 @@ class Quoter implements QuoterInterface
      * @return int|false The position of the separator, or false if none.
      *
      */
-    protected function findAliasSeparator($text)
+    protected function findAliasSeparator(string $text)
     {
         $pos = strripos($text, ' AS ');
         while ($pos !== false) {
@@ -272,7 +272,7 @@ class Quoter implements QuoterInterface
      * @see quoteName()
      *
      */
-    protected function replaceName($name)
+    protected function replaceName(string $name)
     {
         $name = trim($name);
         if ($name == '*') {
@@ -293,7 +293,7 @@ class Quoter implements QuoterInterface
      * @return bool
      *
      */
-    protected function isQuotedName($text)
+    protected function isQuotedName(string $text)
     {
         $len = strlen($this->quote_name_prefix) + strlen($this->quote_name_suffix);
         return strlen($text) >= $len
@@ -313,7 +313,7 @@ class Quoter implements QuoterInterface
      * @see quoteNamesIn()
      *
      */
-    protected function replaceNamesIn($text)
+    protected function replaceNamesIn(string $text)
     {
         $is_string_literal = str_contains($text, "'")
                         || str_contains($text, '"');
@@ -345,7 +345,7 @@ class Quoter implements QuoterInterface
 
         $find = "/({$variable})|(?<![\\w#])($word)\\.($word)(?![\\w#])/i";
 
-        return preg_replace_callback($find, function ($matches) {
+        return preg_replace_callback($find, function (array $matches) {
             if ($matches[1] !== '') {
                 return $matches[1];
             }

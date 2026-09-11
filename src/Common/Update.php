@@ -54,7 +54,7 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      * @throws LogicException when the spec names more than one table.
      *
      */
-    public function table($table)
+    public function table(string $table)
     {
         $names = $this->splitNamesList($table);
         if (count($names) > 1) {
@@ -104,7 +104,7 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      * @return static
      *
      */
-    public function ignore($enable = true)
+    public function ignore(bool $enable = true)
     {
         // override in child classes
         throw new BadMethodCallException(get_class($this) . " doesn't support IGNORE flag");
@@ -119,7 +119,7 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      * @return static
      *
      */
-    public function orReplace($enable = true)
+    public function orReplace(bool $enable = true)
     {
         // override in child classes
         throw new BadMethodCallException(get_class($this) . " doesn't support OR REPLACE flag");
@@ -136,7 +136,7 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      *
      * @return $this
      */
-    public function col($col, ...$value)
+    public function col(string $col, mixed ...$value)
     {
         return $this->addCol($col, ...$value);
     }
@@ -171,7 +171,7 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      * @return $this
      *
      */
-    public function set($col, $value)
+    public function set(string $col, ?string $value)
     {
         return $this->setCol($col, $value);
     }

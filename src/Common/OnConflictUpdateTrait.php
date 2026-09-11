@@ -70,7 +70,7 @@ trait OnConflictUpdateTrait
      * @return $this
      *
      */
-    public function onConflict($target)
+    public function onConflict(string|array $target)
     {
         if (is_array($target)) {
             $cols = [];
@@ -86,7 +86,7 @@ trait OnConflictUpdateTrait
             return $this;
         }
 
-        $target = trim((string) $target);
+        $target = trim($target);
 
         // the keyword with nothing after it; trimming has already taken the
         // space the prefix test below looks for, so catch it here or it goes
@@ -126,9 +126,9 @@ trait OnConflictUpdateTrait
      * @throws Exception\InvalidArgumentException
      *
      */
-    protected function assertConflictName($name)
+    protected function assertConflictName(string $name)
     {
-        $name = trim((string) $name);
+        $name = trim($name);
 
         if ($name === '') {
             throw new Exception\InvalidArgumentException(
@@ -151,7 +151,7 @@ trait OnConflictUpdateTrait
      * @return $this
      *
      */
-    public function doUpdateCol($col, ...$value)
+    public function doUpdateCol(string $col, mixed ...$value)
     {
         $key = $this->quoter->quoteName($col);
         if (count($value) > 0) {
@@ -201,7 +201,7 @@ trait OnConflictUpdateTrait
      * @return $this
      *
      */
-    public function doUpdate($col, $value)
+    public function doUpdate(string $col, ?string $value)
     {
         if ($value === null) {
             $value = 'NULL';
@@ -224,7 +224,7 @@ trait OnConflictUpdateTrait
      * @return $this
      *
      */
-    public function doUpdateWhere($condition, ...$bind)
+    public function doUpdateWhere(string $condition, array ...$bind)
     {
         $condition = $this->quoter->quoteNamesIn($condition);
         if (count($bind) > 0) {

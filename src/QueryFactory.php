@@ -64,11 +64,11 @@ class QueryFactory
      *
      * @param string $db The database type.
      *
-     * @param string $common Pass the constant self::COMMON to force common
+     * @param string|null $common Pass the constant self::COMMON to force common
      * query objects instead of db-specific ones.
      *
      */
-    public function __construct($db, $common = null)
+    public function __construct(string $db, ?string $common = null)
     {
         $this->db = ucfirst(strtolower($db));
         $this->common = ($common === self::COMMON);
@@ -148,7 +148,7 @@ class QueryFactory
      * @return Common\SelectInterface|Common\InsertInterface|Common\UpdateInterface|Common\DeleteInterface
      *
      */
-    protected function newInstance($query)
+    protected function newInstance(string $query)
     {
         $queryClass = "Aura\SqlQuery\\{$this->db}\\{$query}";
         if ($this->common) {
@@ -175,7 +175,7 @@ class QueryFactory
      * @return Common\AbstractBuilder
      *
      */
-    protected function newBuilder($query)
+    protected function newBuilder(string $query)
     {
         $builderClass = "Aura\SqlQuery\\{$this->db}\\{$query}Builder";
         if ($this->common || ! class_exists($builderClass)) {

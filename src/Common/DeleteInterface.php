@@ -28,5 +28,5 @@ interface DeleteInterface extends QueryInterface, WhereInterface, WithInterface
      * @return $this
      *
      */
-    public function from($from);
+    public function from(string $from);
 }

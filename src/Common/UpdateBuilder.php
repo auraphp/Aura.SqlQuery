@@ -26,7 +26,7 @@ class UpdateBuilder extends AbstractBuilder
      * @return string
      *
      */
-    public function buildTable($table)
+    public function buildTable(string $table)
     {
         return " {$table}";
     }

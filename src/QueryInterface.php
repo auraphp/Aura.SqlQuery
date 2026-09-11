@@ -76,7 +76,7 @@ interface QueryInterface
      * @return $this
      *
      */
-    public function bindValue($name, $value);
+    public function bindValue(int|string $name, mixed $value);
 
     /**
      *
