@@ -10,3 +10,4 @@
 8. [Sqlite additions](./sqlite.md)
 9. [SQL Server additions](./sqlsrv.md)
 10. [Other Topics](./other.md)
+11. [Upgrading from 3.x](./upgrading.md)
