@@ -166,7 +166,7 @@ class Quoter implements QuoterInterface
      *
      * @param string $text The text to split into quoting candidates.
      *
-     * @return array
+     * @return list<string>
      *
      */
     protected function getListForQuoteNamesIn(string $text): array

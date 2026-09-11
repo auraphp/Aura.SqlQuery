@@ -159,7 +159,7 @@ abstract class AbstractBuilder
      *
      * Returns an array as an indented comma-separated values string.
      *
-     * @param array $list The values to convert.
+     * @param list<string> $list The values to convert.
      *
      * @return string
      *
@@ -174,7 +174,7 @@ abstract class AbstractBuilder
      *
      * Returns an array as an indented string.
      *
-     * @param array $list The values to convert.
+     * @param list<string> $list The values to convert.
      *
      * @return string
      *
