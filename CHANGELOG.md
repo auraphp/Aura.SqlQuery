@@ -3,17 +3,26 @@
 ## 7.0.0 (unreleased)
 
 - [BRK] Every parameter in the package declares a native type, taken from the
-  type its docblock already claimed. This breaks subclasses, not callers: a
-  userland class overriding, say, Quoter::quoteName($spec) must declare a
-  matching signature or it will fatal on load, while code that merely calls
-  the package is unaffected -- the package does not declare strict_types, so
-  PHP coerces a scalar at the boundary the way it always has, and `limit('5')`
-  still means `LIMIT 5`.
+  type its docblock already claimed. A userland class overriding, say,
+  Quoter::quoteName($spec) must declare a matching signature or it will fatal
+  on load.
 
-  One edge is worth naming. A value that cannot coerce now throws a TypeError
-  where the cast inside used to swallow it, so `limit('abc')` says so instead
-  of quietly meaning `LIMIT 0`. The casts those methods carried are gone, the
-  declaration having taken their job.
+  How this lands on calling code depends on the calling file, not on this
+  package: strict_types is declared by the caller and governs the calls made
+  from that file, whatever the file defining the method says. This package
+  declares none, which settles nothing for you.
+
+  From a file without `declare(strict_types=1)` -- the historical default --
+  PHP coerces a scalar at the boundary the way it always has, and `limit('5')`
+  still means `LIMIT 5`. Only a value that cannot coerce is new: `limit('abc')`
+  throws a TypeError where the cast inside used to make it `LIMIT 0` without
+  a word. Those casts are gone, the declaration having taken their job.
+
+  From a file with `declare(strict_types=1)`, every one of these calls is
+  strict, so a scalar must already be the declared type: `limit('5')` throws
+  and `limit(5)` is required. Code that reads a limit or offset out of a
+  request and passes the string along is the usual way to meet this, and
+  casting at that edge is the fix.
 
   Two parameters are wider than their docblock said rather than narrower:
   fromSubSelect() and joinSubSelect() take string|SelectInterface, not
