@@ -35,9 +35,9 @@ This mostly reaches you only if you *extend* the package rather than call it.
 It comes second because it is the change that fatals on load rather than at
 runtime, so it is the one to find first if it applies to you.
 
-Every parameter in the package now declares its type. If you extend an
-Aura.SqlQuery class, each overridden method needs a signature compatible with
-its parent:
+Every parameter and return in the package now declares its type. If you extend
+an Aura.SqlQuery class, each overridden method needs a signature compatible
+with its parent:
 
 ```php
 <?php
@@ -46,10 +46,15 @@ public function quoteName($spec) { /* ... */ }
 public function limit($limit)    { /* ... */ }
 
 // 7.x
-public function quoteName(string $spec) { /* ... */ }
-public function limit(int $limit)       { /* ... */ }
+public function quoteName(string $spec): string { /* ... */ }
+public function limit(int $limit): static       { /* ... */ }
 ?>
 ```
+
+Note `static` in particular. The fluent setters are documented `@return $this`
+and declare `static`, so an override must declare it too -- and there are a
+great many of them, since every method that returns the query for chaining is
+one.
 
 The quickest way to find every override you need to touch is to load your
 classes and let PHP report the incompatible signatures, since it checks each
@@ -70,6 +75,13 @@ Two parameters went the other way and take more than 3.x documented:
 `fromSubSelect()` and `joinSubSelect()` accept `string|SelectInterface` rather
 than `string|Select`. That is what the code already passed on to
 `subSelect()`, so nothing that worked before stops working.
+
+Two return types are narrower than 3.x documented, which matters only if you
+implement the interfaces yourself: `QuoterInterface::quoteNamesIn()` returns
+`string` rather than `string|array`, and `InsertInterface::getLastInsertIdName()`
+returns `?string` rather than `mixed`. Both say what the shipped code always
+did; `getLastInsertIdName()` still answers null when no name is mapped, which
+is the usual case.
 
 ### 3. Give Each Bound Value Its Own Placeholder Name
 
