@@ -7,8 +7,12 @@ API is the one you already know: the same factory, the same `select()`,
 What changed is that several situations which used to fail quietly, or fail
 with an unhelpful PHP error, now throw a named exception at build time. Those
 are the ones to look for, because a query that was silently wrong keeps
-building today and throws tomorrow. Steps 2 through 4 cover them; everything
-after that reaches you only if you extend or implement the package's classes.
+building today and throws tomorrow. Steps 3 through 5 cover them.
+
+The rest -- step 2, and steps 7 and 8 -- reach you only if you extend or
+implement the package's classes. Step 2 is the one to check first if you do,
+since an override whose signature no longer matches its parent fails when the
+class loads rather than when the query runs.
 
 The version jumps 3.x to 7.x. There is no 4.x, 5.x, or 6.x of this package;
 the number is shared across the Aura packages rather than counting this one's
@@ -24,7 +28,42 @@ composer require aura/sqlquery:^7.0
 
 The package still has no runtime dependencies.
 
-### 2. Give Each Bound Value Its Own Placeholder Name
+### 2. Add Types To Any Methods You Override
+
+Skip this one if you only *call* the package; native types do not change what
+a call may pass. It comes second because it is the change that fatals on load
+rather than at runtime, so it is the one to find first if it applies to you.
+
+Every parameter and return in the package now declares its type. If you extend
+an Aura.SqlQuery class, each overridden method needs a signature compatible
+with its parent:
+
+```php
+<?php
+// 3.x
+public function quoteName($spec) { /* ... */ }
+public function limit($limit)    { /* ... */ }
+
+// 7.x
+public function quoteName(string $spec): string { /* ... */ }
+public function limit(int $limit): static       { /* ... */ }
+?>
+```
+
+Note `static` in particular: the fluent setters are documented `@return $this`
+and now declare `static`, so an override must declare it too.
+
+The quickest way to find every override you need to touch is to load your
+classes and let PHP report the incompatible signatures, since it checks each
+one against its parent at class-load time.
+
+Two return types are narrower than 3.x documented, which matters only if you
+implement the interfaces yourself: `QuoterInterface::quoteNamesIn()` returns
+`string` rather than `string|array`, and `InsertInterface::getLastInsertIdName()`
+returns `?string` rather than `mixed`. Both say what the shipped code always
+did.
+
+### 3. Give Each Bound Value Its Own Placeholder Name
 
 This is the change most likely to surface in a working application, because
 what it catches is a query that was already wrong.
@@ -82,7 +121,7 @@ clause claimed, so a placeholder can be reused after a reset. Binding by hand
 with `bindValue()` and `bindValues()` is unaffected and may still overwrite any
 value.
 
-### 3. Name One Table Per Update And Delete
+### 4. Name One Table Per Update And Delete
 
 `Update::table()` and `Delete::from()` take a single table and now throw
 _Aura\SqlQuery\Exception\LogicException_ when given a list:
@@ -106,7 +145,7 @@ string whole as `"t1," "t2"`. If you were working around that by splitting the
 string yourself, you can stop. An identifier you quoted yourself is left as you
 wrote it, so a comma inside one stays part of the name.
 
-### 4. Catch ExceptionInterface
+### 5. Catch ExceptionInterface
 
 The package throws concrete exceptions from the new `Aura\SqlQuery\Exception`
 namespace -- _LogicException_, _BadMethodCallException_ and
@@ -143,7 +182,7 @@ Sqlite Delete, and Sqlsrv Update and Delete, and `orReplace()` on Mysql Update,
 Pgsql Insert and Update, and Sqlsrv Insert and Update. These are refusals, not
 gaps: SQLite's DELETE grammar has no OR clause and Postgres has no REPLACE.
 
-### 5. Spell Insert-Ignore As ignore()
+### 6. Spell Insert-Ignore As ignore()
 
 `ignore()` is now the spelling on every dialect that supports it. Sqlite's
 `orIgnore()` remains as a deprecated alias on both _Insert_ and _Update_:
@@ -161,7 +200,7 @@ $insert->ignore();
 Pgsql\Insert gains `ignore()` too, rendering the Postgres equivalent `ON
 CONFLICT DO NOTHING`, and Sqlite\Update gains one matching Mysql\Update.
 
-### 6. Declare The WITH Methods On Any Query Interface You Implement
+### 7. Declare The WITH Methods On Any Query Interface You Implement
 
 _InsertInterface_, _UpdateInterface_ and _DeleteInterface_ extend
 _WithInterface_, the way _SelectInterface_ already did. Nothing shipped by this
@@ -172,7 +211,7 @@ interfaces directly now has four more methods to declare: `with()`,
 Extending the concrete query class supplies them, as does using
 `Common\WithTrait`.
 
-### 7. Implement getStatement() On Any Direct AbstractQuery Subclass
+### 8. Implement getStatement() On Any Direct AbstractQuery Subclass
 
 `AbstractQuery::getStatement()` is abstract. _Select_ and _AbstractDmlQuery_
 both write clauses above the ones `build()` renders -- the union branches, the
@@ -182,7 +221,7 @@ If you extend _AbstractQuery_ directly, say how your statement is assembled
 rather than inheriting `return $this->build();`. Subclasses of the shipped
 query classes are unaffected.
 
-### 8. Things That Fixed Themselves
+### 9. Things That Fixed Themselves
 
 No action needed on any of these; they are listed so that a change in generated
 SQL does not surprise you.
