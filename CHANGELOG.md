@@ -2,6 +2,32 @@
 
 ## 7.0.0 (unreleased)
 
+- [BRK] Every method declares a native return type, the two constructors
+  aside, where PHP allows none. As with the parameters, the type is the one
+  the docblock already claimed, which for the 155 methods documented
+  `@return $this` means `static` -- 166 declare it once the handful already
+  saying `static` are counted in. A subclass overriding any of them has to
+  declare `static` too, or it will fatal on load. Callers get a type they can
+  rely on where before they had a promise in a comment.
+
+  Three docblocks turned out to be wrong rather than merely absent, and the
+  declaration follows the code. Quoter::quoteNamesIn() and replaceNamesIn()
+  return a string, not `string|array` -- that was left over from when they
+  took mixed input, and neither has for some time. getLastInsertIdName()
+  returns `string|null`, not `mixed`; the map it reads holds strings, and
+  the fall-through when the key is absent is now the `return null` that a
+  declared type requires to be spelled out. Its behaviour is unchanged --
+  the test asserting null for the default case is the one that caught it.
+
+- [CHG] PHPStan runs at level 6, up from 5, which is what the typing work was
+  for. Getting there wanted seven array value types in docblocks rather than
+  any change to the code: the four dialect orderBy() overrides now say
+  `array<array-key, string>` the way OrderByInterface and Common\Select
+  already did, indent() and indentCsv() say `list<string>`, and
+  getListForQuoteNamesIn() says what its preg_split() returns. Level 7 is the
+  next step and wants real narrowing at the union types, so it waits for a
+  change that does that work.
+
 - [BRK] Every parameter in the package declares a native type, taken from the
   type its docblock already claimed. A userland class overriding, say,
   Quoter::quoteName($spec) must declare a matching signature or it will fatal

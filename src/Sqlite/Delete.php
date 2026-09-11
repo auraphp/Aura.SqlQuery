@@ -28,7 +28,7 @@ class Delete extends Common\Delete implements Common\OrderByInterface, Common\Li
      * @return string
      *
      */
-    protected function build()
+    protected function build(): string
     {
         return parent::build()
             . $this->builder->buildLimitOffset($this->getLimit(), $this->offset);
@@ -38,12 +38,13 @@ class Delete extends Common\Delete implements Common\OrderByInterface, Common\Li
      *
      * Adds a column order to the query.
      *
-     * @param array $spec The columns and direction to order by.
+     * @param array<array-key, string> $spec The columns and direction to
+     * order by.
      *
      * @return $this
      *
      */
-    public function orderBy(array $spec)
+    public function orderBy(array $spec): static
     {
         return $this->addOrderBy($spec);
     }

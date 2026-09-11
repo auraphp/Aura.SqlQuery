@@ -84,7 +84,7 @@ class QueryFactory
      * @return void
      *
      */
-    public function setLastInsertIdNames(array $last_insert_id_names)
+    public function setLastInsertIdNames(array $last_insert_id_names): void
     {
         $this->last_insert_id_names = $last_insert_id_names;
     }
@@ -96,7 +96,7 @@ class QueryFactory
      * @return Common\SelectInterface
      *
      */
-    public function newSelect()
+    public function newSelect(): Common\SelectInterface
     {
         return $this->newInstance('Select');
     }
@@ -108,7 +108,7 @@ class QueryFactory
      * @return Common\InsertInterface
      *
      */
-    public function newInsert()
+    public function newInsert(): Common\InsertInterface
     {
         $insert = $this->newInstance('Insert');
         $insert->setLastInsertIdNames($this->last_insert_id_names);
@@ -122,7 +122,7 @@ class QueryFactory
      * @return Common\UpdateInterface
      *
      */
-    public function newUpdate()
+    public function newUpdate(): Common\UpdateInterface
     {
         return $this->newInstance('Update');
     }
@@ -134,7 +134,7 @@ class QueryFactory
      * @return Common\DeleteInterface
      *
      */
-    public function newDelete()
+    public function newDelete(): Common\DeleteInterface
     {
         return $this->newInstance('Delete');
     }
@@ -148,7 +148,7 @@ class QueryFactory
      * @return Common\SelectInterface|Common\InsertInterface|Common\UpdateInterface|Common\DeleteInterface
      *
      */
-    protected function newInstance(string $query)
+    protected function newInstance(string $query): Common\SelectInterface|Common\InsertInterface|Common\UpdateInterface|Common\DeleteInterface
     {
         $queryClass = "Aura\SqlQuery\\{$this->db}\\{$query}";
         if ($this->common) {
@@ -175,7 +175,7 @@ class QueryFactory
      * @return Common\AbstractBuilder
      *
      */
-    protected function newBuilder(string $query)
+    protected function newBuilder(string $query): Common\AbstractBuilder
     {
         $builderClass = "Aura\SqlQuery\\{$this->db}\\{$query}Builder";
         if ($this->common || ! class_exists($builderClass)) {
@@ -191,7 +191,7 @@ class QueryFactory
      * @return Common\QuoterInterface
      *
      */
-    protected function getQuoter()
+    protected function getQuoter(): Common\QuoterInterface
     {
         if (! $this->quoter) {
             $this->quoter = $this->newQuoter();
@@ -206,7 +206,7 @@ class QueryFactory
      * @return Common\QuoterInterface
      *
      */
-    protected function newQuoter()
+    protected function newQuoter(): Common\QuoterInterface
     {
         $quoterClass = "Aura\SqlQuery\\{$this->db}\Quoter";
         if (! class_exists($quoterClass)) {

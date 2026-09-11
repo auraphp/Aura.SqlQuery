@@ -120,7 +120,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @return void
      *
      */
-    public function setLastInsertIdNames(array $last_insert_id_names)
+    public function setLastInsertIdNames(array $last_insert_id_names): void
     {
         $this->last_insert_id_names = $last_insert_id_names;
     }
@@ -134,7 +134,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @return $this
      *
      */
-    public function into(string $into)
+    public function into(string $into): static
     {
         $this->into_raw = $into;
         $this->into = $this->quoter->quoteName($into);
@@ -148,7 +148,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @return string
      *
      */
-    protected function build()
+    protected function build(): string
     {
         $stm = 'INSERT'
             . $this->builder->buildFlags($this->flags)
@@ -170,16 +170,20 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      *
      * @param string $col The last insert ID column.
      *
-     * @return mixed Normally null, since most drivers do not need a name;
-     * alternatively, a string from `$last_insert_id_names`.
+     * @return string|null Normally null, since most drivers do not need a
+     * name; alternatively, a string from `$last_insert_id_names`.
      *
      */
-    public function getLastInsertIdName(string $col)
+    public function getLastInsertIdName(string $col): ?string
     {
         $key = $this->into_raw . '.' . $col;
         if (isset($this->last_insert_id_names[$key])) {
             return $this->last_insert_id_names[$key];
         }
+
+        // the fall-through is the normal case, and a declared return type
+        // wants it spelled out
+        return null;
     }
 
     /**
@@ -194,7 +198,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @return $this
      *
      */
-    public function col(string $col, mixed ...$value)
+    public function col(string $col, mixed ...$value): static
     {
         return $this->addCol($col, ...$value);
     }
@@ -212,7 +216,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @return $this
      *
      */
-    public function cols(array $cols)
+    public function cols(array $cols): static
     {
         return $this->addCols($cols);
     }
@@ -229,7 +233,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @return $this
      *
      */
-    public function set(string $col, ?string $value)
+    public function set(string $col, ?string $value): static
     {
         return $this->setCol($col, $value);
     }
@@ -241,7 +245,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @return array<int|string, mixed>
      *
      */
-    public function getBindValues()
+    public function getBindValues(): array
     {
         $values = parent::getBindValues();
 
@@ -273,7 +277,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @return $this
      *
      */
-    public function addRows(array $rows)
+    public function addRows(array $rows): static
     {
         foreach ($rows as $cols) {
             $this->addRow($cols);
@@ -301,7 +305,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @return $this
      *
      */
-    public function addRow(array $cols = [])
+    public function addRow(array $cols = []): static
     {
         if (empty($this->col_values)) {
             return $this->cols($cols);
@@ -326,7 +330,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @return static
      *
      */
-    public function ignore(bool $enable = true)
+    public function ignore(bool $enable = true): static
     {
         // override in child classes
         throw new BadMethodCallException(get_class($this) . " doesn't support IGNORE flag");
@@ -341,7 +345,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @return static
      *
      */
-    public function orReplace(bool $enable = true)
+    public function orReplace(bool $enable = true): static
     {
         // override in child classes
         throw new BadMethodCallException(get_class($this) . " doesn't support OR REPLACE flag");
@@ -356,7 +360,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @return static
      *
      */
-    public function onConflict(string|array $target)
+    public function onConflict(string|array $target): static
     {
         // override in child classes
         throw new BadMethodCallException(get_class($this) . " doesn't support ON CONFLICT clause");
@@ -372,7 +376,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @return static
      *
      */
-    public function doUpdateCol(string $col, mixed ...$value)
+    public function doUpdateCol(string $col, mixed ...$value): static
     {
         // override in child classes
         throw new BadMethodCallException(get_class($this) . " doesn't support DO UPDATE SET clause");
@@ -387,7 +391,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @return static
      *
      */
-    public function doUpdateCols(array $cols)
+    public function doUpdateCols(array $cols): static
     {
         // override in child classes
         throw new BadMethodCallException(get_class($this) . " doesn't support DO UPDATE SET clause");
@@ -403,7 +407,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @return static
      *
      */
-    public function doUpdate(string $col, ?string $value)
+    public function doUpdate(string $col, ?string $value): static
     {
         // override in child classes
         throw new BadMethodCallException(get_class($this) . " doesn't support DO UPDATE SET clause");
@@ -419,7 +423,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @return static
      *
      */
-    public function doUpdateWhere(string $condition, array ...$bind)
+    public function doUpdateWhere(string $condition, array ...$bind): static
     {
         // override in child classes
         throw new BadMethodCallException(get_class($this) . " doesn't support ON CONFLICT ... WHERE clause");
@@ -440,7 +444,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @return void
      *
      */
-    protected function finishRow()
+    protected function finishRow(): void
     {
         if (empty($this->col_values)) {
             return;
@@ -468,7 +472,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @throws InvalidArgumentException on named column missing from row.
      *
      */
-    protected function finishCol(string $col)
+    protected function finishCol(string $col): ?string
     {
         if (! array_key_exists($col, $this->col_values)) {
             throw new InvalidArgumentException("Column $col missing from row {$this->row}.");
@@ -532,7 +536,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @return $this
      *
      */
-    public function resetBindValues()
+    public function resetBindValues(): static
     {
         $this->bind_values_bulk = [];
         $this->bind_sources_bulk = [];
@@ -549,7 +553,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * {@inheritdoc}
      *
      */
-    protected function bindValueFrom(int|string $name, mixed $value, ?string $source)
+    protected function bindValueFrom(int|string $name, mixed $value, ?string $source): static
     {
         // 'col' is exempt for the same reason it is in finishCol(): a later
         // row's column may be named `a_1` while `a` in row 1 has banked that

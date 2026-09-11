@@ -39,7 +39,7 @@ trait ReturningTrait
      * @return $this
      *
      */
-    public function returning(array $cols)
+    public function returning(array $cols): static
     {
         foreach ($cols as $col) {
             $this->returning[] = $this->quoter->quoteNamesIn($col);

@@ -26,7 +26,7 @@ trait BuildReturningTrait
      * @return string
      *
      */
-    public function buildReturning(array $returning)
+    public function buildReturning(array $returning): string
     {
         if (empty($returning)) {
             return ''; // not applicable

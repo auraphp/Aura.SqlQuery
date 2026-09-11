@@ -34,7 +34,7 @@ class SelectBuilder extends Common\SelectBuilder
      * @see applyLimit()
      *
      */
-    public function buildLimitOffset(int $limit, int $offset)
+    public function buildLimitOffset(int $limit, int $offset): string
     {
         return '';
     }
@@ -52,7 +52,7 @@ class SelectBuilder extends Common\SelectBuilder
      * @return string
      *
      */
-    public function applyLimit(string $stm, int $limit, int $offset)
+    public function applyLimit(string $stm, int $limit, int $offset): string
     {
         if (! $limit && ! $offset) {
             return $stm; // no limit or offset

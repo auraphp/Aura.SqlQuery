@@ -40,7 +40,7 @@ class Insert extends Common\Insert implements Common\OnConflictUpdateInterface
      * @return bool
      *
      */
-    protected function allowsConstraintTarget()
+    protected function allowsConstraintTarget(): bool
     {
         return false;
     }
@@ -52,7 +52,7 @@ class Insert extends Common\Insert implements Common\OnConflictUpdateInterface
      * @return string
      *
      */
-    protected function build()
+    protected function build(): string
     {
         $ignore = false;
         $has_or_ignore = $this->hasFlag('OR IGNORE');
@@ -92,7 +92,7 @@ class Insert extends Common\Insert implements Common\OnConflictUpdateInterface
      * @throws Exception\LogicException
      *
      */
-    protected function assertNoOrConflictFlags()
+    protected function assertNoOrConflictFlags(): void
     {
         $set = [];
         foreach ($this->or_conflict_flags as $flag) {
@@ -121,7 +121,7 @@ class Insert extends Common\Insert implements Common\OnConflictUpdateInterface
      * @return $this
      *
      */
-    public function orAbort(bool $enable = true)
+    public function orAbort(bool $enable = true): static
     {
         $this->setFlag('OR ABORT', $enable);
         return $this;
@@ -136,7 +136,7 @@ class Insert extends Common\Insert implements Common\OnConflictUpdateInterface
      * @return $this
      *
      */
-    public function orFail(bool $enable = true)
+    public function orFail(bool $enable = true): static
     {
         $this->setFlag('OR FAIL', $enable);
         return $this;
@@ -152,7 +152,7 @@ class Insert extends Common\Insert implements Common\OnConflictUpdateInterface
      * @return $this
      *
      */
-    public function orIgnore(bool $enable = true)
+    public function orIgnore(bool $enable = true): static
     {
         $this->ignore($enable);
         return $this;
@@ -167,7 +167,7 @@ class Insert extends Common\Insert implements Common\OnConflictUpdateInterface
      * @return $this
      *
      */
-    public function ignore(bool $enable = true)
+    public function ignore(bool $enable = true): static
     {
         $this->setFlag('OR IGNORE', $enable);
         return $this;
@@ -182,7 +182,7 @@ class Insert extends Common\Insert implements Common\OnConflictUpdateInterface
      * @return $this
      *
      */
-    public function orReplace(bool $enable = true)
+    public function orReplace(bool $enable = true): static
     {
         $this->setFlag('OR REPLACE', $enable);
         return $this;
@@ -197,7 +197,7 @@ class Insert extends Common\Insert implements Common\OnConflictUpdateInterface
      * @return $this
      *
      */
-    public function orRollback(bool $enable = true)
+    public function orRollback(bool $enable = true): static
     {
         $this->setFlag('OR ROLLBACK', $enable);
         return $this;

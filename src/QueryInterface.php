@@ -24,7 +24,7 @@ interface QueryInterface
      * @return string
      *
      */
-    public function __toString();
+    public function __toString(): string;
 
     /**
      *
@@ -33,7 +33,7 @@ interface QueryInterface
      * @return string
      *
      */
-    public function getStatement();
+    public function getStatement(): string;
 
     /**
      *
@@ -42,7 +42,7 @@ interface QueryInterface
      * @return string
      *
      */
-    public function getQuoteNamePrefix();
+    public function getQuoteNamePrefix(): string;
 
     /**
      *
@@ -51,7 +51,7 @@ interface QueryInterface
      * @return string
      *
      */
-    public function getQuoteNameSuffix();
+    public function getQuoteNameSuffix(): string;
 
     /**
      *
@@ -63,7 +63,7 @@ interface QueryInterface
      * @return $this
      *
      */
-    public function bindValues(array $bind_values);
+    public function bindValues(array $bind_values): static;
 
     /**
      *
@@ -76,7 +76,7 @@ interface QueryInterface
      * @return $this
      *
      */
-    public function bindValue(int|string $name, mixed $value);
+    public function bindValue(int|string $name, mixed $value): static;
 
     /**
      *
@@ -85,7 +85,7 @@ interface QueryInterface
      * @return array<int|string, mixed>
      *
      */
-    public function getBindValues();
+    public function getBindValues(): array;
 
     /**
      *
@@ -94,5 +94,5 @@ interface QueryInterface
      * @return $this
      *
      */
-    public function resetFlags();
+    public function resetFlags(): static;
 }

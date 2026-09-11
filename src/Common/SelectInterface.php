@@ -28,7 +28,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function setPaging(int $paging);
+    public function setPaging(int $paging): static;
 
     /**
      *
@@ -37,7 +37,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return int The number of rows per page.
      *
      */
-    public function getPaging();
+    public function getPaging(): int;
 
     /**
      *
@@ -49,7 +49,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function forUpdate(bool $enable = true);
+    public function forUpdate(bool $enable = true): static;
 
     /**
      *
@@ -61,7 +61,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function distinct(bool $enable = true);
+    public function distinct(bool $enable = true): static;
 
     /**
      *
@@ -70,7 +70,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return bool
      *
      */
-    public function isDistinct();
+    public function isDistinct(): bool;
 
     /**
      *
@@ -85,7 +85,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function cols(array $cols);
+    public function cols(array $cols): static;
 
     /**
      *
@@ -96,7 +96,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return bool
      *
      */
-    public function removeCol(string $alias);
+    public function removeCol(string $alias): bool;
 
     /**
      *
@@ -107,7 +107,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return bool
      *
      */
-    public function hasCol(string $alias);
+    public function hasCol(string $alias): bool;
 
     /**
      *
@@ -116,7 +116,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return bool
      *
      */
-    public function hasCols();
+    public function hasCols(): bool;
 
     /**
      *
@@ -125,7 +125,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return array<int|string, string>
      *
      */
-    public function getCols();
+    public function getCols(): array;
 
     /**
      *
@@ -136,7 +136,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function from(string $spec);
+    public function from(string $spec): static;
 
     /**
      *
@@ -148,7 +148,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function fromRaw(string $spec);
+    public function fromRaw(string $spec): static;
 
     /**
      *
@@ -162,7 +162,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function fromSubSelect(string|SelectInterface $spec, string $name);
+    public function fromSubSelect(string|SelectInterface $spec, string $name): static;
 
     /**
      *
@@ -177,7 +177,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function join(string $join, string $spec, ?string $cond = null);
+    public function join(string $join, string $spec, ?string $cond = null): static;
 
     /**
      *
@@ -195,7 +195,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @throws \Aura\SqlQuery\Exception\LogicException
      *
      */
-    public function innerJoin(string $spec, ?string $cond = null, array $bind = []);
+    public function innerJoin(string $spec, ?string $cond = null, array $bind = []): static;
 
     /**
      *
@@ -213,7 +213,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @throws \Aura\SqlQuery\Exception\LogicException
      *
      */
-    public function leftJoin(string $spec, ?string $cond = null, array $bind = []);
+    public function leftJoin(string $spec, ?string $cond = null, array $bind = []): static;
 
     /**
      *
@@ -232,7 +232,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function joinSubSelect(string $join, string|SelectInterface $spec, string $name, ?string $cond = null);
+    public function joinSubSelect(string $join, string|SelectInterface $spec, string $name, ?string $cond = null): static;
 
     /**
      *
@@ -243,7 +243,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function groupBy(array $spec);
+    public function groupBy(array $spec): static;
 
     /**
      *
@@ -257,7 +257,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function having(string|\Closure $cond, array $bind = []);
+    public function having(string|\Closure $cond, array $bind = []): static;
 
     /**
      *
@@ -273,7 +273,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @see having()
      *
      */
-    public function orHaving(string|\Closure $cond, array $bind = []);
+    public function orHaving(string|\Closure $cond, array $bind = []): static;
 
     /**
      *
@@ -284,7 +284,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function page(int $page);
+    public function page(int $page): static;
 
     /**
      *
@@ -293,7 +293,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return int
      *
      */
-    public function getPage();
+    public function getPage(): int;
 
     /**
      *
@@ -309,7 +309,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * query, or a branch defining a WITH clause of its own.
      *
      */
-    public function union(?SelectInterface $select = null);
+    public function union(?SelectInterface $select = null): static;
 
     /**
      *
@@ -325,7 +325,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * query, or a branch defining a WITH clause of its own.
      *
      */
-    public function unionAll(?SelectInterface $select = null);
+    public function unionAll(?SelectInterface $select = null): static;
 
     /**
      *
@@ -335,7 +335,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return void
      *
      */
-    public function reset();
+    public function reset(): void;
 
     /**
      *
@@ -344,7 +344,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function resetCols();
+    public function resetCols(): static;
 
     /**
      *
@@ -353,7 +353,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function resetTables();
+    public function resetTables(): static;
 
     /**
      *
@@ -362,7 +362,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function resetWhere();
+    public function resetWhere(): static;
 
     /**
      *
@@ -371,7 +371,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function resetGroupBy();
+    public function resetGroupBy(): static;
 
     /**
      *
@@ -380,7 +380,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function resetHaving();
+    public function resetHaving(): static;
 
     /**
      *
@@ -389,7 +389,7 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function resetOrderBy();
+    public function resetOrderBy(): static;
 
     /**
      *
@@ -398,5 +398,5 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * @return $this
      *
      */
-    public function resetUnions();
+    public function resetUnions(): static;
 }

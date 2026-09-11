@@ -45,7 +45,7 @@ trait LateralJoinTrait
      * @throws Exception\LogicException
      *
      */
-    public function lateralJoinSubSelect(string $join, string|SelectInterface $spec, string $name, ?string $cond = null, array $bind = [])
+    public function lateralJoinSubSelect(string $join, string|SelectInterface $spec, string $name, ?string $cond = null, array $bind = []): static
     {
         $join = strtoupper(ltrim("$join JOIN LATERAL"));
 
@@ -82,7 +82,7 @@ trait LateralJoinTrait
      * @return bool
      *
      */
-    protected function isUnconditionalJoin(string $join)
+    protected function isUnconditionalJoin(string $join): bool
     {
         return str_starts_with($join, 'CROSS ')
             || str_starts_with($join, 'NATURAL ');
@@ -104,7 +104,7 @@ trait LateralJoinTrait
      * @return bool
      *
      */
-    protected function joinForbidsCondition(string $join)
+    protected function joinForbidsCondition(string $join): bool
     {
         return str_starts_with($join, 'CROSS ')
             || str_starts_with($join, 'NATURAL ');

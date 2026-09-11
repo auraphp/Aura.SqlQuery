@@ -28,7 +28,7 @@ class Update extends Common\Update implements Common\OrderByInterface, Common\Li
      * @return string
      *
      */
-    protected function build()
+    protected function build(): string
     {
         return parent::build()
             . $this->builder->buildLimit($this->getLimit());
@@ -43,7 +43,7 @@ class Update extends Common\Update implements Common\OrderByInterface, Common\Li
      * @return $this
      *
      */
-    public function lowPriority(bool $enable = true)
+    public function lowPriority(bool $enable = true): static
     {
         $this->setFlag('LOW_PRIORITY', $enable);
         return $this;
@@ -58,7 +58,7 @@ class Update extends Common\Update implements Common\OrderByInterface, Common\Li
      * @return $this
      *
      */
-    public function ignore(bool $enable = true)
+    public function ignore(bool $enable = true): static
     {
         $this->setFlag('IGNORE', $enable);
         return $this;
@@ -68,12 +68,13 @@ class Update extends Common\Update implements Common\OrderByInterface, Common\Li
      *
      * Adds a column order to the query.
      *
-     * @param array $spec The columns and direction to order by.
+     * @param array<array-key, string> $spec The columns and direction to
+     * order by.
      *
      * @return $this
      *
      */
-    public function orderBy(array $spec)
+    public function orderBy(array $spec): static
     {
         return $this->addOrderBy($spec);
     }
