@@ -25,7 +25,7 @@ class InsertBuilder extends Common\InsertBuilder
      * not support `DEFAULT VALUES`, so an insert with no columns uses the
      * empty-list form instead.
      *
-     * @param array $col_values The column names and values.
+     * @param array<string, string> $col_values The column names and values.
      *
      * @return string
      *
@@ -43,8 +43,8 @@ class InsertBuilder extends Common\InsertBuilder
      *
      * Builds the UPDATE ON DUPLICATE KEY part of the statement.
      *
-     * @param array $col_on_update_values Columns and values to use for
-     * ON DUPLICATE KEY UPDATE.
+     * @param array<string, string>|null $col_on_update_values Columns and
+     * values to use for ON DUPLICATE KEY UPDATE.
      *
      * @return string
      *

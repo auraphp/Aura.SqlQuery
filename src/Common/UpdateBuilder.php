@@ -35,7 +35,7 @@ class UpdateBuilder extends AbstractBuilder
      *
      * Builds the columns and values for the statement.
      *
-     * @param array $col_values The columns and values.
+     * @param array<string, string> $col_values The columns and values.
      *
      * @return string
      *

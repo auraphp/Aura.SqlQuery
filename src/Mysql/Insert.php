@@ -43,7 +43,7 @@ class Insert extends Common\Insert
      * Column values for ON DUPLICATE KEY UPDATE section of query; the key is
      * the column name and the value is the column value.
      *
-     * @var array|null
+     * @var array<string, string>|null
      *
      */
     protected $col_on_update_values;
@@ -132,7 +132,7 @@ class Insert extends Common\Insert
      *
      * @param string $col The column name.
      *
-     * @param array $value Optional: a value to bind to the placeholder.
+     * @param mixed ...$value Optional: a value to bind to the placeholder.
      *
      * @return $this
      *
@@ -154,9 +154,9 @@ class Insert extends Common\Insert
      * section. If an element is a key-value pair, the key is treated as the
      * column name and the value is bound to that column.
      *
-     * @param array $cols A list of column names, optionally as key-value
-     * pairs where the key is a column name and the value is a bind value for
-     * that column.
+     * @param array<int|string, mixed> $cols A list of column names,
+     * optionally as key-value pairs where the key is a column name and the
+     * value is a bind value for that column.
      *
      * @return $this
      *
@@ -283,7 +283,7 @@ class Insert extends Common\Insert
      *
      * @param string|Common\SelectInterface $spec The CTE specification.
      *
-     * @param array $cols Optional column list for the CTE.
+     * @param array<array-key, string> $cols Optional column list for the CTE.
      *
      * @return $this
      *

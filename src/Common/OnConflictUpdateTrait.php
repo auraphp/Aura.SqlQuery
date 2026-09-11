@@ -34,9 +34,10 @@ trait OnConflictUpdateTrait
 
     /**
      *
-     * The conflict target column(s) or constraint name.
+     * The conflict target column(s) or constraint name, rendered ready for
+     * the clause.
      *
-     * @var string|array
+     * @var string|null
      *
      */
     protected $conflict_target;
@@ -45,7 +46,7 @@ trait OnConflictUpdateTrait
      *
      * Column values for UPDATE on conflict.
      *
-     * @var array
+     * @var array<string, string>
      *
      */
     protected $conflict_update_values = [];
@@ -54,7 +55,7 @@ trait OnConflictUpdateTrait
      *
      * WHERE conditions for UPDATE on conflict.
      *
-     * @var array
+     * @var list<string>
      *
      */
     protected $conflict_where = [];
@@ -63,7 +64,8 @@ trait OnConflictUpdateTrait
      *
      * Sets the conflict target column(s) or constraint name.
      *
-     * @param string|array $target The conflict target column(s) or constraint name.
+     * @param string|array<array-key, string> $target The conflict target
+     * column(s) or constraint name.
      *
      * @return $this
      *
@@ -144,7 +146,7 @@ trait OnConflictUpdateTrait
      *
      * @param string $col The column name.
      *
-     * @param array $value Optional: a value to bind to the placeholder.
+     * @param mixed ...$value Optional: a value to bind to the placeholder.
      *
      * @return $this
      *
@@ -168,9 +170,9 @@ trait OnConflictUpdateTrait
      * is a key-value pair, the key is treated as the column name and the value is bound
      * to that column.
      *
-     * @param array $cols A list of column names, optionally as key-value
-     * pairs where the key is a column name and the value is a bind value for
-     * that column.
+     * @param array<int|string, mixed> $cols A list of column names,
+     * optionally as key-value pairs where the key is a column name and the
+     * value is a bind value for that column.
      *
      * @return $this
      *
@@ -216,7 +218,8 @@ trait OnConflictUpdateTrait
      *
      * @param string $condition The WHERE condition.
      *
-     * @param array $bind Optional: values to bind to the condition.
+     * @param array<int|string, mixed> ...$bind Optional: values to bind to
+     * the condition.
      *
      * @return $this
      *

@@ -54,7 +54,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * This is used to look up the right last-insert-id name for a given table
      * and column. Generally useful only for extended tables in Postgres.
      *
-     * @var array
+     * @var array<string, string>|null
      *
      */
     protected $last_insert_id_names;
@@ -73,7 +73,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      *
      * A collection of `$col_values` for previous rows in bulk inserts.
      *
-     * @var array
+     * @var array<int, array<string, string>>
      *
      */
     protected $col_values_bulk = [];
@@ -82,7 +82,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      *
      * A collection of `$bind_values` for previous rows in bulk inserts.
      *
-     * @var array
+     * @var array<string, mixed>
      *
      */
     protected $bind_values_bulk = [];
@@ -94,7 +94,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * merges them, so `$bind_sources` cannot record them and this stands in
      * for it.
      *
-     * @var array
+     * @var array<string, string>
      *
      */
     protected $bind_sources_bulk = [];
@@ -104,7 +104,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * The order in which columns will be bulk-inserted; this is taken from the
      * very first inserted row.
      *
-     * @var array
+     * @var list<string>
      *
      */
     protected $col_order = [];
@@ -114,7 +114,10 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * Sets the map of fully-qualified `table.column` names to last-insert-id
      * names. Generally useful only for extended tables in Postgres.
      *
-     * @param array $last_insert_id_names The list of ID names.
+     * @param array<string, string> $last_insert_id_names The list of ID
+     * names.
+     *
+     * @return void
      *
      */
     public function setLastInsertIdNames(array $last_insert_id_names)
@@ -186,7 +189,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      *
      * @param string $col The column name.
      *
-     * @param array $value Optional: a value to bind to the placeholder.
+     * @param mixed ...$value Optional: a value to bind to the placeholder.
      *
      * @return $this
      *
@@ -202,9 +205,9 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * pair, the key is treated as the column name and the value is bound to
      * that column.
      *
-     * @param array $cols A list of column names, optionally as key-value
-     * pairs where the key is a column name and the value is a bind value for
-     * that column.
+     * @param array<int|string, mixed> $cols A list of column names,
+     * optionally as key-value pairs where the key is a column name and the
+     * value is a bind value for that column.
      *
      * @return $this
      *
@@ -235,7 +238,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      *
      * Gets the values to bind to placeholders.
      *
-     * @return array
+     * @return array<int|string, mixed>
      *
      */
     public function getBindValues()
@@ -263,8 +266,9 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      *
      * Adds multiple rows for bulk insert.
      *
-     * @param array $rows An array of rows, where each element is an array of
-     * column key-value pairs. The values are bound to placeholders.
+     * @param array<array-key, array<int|string, mixed>> $rows An array of
+     * rows, where each element is an array of column key-value pairs. The
+     * values are bound to placeholders.
      *
      * @return $this
      *
@@ -291,8 +295,8 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * `set()` to work with the newly-added row. Calling `addRow()` again will
      * finish off the current row and start a new one.
      *
-     * @param array $cols An array of column key-value pairs; the values are
-     * bound to placeholders.
+     * @param array<int|string, mixed> $cols An array of column key-value
+     * pairs; the values are bound to placeholders.
      *
      * @return $this
      *
@@ -347,7 +351,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      *
      * Sets the conflict target column(s) or constraint name.
      *
-     * @param string|array $target
+     * @param string|array<array-key, string> $target
      * @throws BadMethodCallException
      * @return static
      *
@@ -363,7 +367,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * Sets one column value placeholder for the UPDATE on conflict.
      *
      * @param string $col
-     * @param array $value
+     * @param mixed ...$value
      * @throws BadMethodCallException
      * @return static
      *
@@ -378,7 +382,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      *
      * Sets multiple column value placeholders for the UPDATE on conflict.
      *
-     * @param array $cols
+     * @param array<int|string, mixed> $cols
      * @throws BadMethodCallException
      * @return static
      *
@@ -410,7 +414,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * Adds a WHERE condition for the UPDATE on conflict.
      *
      * @param string $condition
-     * @param array $bind
+     * @param array<int|string, mixed> ...$bind
      * @throws BadMethodCallException
      * @return static
      *

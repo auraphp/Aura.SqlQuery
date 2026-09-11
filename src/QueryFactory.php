@@ -44,7 +44,7 @@ class QueryFactory
      *
      * A map of `table.col` names to last-insert-id names.
      *
-     * @var array
+     * @var array<string, string>
      *
      */
     protected $last_insert_id_names = [];
@@ -78,8 +78,8 @@ class QueryFactory
      *
      * Sets the last-insert-id names to be used for Insert queries..
      *
-     * @param array $last_insert_id_names A map of `table.col` names to
-     * last-insert-id names.
+     * @param array<string, string> $last_insert_id_names A map of `table.col`
+     * names to last-insert-id names.
      *
      * @return void
      *
