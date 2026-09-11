@@ -27,7 +27,7 @@ trait OnConflictUpdateTrait
      * @return bool
      *
      */
-    protected function allowsConstraintTarget()
+    protected function allowsConstraintTarget(): bool
     {
         return true;
     }
@@ -70,7 +70,7 @@ trait OnConflictUpdateTrait
      * @return $this
      *
      */
-    public function onConflict(string|array $target)
+    public function onConflict(string|array $target): static
     {
         if (is_array($target)) {
             $cols = [];
@@ -126,7 +126,7 @@ trait OnConflictUpdateTrait
      * @throws Exception\InvalidArgumentException
      *
      */
-    protected function assertConflictName(string $name)
+    protected function assertConflictName(string $name): string
     {
         $name = trim($name);
 
@@ -151,7 +151,7 @@ trait OnConflictUpdateTrait
      * @return $this
      *
      */
-    public function doUpdateCol(string $col, mixed ...$value)
+    public function doUpdateCol(string $col, mixed ...$value): static
     {
         $key = $this->quoter->quoteName($col);
         if (count($value) > 0) {
@@ -177,7 +177,7 @@ trait OnConflictUpdateTrait
      * @return $this
      *
      */
-    public function doUpdateCols(array $cols)
+    public function doUpdateCols(array $cols): static
     {
         foreach ($cols as $key => $val) {
             if (is_int($key)) {
@@ -201,7 +201,7 @@ trait OnConflictUpdateTrait
      * @return $this
      *
      */
-    public function doUpdate(string $col, ?string $value)
+    public function doUpdate(string $col, ?string $value): static
     {
         if ($value === null) {
             $value = 'NULL';
@@ -224,7 +224,7 @@ trait OnConflictUpdateTrait
      * @return $this
      *
      */
-    public function doUpdateWhere(string $condition, array ...$bind)
+    public function doUpdateWhere(string $condition, array ...$bind): static
     {
         $condition = $this->quoter->quoteNamesIn($condition);
         if (count($bind) > 0) {

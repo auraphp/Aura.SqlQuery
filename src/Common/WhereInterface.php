@@ -31,7 +31,7 @@ interface WhereInterface
      * @return $this
      *
      */
-    public function where(string|\Closure $cond, array $bind = []);
+    public function where(string|\Closure $cond, array $bind = []): static;
 
     /**
      *
@@ -49,5 +49,5 @@ interface WhereInterface
      * @see where()
      *
      */
-    public function orWhere(string|\Closure $cond, array $bind = []);
+    public function orWhere(string|\Closure $cond, array $bind = []): static;
 }

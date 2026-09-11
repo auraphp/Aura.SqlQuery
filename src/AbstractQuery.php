@@ -145,7 +145,7 @@ abstract class AbstractQuery
      * @return string
      *
      */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->getStatement();
     }
@@ -161,7 +161,7 @@ abstract class AbstractQuery
      * @return string
      *
      */
-    abstract public function getStatement();
+    abstract public function getStatement(): string;
 
     /**
      *
@@ -170,7 +170,7 @@ abstract class AbstractQuery
      * @return string
      *
      */
-    abstract protected function build();
+    abstract protected function build(): string;
 
     /**
      *
@@ -179,7 +179,7 @@ abstract class AbstractQuery
      * @return string
      *
      */
-    public function getQuoteNamePrefix()
+    public function getQuoteNamePrefix(): string
     {
         return $this->quoter->getQuoteNamePrefix();
     }
@@ -191,7 +191,7 @@ abstract class AbstractQuery
      * @return string
      *
      */
-    public function getQuoteNameSuffix()
+    public function getQuoteNameSuffix(): string
     {
         return $this->quoter->getQuoteNameSuffix();
     }
@@ -206,7 +206,7 @@ abstract class AbstractQuery
      * @return $this
      *
      */
-    public function bindValues(array $bind_values)
+    public function bindValues(array $bind_values): static
     {
         // array_merge() renumbers integer keys, which is bad for
         // question-mark placeholders
@@ -227,7 +227,7 @@ abstract class AbstractQuery
      * @return $this
      *
      */
-    public function bindValue(int|string $name, mixed $value)
+    public function bindValue(int|string $name, mixed $value): static
     {
         return $this->bindValueFrom($name, $value, null);
     }
@@ -262,7 +262,7 @@ abstract class AbstractQuery
      * claim one placeholder name.
      *
      */
-    protected function bindValueFrom(int|string $name, mixed $value, ?string $source)
+    protected function bindValueFrom(int|string $name, mixed $value, ?string $source): static
     {
         $prior = isset($this->bind_sources[$name])
             ? $this->bind_sources[$name]
@@ -376,7 +376,7 @@ abstract class AbstractQuery
      * @return $this
      *
      */
-    protected function bindValuesFromSelect(SelectInterface $select, string $source)
+    protected function bindValuesFromSelect(SelectInterface $select, string $source): static
     {
         foreach ($select->getBindValues() as $name => $value) {
             $this->bindValueFrom($name, $value, $source);
@@ -400,7 +400,7 @@ abstract class AbstractQuery
      * @return string The sub-SELECT string.
      *
      */
-    protected function subSelect(string|SelectInterface $spec, string $indent, string $source = 'table')
+    protected function subSelect(string|SelectInterface $spec, string $indent, string $source = 'table'): string
     {
         if ($spec instanceof SelectInterface) {
             $this->bindValuesFromSelect($spec, $source);
@@ -426,7 +426,7 @@ abstract class AbstractQuery
      * @throws Exception\LogicException always.
      *
      */
-    protected function throwCollision(int|string $name, string $prior, string $source)
+    protected function throwCollision(int|string $name, string $prior, string $source): void
     {
         $was = isset($this->bind_source_labels[$prior])
             ? $this->bind_source_labels[$prior]
@@ -474,7 +474,7 @@ abstract class AbstractQuery
      * @return array<int|string, mixed>
      *
      */
-    public function getBindValues()
+    public function getBindValues(): array
     {
         return $this->bind_values;
     }
@@ -486,7 +486,7 @@ abstract class AbstractQuery
      * @return $this
      *
      */
-    public function resetBindValues()
+    public function resetBindValues(): static
     {
         $this->bind_values = [];
         $this->bind_sources = [];
@@ -508,7 +508,7 @@ abstract class AbstractQuery
      * @return $this
      *
      */
-    protected function removeBindSources(string $source)
+    protected function removeBindSources(string $source): static
     {
         // drop the record of who claimed the name, but keep the value: the
         // clause resets never removed bound values, and union() depends on
@@ -549,7 +549,7 @@ abstract class AbstractQuery
      * @return void
      *
      */
-    protected function setFlag(string $flag, bool $enable = true)
+    protected function setFlag(string $flag, bool $enable = true): void
     {
         if ($enable) {
             $this->flags[$flag] = true;
@@ -567,7 +567,7 @@ abstract class AbstractQuery
      * @return bool
      *
      */
-    protected function hasFlag(string $flag)
+    protected function hasFlag(string $flag): bool
     {
         return isset($this->flags[$flag]);
     }
@@ -579,7 +579,7 @@ abstract class AbstractQuery
      * @return $this
      *
      */
-    public function resetFlags()
+    public function resetFlags(): static
     {
         $this->flags = [];
         return $this;
@@ -603,7 +603,7 @@ abstract class AbstractQuery
      * @return void
      *
      */
-    protected function addClauseCondWithBind(string $clause, string $andor, string|Closure $cond, array $bind)
+    protected function addClauseCondWithBind(string $clause, string $andor, string|Closure $cond, array $bind): void
     {
         if ($cond instanceof Closure) {
             $this->addClauseCondClosure($clause, $andor, $cond);
@@ -639,7 +639,7 @@ abstract class AbstractQuery
      * @return void
      *
      */
-    protected function addClauseCondClosure(string $clause, string $andor, callable $closure)
+    protected function addClauseCondClosure(string $clause, string $andor, callable $closure): void
     {
         // retain the prior set of conditions, and temporarily reset the clause
         // for the closure to work with (otherwise there will be an extraneous
@@ -696,7 +696,7 @@ abstract class AbstractQuery
      * @return string The rebuilt condition string.
      *
      */
-    protected function rebuildCondAndBindValues(string $cond, array $bind_values, string $clause = 'cond')
+    protected function rebuildCondAndBindValues(string $cond, array $bind_values, string $clause = 'cond'): string
     {
         $index = 0;
         $selects = [];
@@ -731,7 +731,7 @@ abstract class AbstractQuery
      * @return string The comma-separated placeholder names.
      *
      */
-    protected function inlineArray(array $array)
+    protected function inlineArray(array $array): string
     {
         $keys = [];
         foreach ($array as $val) {
@@ -753,7 +753,7 @@ abstract class AbstractQuery
      * @return $this
      *
      */
-    protected function addOrderBy(array $spec)
+    protected function addOrderBy(array $spec): static
     {
         foreach ($spec as $col) {
             $this->order_by[] = $this->quoter->quoteNamesIn($col);
@@ -769,7 +769,7 @@ abstract class AbstractQuery
      *
      * @return string
      */
-    private function getCond(int|string $key, string $cond, array $val, int $index)
+    private function getCond(int|string $key, string $cond, array $val, int $index): string
     {
         if (is_string($key)) {
             return str_replace(':' . $key, $this->inlineArray($val), $cond);

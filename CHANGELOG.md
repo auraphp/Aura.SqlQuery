@@ -2,6 +2,22 @@
 
 ## 7.0.0 (unreleased)
 
+- [BRK] Every method declares a native return type, the two constructors
+  aside, where PHP allows none. As with the parameters, the type is the one
+  the docblock already claimed, which for the 117 fluent setters documented
+  `@return $this` means `static`: a subclass overriding one has to declare
+  `static` too, or it will fatal on load. Callers get a type they can rely
+  on where before they had a promise in a comment.
+
+  Three docblocks turned out to be wrong rather than merely absent, and the
+  declaration follows the code. Quoter::quoteNamesIn() and replaceNamesIn()
+  return a string, not `string|array` -- that was left over from when they
+  took mixed input, and neither has for some time. getLastInsertIdName()
+  returns `string|null`, not `mixed`; the map it reads holds strings, and
+  the fall-through when the key is absent is now the `return null` that a
+  declared type requires to be spelled out. Its behaviour is unchanged --
+  the test asserting null for the default case is the one that caught it.
+
 - [BRK] Every parameter in the package declares a native type, taken from the
   type its docblock already claimed. This breaks subclasses, not callers: a
   userland class overriding, say, Quoter::quoteName($spec) must declare a

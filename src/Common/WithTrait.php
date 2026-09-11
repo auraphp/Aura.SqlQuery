@@ -66,7 +66,7 @@ trait WithTrait
      * is already taken.
      *
      */
-    public function with(string $name, string|SelectInterface $spec, array $cols = [])
+    public function with(string $name, string|SelectInterface $spec, array $cols = []): static
     {
         // a query cannot be a CTE of itself: it would have to be rendered
         // into the clause at the moment it must stand apart from it. The
@@ -144,7 +144,7 @@ trait WithTrait
      * @return $this
      *
      */
-    public function withRecursive(string $name, string|SelectInterface $spec, array $cols = [])
+    public function withRecursive(string $name, string|SelectInterface $spec, array $cols = []): static
     {
         // added first, so that a CTE that cannot render leaves the clause as
         // it was rather than marking it recursive on the way to throwing.
@@ -160,7 +160,7 @@ trait WithTrait
      * @return bool
      *
      */
-    public function hasWith()
+    public function hasWith(): bool
     {
         return (bool) $this->with;
     }
@@ -172,7 +172,7 @@ trait WithTrait
      * @return $this
      *
      */
-    public function resetWith()
+    public function resetWith(): static
     {
         $this->with = [];
         $this->with_recursive = false;

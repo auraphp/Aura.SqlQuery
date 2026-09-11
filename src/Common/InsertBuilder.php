@@ -26,7 +26,7 @@ class InsertBuilder extends AbstractBuilder
      * @return string
      *
      */
-    public function buildInto(string $into)
+    public function buildInto(string $into): string
     {
         return " INTO {$into}";
     }
@@ -41,7 +41,7 @@ class InsertBuilder extends AbstractBuilder
      * @return string
      *
      */
-    public function buildValuesForInsert(array $col_values)
+    public function buildValuesForInsert(array $col_values): string
     {
         if (empty($col_values)) {
             return ' DEFAULT VALUES';
@@ -66,7 +66,7 @@ class InsertBuilder extends AbstractBuilder
      * @return string
      *
      */
-    public function buildValuesForBulkInsert(array $col_order, array $col_values_bulk)
+    public function buildValuesForBulkInsert(array $col_order, array $col_values_bulk): string
     {
         $cols = "    (" . implode(', ', $col_order) . ")";
         $vals = [];

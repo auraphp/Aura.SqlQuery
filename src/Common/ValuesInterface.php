@@ -28,7 +28,7 @@ interface ValuesInterface
      *
      * @return $this
      */
-    public function col(string $col, mixed ...$value);
+    public function col(string $col, mixed ...$value): static;
 
     /**
      *
@@ -43,7 +43,7 @@ interface ValuesInterface
      * @return $this
      *
      */
-    public function cols(array $cols);
+    public function cols(array $cols): static;
 
     /**
      *
@@ -57,5 +57,5 @@ interface ValuesInterface
      * @return $this
      *
      */
-    public function set(string $col, ?string $value);
+    public function set(string $col, ?string $value): static;
 }

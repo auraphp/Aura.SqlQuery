@@ -27,7 +27,7 @@ abstract class AbstractBuilder
      * @return string
      *
      */
-    public function buildFlags(array $flags)
+    public function buildFlags(array $flags): string
     {
         if (empty($flags)) {
             return ''; // not applicable
@@ -47,7 +47,7 @@ abstract class AbstractBuilder
      * @return string
      *
      */
-    public function buildWith(array $with, bool $recursive = false)
+    public function buildWith(array $with, bool $recursive = false): string
     {
         if (empty($with)) {
             return ''; // not applicable
@@ -67,7 +67,7 @@ abstract class AbstractBuilder
      * @return bool
      *
      */
-    protected function allowsRecursiveKeyword()
+    protected function allowsRecursiveKeyword(): bool
     {
         return true;
     }
@@ -81,7 +81,7 @@ abstract class AbstractBuilder
      * @return string
      *
      */
-    public function buildWhere(array $where)
+    public function buildWhere(array $where): string
     {
         if (empty($where)) {
             return ''; // not applicable
@@ -99,7 +99,7 @@ abstract class AbstractBuilder
      * @return string
      *
      */
-    public function buildOrderBy(array $order_by)
+    public function buildOrderBy(array $order_by): string
     {
         if (empty($order_by)) {
             return ''; // not applicable
@@ -117,7 +117,7 @@ abstract class AbstractBuilder
      * @return string
      *
      */
-    public function buildLimit(int $limit)
+    public function buildLimit(int $limit): string
     {
         if (empty($limit)) {
             return '';
@@ -136,7 +136,7 @@ abstract class AbstractBuilder
      * @return string
      *
      */
-    public function buildLimitOffset(int $limit, int $offset)
+    public function buildLimitOffset(int $limit, int $offset): string
     {
         $clause = '';
 
@@ -164,7 +164,7 @@ abstract class AbstractBuilder
      * @return string
      *
      */
-    public function indentCsv(array $list)
+    public function indentCsv(array $list): string
     {
         return PHP_EOL . '    '
              . implode(',' . PHP_EOL . '    ', $list);
@@ -179,7 +179,7 @@ abstract class AbstractBuilder
      * @return string
      *
      */
-    public function indent(array $list)
+    public function indent(array $list): string
     {
         return PHP_EOL . '    '
              . implode(PHP_EOL . '    ', $list);

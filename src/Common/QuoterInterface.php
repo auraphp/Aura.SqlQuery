@@ -24,7 +24,7 @@ interface QuoterInterface
      * @return string
      *
      */
-    public function getQuoteNamePrefix();
+    public function getQuoteNamePrefix(): string;
 
     /**
      *
@@ -33,7 +33,7 @@ interface QuoterInterface
      * @return string
      *
      */
-    public function getQuoteNameSuffix();
+    public function getQuoteNameSuffix(): string;
 
     /**
      *
@@ -54,7 +54,7 @@ interface QuoterInterface
      * @return string The quoted identifier name.
      *
      */
-    public function quoteName(string $spec);
+    public function quoteName(string $spec): string;
 
     /**
      *
@@ -69,8 +69,8 @@ interface QuoterInterface
      * @param string $text The string in which to quote fully-qualified
      * identifier names to quote.
      *
-     * @return string|array The string with names quoted in it.
+     * @return string The string with names quoted in it.
      *
      */
-    public function quoteNamesIn(string $text);
+    public function quoteNamesIn(string $text): string;
 }

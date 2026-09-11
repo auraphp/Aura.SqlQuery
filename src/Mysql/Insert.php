@@ -58,7 +58,7 @@ class Insert extends Common\Insert
      * @return $this
      *
      */
-    public function orReplace(bool $enable = true)
+    public function orReplace(bool $enable = true): static
     {
         $this->use_replace = $enable;
         return $this;
@@ -73,7 +73,7 @@ class Insert extends Common\Insert
      * @return $this
      *
      */
-    public function highPriority(bool $enable = true)
+    public function highPriority(bool $enable = true): static
     {
         $this->setFlag('HIGH_PRIORITY', $enable);
         return $this;
@@ -88,7 +88,7 @@ class Insert extends Common\Insert
      * @return $this
      *
      */
-    public function lowPriority(bool $enable = true)
+    public function lowPriority(bool $enable = true): static
     {
         $this->setFlag('LOW_PRIORITY', $enable);
         return $this;
@@ -103,7 +103,7 @@ class Insert extends Common\Insert
      * @return $this
      *
      */
-    public function ignore(bool $enable = true)
+    public function ignore(bool $enable = true): static
     {
         $this->setFlag('IGNORE', $enable);
         return $this;
@@ -118,7 +118,7 @@ class Insert extends Common\Insert
      * @return $this
      *
      */
-    public function delayed(bool $enable = true)
+    public function delayed(bool $enable = true): static
     {
         $this->setFlag('DELAYED', $enable);
         return $this;
@@ -137,7 +137,7 @@ class Insert extends Common\Insert
      * @return $this
      *
      */
-    public function onDuplicateKeyUpdateCol(string $col, mixed ...$value)
+    public function onDuplicateKeyUpdateCol(string $col, mixed ...$value): static
     {
         $key = $this->quoter->quoteName($col);
         $bind = $col . '__on_duplicate_key';
@@ -161,7 +161,7 @@ class Insert extends Common\Insert
      * @return $this
      *
      */
-    public function onDuplicateKeyUpdateCols(array $cols)
+    public function onDuplicateKeyUpdateCols(array $cols): static
     {
         foreach ($cols as $key => $val) {
             if (is_int($key)) {
@@ -189,7 +189,7 @@ class Insert extends Common\Insert
      * @return $this
      *
      */
-    public function onDuplicateKeyUpdate(string $col, ?string $value)
+    public function onDuplicateKeyUpdate(string $col, ?string $value): static
     {
         if ($value === null) {
             $value = 'NULL';
@@ -222,7 +222,7 @@ class Insert extends Common\Insert
      * @throws Exception\LogicException
      *
      */
-    protected function assertReplaceFlags()
+    protected function assertReplaceFlags(): void
     {
         foreach ($this->replace_forbids_flags as $flag) {
             if ($this->hasFlag($flag)) {
@@ -253,7 +253,7 @@ class Insert extends Common\Insert
      * @throws Exception\LogicException
      *
      */
-    protected function assertOnePriorityFlag()
+    protected function assertOnePriorityFlag(): void
     {
         $set = [];
         foreach ($this->priority_flags as $flag) {
@@ -290,7 +290,7 @@ class Insert extends Common\Insert
      * @throws Exception\BadMethodCallException always.
      *
      */
-    public function with(string $name, string|Common\SelectInterface $spec, array $cols = [])
+    public function with(string $name, string|Common\SelectInterface $spec, array $cols = []): static
     {
         throw new Exception\BadMethodCallException(
             'MySQL does not allow a WITH clause on INSERT.'
@@ -304,7 +304,7 @@ class Insert extends Common\Insert
      * @return string
      *
      */
-    protected function build()
+    protected function build(): string
     {
         if ($this->use_replace && ! empty($this->col_on_update_values)) {
             throw new Exception\LogicException(
