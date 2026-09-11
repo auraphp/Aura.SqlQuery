@@ -9,10 +9,11 @@ with an unhelpful PHP error, now throw a named exception at build time. Those
 are the ones to look for, because a query that was silently wrong keeps
 building today and throws tomorrow. Steps 3 through 5 cover them.
 
-The rest -- step 2, and steps 7 and 8 -- reach you only if you extend or
-implement the package's classes. Step 2 is the one to check first if you do,
+Steps 7 and 8 reach you only if you extend or implement the package's classes.
+Step 2 reaches you either way: it is the one to check first if you subclass,
 since an override whose signature no longer matches its parent fails when the
-class loads rather than when the query runs.
+class loads rather than when the query runs -- and if your own files declare
+`strict_types`, it reaches your calling code too.
 
 The version jumps 3.x to 7.x. There is no 4.x, 5.x, or 6.x of this package;
 the number is shared across the Aura packages rather than counting this one's
@@ -30,13 +31,14 @@ The package still has no runtime dependencies.
 
 ### 2. Add Types To Any Methods You Override
 
-Skip this one if you only *call* the package; native types do not change what
-a call may pass. It comes second because it is the change that fatals on load
-rather than at runtime, so it is the one to find first if it applies to you.
+It comes second because the subclass half of it fatals on load rather than at
+runtime, so it is the one to find first if you extend the package. Read to the
+end even if you only call it: whether the rest reaches you turns on whether
+your own files declare `strict_types`.
 
-Every parameter and return in the package now declares its type. If you extend
-an Aura.SqlQuery class, each overridden method needs a signature compatible
-with its parent:
+Every parameter in the package now declares its type. If you extend an
+Aura.SqlQuery class, each overridden method needs a signature compatible with
+its parent:
 
 ```php
 <?php
@@ -45,23 +47,59 @@ public function quoteName($spec) { /* ... */ }
 public function limit($limit)    { /* ... */ }
 
 // 7.x
-public function quoteName(string $spec): string { /* ... */ }
-public function limit(int $limit): static       { /* ... */ }
+public function quoteName(string $spec) { /* ... */ }
+public function limit(int $limit)       { /* ... */ }
 ?>
 ```
-
-Note `static` in particular: the fluent setters are documented `@return $this`
-and now declare `static`, so an override must declare it too.
 
 The quickest way to find every override you need to touch is to load your
 classes and let PHP report the incompatible signatures, since it checks each
 one against its parent at class-load time.
 
-Two return types are narrower than 3.x documented, which matters only if you
-implement the interfaces yourself: `QuoterInterface::quoteNamesIn()` returns
-`string` rather than `string|array`, and `InsertInterface::getLastInsertIdName()`
-returns `?string` rather than `mixed`. Both say what the shipped code always
-did.
+Part of this does reach callers, and **how much depends on your files, not on
+this package's.** `strict_types` is declared by the calling file and governs
+the calls made from it, whatever the file defining the method says. This
+package declares none, which settles nothing for you -- what matters is
+whether the file making the call does.
+
+From a file **without** `declare(strict_types=1)`, which is the historical
+default, PHP coerces a scalar at the boundary as it always has. Only a value
+that cannot coerce is new:
+
+```php
+<?php
+$select->limit('5');     // 3.x: LIMIT 5.    7.x: LIMIT 5.
+$select->limit('abc');   // 3.x: LIMIT 0.    7.x: TypeError.
+?>
+```
+
+From a file **with** `declare(strict_types=1)`, every call into the package is
+strict, so a scalar must already be the declared type:
+
+```php
+<?php
+declare(strict_types=1);
+
+$select->limit('5');     // 3.x: LIMIT 5.    7.x: TypeError.
+$select->limit(5);       // fine.
+?>
+```
+
+If your codebase declares `strict_types` widely, this is the part of the
+upgrade to budget for. The usual way to meet it is a limit, offset or page
+read out of a request and passed along as the string it arrived as; cast at
+that edge:
+
+```php
+<?php
+$select->page((int) $request->get('page'));
+?>
+```
+
+Two parameters went the other way and take more than 3.x documented:
+`fromSubSelect()` and `joinSubSelect()` accept `string|SelectInterface` rather
+than `string|Select`. That is what the code already passed on to
+`subSelect()`, so nothing that worked before stops working.
 
 ### 3. Give Each Bound Value Its Own Placeholder Name
 

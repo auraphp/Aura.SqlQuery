@@ -32,7 +32,7 @@ trait BuildOnConflictTrait
      * @throws Exception\LogicException
      *
      */
-    public function buildOnConflict($target, $update_values, $where, $ignore)
+    public function buildOnConflict(?string $target, array $update_values, array $where, bool $ignore)
     {
         if ($ignore && ! empty($update_values)) {
             throw new Exception\LogicException(

@@ -26,7 +26,7 @@ interface LimitInterface
      * @return $this
      *
      */
-    public function limit($limit);
+    public function limit(int $limit);
 
     /**
      *

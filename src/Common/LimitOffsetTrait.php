@@ -37,9 +37,9 @@ trait LimitOffsetTrait
      * @return $this
      *
      */
-    public function offset($offset)
+    public function offset(int $offset)
     {
-        $this->offset = (int) $offset;
+        $this->offset = $offset;
         return $this;
     }
 

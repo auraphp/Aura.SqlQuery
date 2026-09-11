@@ -47,7 +47,7 @@ abstract class AbstractBuilder
      * @return string
      *
      */
-    public function buildWith(array $with, $recursive = false)
+    public function buildWith(array $with, bool $recursive = false)
     {
         if (empty($with)) {
             return ''; // not applicable
@@ -117,7 +117,7 @@ abstract class AbstractBuilder
      * @return string
      *
      */
-    public function buildLimit($limit)
+    public function buildLimit(int $limit)
     {
         if (empty($limit)) {
             return '';
@@ -136,7 +136,7 @@ abstract class AbstractBuilder
      * @return string
      *
      */
-    public function buildLimitOffset($limit, $offset)
+    public function buildLimitOffset(int $limit, int $offset)
     {
         $clause = '';
 

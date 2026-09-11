@@ -66,7 +66,7 @@ trait WithTrait
      * is already taken.
      *
      */
-    public function with($name, $spec, array $cols = [])
+    public function with(string $name, string|SelectInterface $spec, array $cols = [])
     {
         // a query cannot be a CTE of itself: it would have to be rendered
         // into the clause at the moment it must stand apart from it. The
@@ -78,7 +78,7 @@ trait WithTrait
             );
         }
 
-        $name = trim((string) $name);
+        $name = trim($name);
         if ($name === '') {
             throw new InvalidArgumentException('with() requires a CTE name.');
         }
@@ -144,7 +144,7 @@ trait WithTrait
      * @return $this
      *
      */
-    public function withRecursive($name, $spec, array $cols = [])
+    public function withRecursive(string $name, string|SelectInterface $spec, array $cols = [])
     {
         // added first, so that a CTE that cannot render leaves the clause as
         // it was rather than marking it recursive on the way to throwing.

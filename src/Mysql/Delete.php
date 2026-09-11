@@ -43,7 +43,7 @@ class Delete extends Common\Delete implements Common\OrderByInterface, Common\Li
      * @return $this
      *
      */
-    public function lowPriority($enable = true)
+    public function lowPriority(bool $enable = true)
     {
         $this->setFlag('LOW_PRIORITY', $enable);
         return $this;
@@ -58,7 +58,7 @@ class Delete extends Common\Delete implements Common\OrderByInterface, Common\Li
      * @return $this
      *
      */
-    public function ignore($enable = true)
+    public function ignore(bool $enable = true)
     {
         $this->setFlag('IGNORE', $enable);
         return $this;
@@ -73,7 +73,7 @@ class Delete extends Common\Delete implements Common\OrderByInterface, Common\Li
      * @return $this
      *
      */
-    public function quick($enable = true)
+    public function quick(bool $enable = true)
     {
         $this->setFlag('QUICK', $enable);
         return $this;

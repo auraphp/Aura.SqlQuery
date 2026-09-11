@@ -74,7 +74,7 @@ abstract class AbstractDmlQuery extends AbstractQuery
      * @return $this
      *
      */
-    protected function addCol($col, ...$value)
+    protected function addCol(string $col, mixed ...$value)
     {
         $key = $this->quoter->quoteName($col);
         $this->col_values[$key] = ":$col";
@@ -124,7 +124,7 @@ abstract class AbstractDmlQuery extends AbstractQuery
      * @return $this
      *
      */
-    protected function setCol($col, $value)
+    protected function setCol(string $col, ?string $value)
     {
         if ($value === null) {
             $value = 'NULL';

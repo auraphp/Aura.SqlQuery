@@ -53,7 +53,7 @@ class Delete extends AbstractDmlQuery implements DeleteInterface
      * @throws LogicException when the spec names more than one table.
      *
      */
-    public function from($from)
+    public function from(string $from)
     {
         $names = $this->splitNamesList($from);
         if (count($names) > 1) {
@@ -79,7 +79,7 @@ class Delete extends AbstractDmlQuery implements DeleteInterface
      * @return static
      *
      */
-    public function ignore($enable = true)
+    public function ignore(bool $enable = true)
     {
         // override in child classes
         throw new BadMethodCallException(get_class($this) . " doesn't support IGNORE flag");

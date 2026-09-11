@@ -28,7 +28,7 @@ interface InsertInterface extends QueryInterface, ValuesInterface, WithInterface
      * @return $this
      *
      */
-    public function into($into);
+    public function into(string $into);
 
     /**
      *
@@ -53,7 +53,7 @@ interface InsertInterface extends QueryInterface, ValuesInterface, WithInterface
      * alternatively, a string from `$last_insert_id_names`.
      *
      */
-    public function getLastInsertIdName($col);
+    public function getLastInsertIdName(string $col);
 
     /**
      *

@@ -29,7 +29,7 @@ trait WhereTrait
      * @return $this
      *
      */
-    public function where($cond, array $bind = [])
+    public function where(string|\Closure $cond, array $bind = [])
     {
         $this->addClauseCondWithBind('where', 'AND', $cond, $bind);
         return $this;
@@ -51,7 +51,7 @@ trait WhereTrait
      * @see where()
      *
      */
-    public function orWhere($cond, array $bind = [])
+    public function orWhere(string|\Closure $cond, array $bind = [])
     {
         $this->addClauseCondWithBind('where', 'OR', $cond, $bind);
         return $this;

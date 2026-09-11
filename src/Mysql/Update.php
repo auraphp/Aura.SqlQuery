@@ -43,7 +43,7 @@ class Update extends Common\Update implements Common\OrderByInterface, Common\Li
      * @return $this
      *
      */
-    public function lowPriority($enable = true)
+    public function lowPriority(bool $enable = true)
     {
         $this->setFlag('LOW_PRIORITY', $enable);
         return $this;
@@ -58,7 +58,7 @@ class Update extends Common\Update implements Common\OrderByInterface, Common\Li
      * @return $this
      *
      */
-    public function ignore($enable = true)
+    public function ignore(bool $enable = true)
     {
         $this->setFlag('IGNORE', $enable);
         return $this;

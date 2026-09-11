@@ -54,7 +54,7 @@ interface QuoterInterface
      * @return string The quoted identifier name.
      *
      */
-    public function quoteName($spec);
+    public function quoteName(string $spec);
 
     /**
      *
@@ -72,5 +72,5 @@ interface QuoterInterface
      * @return string|array The string with names quoted in it.
      *
      */
-    public function quoteNamesIn($text);
+    public function quoteNamesIn(string $text);
 }

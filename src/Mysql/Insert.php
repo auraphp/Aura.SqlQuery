@@ -58,7 +58,7 @@ class Insert extends Common\Insert
      * @return $this
      *
      */
-    public function orReplace($enable = true)
+    public function orReplace(bool $enable = true)
     {
         $this->use_replace = $enable;
         return $this;
@@ -73,7 +73,7 @@ class Insert extends Common\Insert
      * @return $this
      *
      */
-    public function highPriority($enable = true)
+    public function highPriority(bool $enable = true)
     {
         $this->setFlag('HIGH_PRIORITY', $enable);
         return $this;
@@ -88,7 +88,7 @@ class Insert extends Common\Insert
      * @return $this
      *
      */
-    public function lowPriority($enable = true)
+    public function lowPriority(bool $enable = true)
     {
         $this->setFlag('LOW_PRIORITY', $enable);
         return $this;
@@ -103,7 +103,7 @@ class Insert extends Common\Insert
      * @return $this
      *
      */
-    public function ignore($enable = true)
+    public function ignore(bool $enable = true)
     {
         $this->setFlag('IGNORE', $enable);
         return $this;
@@ -118,7 +118,7 @@ class Insert extends Common\Insert
      * @return $this
      *
      */
-    public function delayed($enable = true)
+    public function delayed(bool $enable = true)
     {
         $this->setFlag('DELAYED', $enable);
         return $this;
@@ -137,7 +137,7 @@ class Insert extends Common\Insert
      * @return $this
      *
      */
-    public function onDuplicateKeyUpdateCol($col, ...$value)
+    public function onDuplicateKeyUpdateCol(string $col, mixed ...$value)
     {
         $key = $this->quoter->quoteName($col);
         $bind = $col . '__on_duplicate_key';
@@ -189,7 +189,7 @@ class Insert extends Common\Insert
      * @return $this
      *
      */
-    public function onDuplicateKeyUpdate($col, $value)
+    public function onDuplicateKeyUpdate(string $col, ?string $value)
     {
         if ($value === null) {
             $value = 'NULL';
@@ -290,7 +290,7 @@ class Insert extends Common\Insert
      * @throws Exception\BadMethodCallException always.
      *
      */
-    public function with($name, $spec, array $cols = [])
+    public function with(string $name, string|Common\SelectInterface $spec, array $cols = [])
     {
         throw new Exception\BadMethodCallException(
             'MySQL does not allow a WITH clause on INSERT.'

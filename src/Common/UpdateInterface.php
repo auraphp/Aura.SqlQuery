@@ -28,5 +28,5 @@ interface UpdateInterface extends QueryInterface, WhereInterface, ValuesInterfac
      * @return $this
      *
      */
-    public function table($table);
+    public function table(string $table);
 }

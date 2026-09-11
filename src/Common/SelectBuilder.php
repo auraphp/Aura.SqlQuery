@@ -110,7 +110,7 @@ class SelectBuilder extends AbstractBuilder
      * @return string
      *
      */
-    public function buildForUpdate($for_update)
+    public function buildForUpdate(bool $for_update)
     {
         if (! $for_update) {
             return ''; // not applicable
