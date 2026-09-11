@@ -9,10 +9,11 @@ with an unhelpful PHP error, now throw a named exception at build time. Those
 are the ones to look for, because a query that was silently wrong keeps
 building today and throws tomorrow. Steps 3 through 5 cover them.
 
-The rest -- step 2, and steps 7 and 8 -- reach you only if you extend or
+The rest -- step 2, and steps 7 and 8 -- reach you mainly if you extend or
 implement the package's classes. Step 2 is the one to check first if you do,
 since an override whose signature no longer matches its parent fails when the
-class loads rather than when the query runs.
+class loads rather than when the query runs; it also has one small part that
+reaches callers, noted there.
 
 The version jumps 3.x to 7.x. There is no 4.x, 5.x, or 6.x of this package;
 the number is shared across the Aura packages rather than counting this one's
@@ -30,13 +31,13 @@ The package still has no runtime dependencies.
 
 ### 2. Add Types To Any Methods You Override
 
-Skip this one if you only *call* the package; native types do not change what
-a call may pass. It comes second because it is the change that fatals on load
-rather than at runtime, so it is the one to find first if it applies to you.
+This mostly reaches you only if you *extend* the package rather than call it.
+It comes second because it is the change that fatals on load rather than at
+runtime, so it is the one to find first if it applies to you.
 
-Every parameter and return in the package now declares its type. If you extend
-an Aura.SqlQuery class, each overridden method needs a signature compatible
-with its parent:
+Every parameter in the package now declares its type. If you extend an
+Aura.SqlQuery class, each overridden method needs a signature compatible with
+its parent:
 
 ```php
 <?php
@@ -45,23 +46,30 @@ public function quoteName($spec) { /* ... */ }
 public function limit($limit)    { /* ... */ }
 
 // 7.x
-public function quoteName(string $spec): string { /* ... */ }
-public function limit(int $limit): static       { /* ... */ }
+public function quoteName(string $spec) { /* ... */ }
+public function limit(int $limit)       { /* ... */ }
 ?>
 ```
-
-Note `static` in particular: the fluent setters are documented `@return $this`
-and now declare `static`, so an override must declare it too.
 
 The quickest way to find every override you need to touch is to load your
 classes and let PHP report the incompatible signatures, since it checks each
 one against its parent at class-load time.
 
-Two return types are narrower than 3.x documented, which matters only if you
-implement the interfaces yourself: `QuoterInterface::quoteNamesIn()` returns
-`string` rather than `string|array`, and `InsertInterface::getLastInsertIdName()`
-returns `?string` rather than `mixed`. Both say what the shipped code always
-did.
+One part of this does reach callers. The package does not declare
+`strict_types`, so PHP coerces a scalar at the boundary the way it always has
+and `limit('5')` still means `LIMIT 5` -- but a value that cannot coerce now
+says so, where the cast inside the method used to swallow it:
+
+```php
+<?php
+$select->limit('abc');   // 3.x: LIMIT 0.  7.x: TypeError.
+?>
+```
+
+Two parameters went the other way and take more than 3.x documented:
+`fromSubSelect()` and `joinSubSelect()` accept `string|SelectInterface` rather
+than `string|Select`. That is what the code already passed on to
+`subSelect()`, so nothing that worked before stops working.
 
 ### 3. Give Each Bound Value Its Own Placeholder Name
 
