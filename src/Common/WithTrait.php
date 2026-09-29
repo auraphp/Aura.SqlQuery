@@ -27,7 +27,7 @@ trait WithTrait
      * @var array<string, string>
      *
      */
-    protected $with = [];
+    protected array $with = [];
 
     /**
      *
@@ -36,7 +36,7 @@ trait WithTrait
      * @var bool
      *
      */
-    protected $with_recursive = false;
+    protected bool $with_recursive = false;
 
     /**
      *

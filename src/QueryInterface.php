@@ -89,6 +89,15 @@ interface QueryInterface
 
     /**
      *
+     * Removes all the values bound to the query.
+     *
+     * @return $this
+     *
+     */
+    public function resetBindValues(): static;
+
+    /**
+     *
      * Reset all query flags.
      *
      * @return $this

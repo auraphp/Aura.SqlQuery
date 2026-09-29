@@ -26,7 +26,7 @@ trait LimitOffsetTrait
      * @var int
      *
      */
-    protected $offset = 0;
+    protected int $offset = 0;
 
     /**
      *

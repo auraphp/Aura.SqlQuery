@@ -28,7 +28,7 @@ abstract class AbstractQuery
      * @var array<int|string, mixed>
      *
      */
-    protected $bind_values = [];
+    protected array $bind_values = [];
 
     /**
      *
@@ -38,7 +38,7 @@ abstract class AbstractQuery
      * @var array<int|string, string>
      *
      */
-    protected $bind_sources = [];
+    protected array $bind_sources = [];
 
     /**
      *
@@ -50,7 +50,7 @@ abstract class AbstractQuery
      * @var array<int|string, string>
      *
      */
-    protected $bind_shared = [];
+    protected array $bind_shared = [];
 
     /**
      *
@@ -59,7 +59,7 @@ abstract class AbstractQuery
      * @var array<string, string>
      *
      */
-    protected $bind_source_labels = [
+    protected array $bind_source_labels = [
         'col' => 'cols()',
         'cond' => 'a condition',
         'where' => 'a WHERE condition',
@@ -80,7 +80,7 @@ abstract class AbstractQuery
      * @var list<string>
      *
      */
-    protected $where = [];
+    protected array $where = [];
 
     /**
      *
@@ -89,7 +89,7 @@ abstract class AbstractQuery
      * @var list<string>
      *
      */
-    protected $order_by = [];
+    protected array $order_by = [];
 
     /**
      *
@@ -98,7 +98,7 @@ abstract class AbstractQuery
      * @var array<string, true>
      *
      */
-    protected $flags = [];
+    protected array $flags = [];
 
     /**
      *
@@ -107,7 +107,7 @@ abstract class AbstractQuery
      * @var Common\QuoterInterface
      *
      */
-    protected $quoter;
+    protected Common\QuoterInterface $quoter;
 
     /**
      *
@@ -121,7 +121,7 @@ abstract class AbstractQuery
     /**
      * @var int
      */
-    protected $inlineCount = 0;
+    protected int $inlineCount = 0;
 
     /**
      *

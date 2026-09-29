@@ -40,7 +40,7 @@ class Delete extends AbstractDmlQuery implements DeleteInterface
      * @var string
      *
      */
-    protected $from;
+    protected ?string $from = null;
 
     /**
      *

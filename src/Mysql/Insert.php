@@ -37,17 +37,17 @@ class Insert extends Common\Insert
      * @var bool
      *
      */
-    protected $use_replace = false;
+    protected bool $use_replace = false;
 
     /**
      *
      * Column values for ON DUPLICATE KEY UPDATE section of query; the key is
      * the column name and the value is the column value.
      *
-     * @var array<string, string>|null
+     * @var array<string, string>
      *
      */
-    protected $col_on_update_values;
+    protected array $col_on_update_values = [];
 
     /**
      *
@@ -212,7 +212,7 @@ class Insert extends Common\Insert
      * @var string[]
      *
      */
-    protected $replace_forbids_flags = ['HIGH_PRIORITY', 'IGNORE'];
+    protected array $replace_forbids_flags = ['HIGH_PRIORITY', 'IGNORE'];
 
     /**
      *
@@ -244,7 +244,7 @@ class Insert extends Common\Insert
      * @var string[]
      *
      */
-    protected $priority_flags = ['LOW_PRIORITY', 'HIGH_PRIORITY', 'DELAYED'];
+    protected array $priority_flags = ['LOW_PRIORITY', 'HIGH_PRIORITY', 'DELAYED'];
 
     /**
      *

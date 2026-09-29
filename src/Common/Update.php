@@ -41,7 +41,7 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      * @var string
      *
      */
-    protected $table;
+    protected ?string $table = null;
 
     /**
      *

@@ -43,7 +43,7 @@ trait OnConflictUpdateTrait
      * @var string|null
      *
      */
-    protected $conflict_target;
+    protected ?string $conflict_target = null;
 
     /**
      *
@@ -52,7 +52,7 @@ trait OnConflictUpdateTrait
      * @var array<string, string>
      *
      */
-    protected $conflict_update_values = [];
+    protected array $conflict_update_values = [];
 
     /**
      *
@@ -61,7 +61,7 @@ trait OnConflictUpdateTrait
      * @var list<string>
      *
      */
-    protected $conflict_where = [];
+    protected array $conflict_where = [];
 
     /**
      *

@@ -29,7 +29,7 @@ class QueryFactory
      * @var string
      *
      */
-    protected $db;
+    protected string $db;
 
     /**
      *
@@ -38,7 +38,7 @@ class QueryFactory
      * @var bool
      *
      */
-    protected $common = false;
+    protected bool $common = false;
 
     /**
      *
@@ -47,7 +47,7 @@ class QueryFactory
      * @var array<string, string>
      *
      */
-    protected $last_insert_id_names = [];
+    protected array $last_insert_id_names = [];
 
     /**
      *
@@ -56,7 +56,7 @@ class QueryFactory
      * @var Common\QuoterInterface|null
      *
      */
-    protected $quoter;
+    protected ?Common\QuoterInterface $quoter = null;
 
     /**
      *

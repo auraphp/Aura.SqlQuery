@@ -42,7 +42,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var list<string>
      *
      */
-    protected $union = [];
+    protected array $union = [];
 
     /**
      *
@@ -61,7 +61,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @see resetAfterRendering()
      *
      */
-    protected $text_pattern = "'(?:[^']|'')*+'|--[^\n]*|\/\*.*?\*\/";
+    protected string $text_pattern = "'(?:[^']|'')*+'|--[^\n]*|\/\*.*?\*\/";
 
     /**
      *
@@ -71,7 +71,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var string|null
      *
      */
-    protected $union_tail = null;
+    protected ?string $union_tail = null;
 
     /**
      *
@@ -80,7 +80,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var bool
      *
      */
-    protected $for_update = false;
+    protected bool $for_update = false;
 
     /**
      *
@@ -89,7 +89,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var array<int|string, string>
      *
      */
-    protected $cols = [];
+    protected array $cols = [];
 
     /**
      *
@@ -98,7 +98,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var list<list<string>>
      *
      */
-    protected $from = [];
+    protected array $from = [];
 
     /**
      *
@@ -107,7 +107,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var int
      *
      */
-    protected $from_key = -1;
+    protected int $from_key = -1;
 
     /**
      *
@@ -116,7 +116,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var array<int, list<string>>
      *
      */
-    protected $join = [];
+    protected array $join = [];
 
     /**
      *
@@ -125,7 +125,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var list<string>
      *
      */
-    protected $group_by = [];
+    protected array $group_by = [];
 
     /**
      *
@@ -134,7 +134,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var list<string>
      *
      */
-    protected $having = [];
+    protected array $having = [];
 
     /**
      *
@@ -143,7 +143,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var int
      *
      */
-    protected $page = 0;
+    protected int $page = 0;
 
     /**
      *
@@ -152,7 +152,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var int
      *
      */
-    protected $paging = 10;
+    protected int $paging = 10;
 
     /**
      *
@@ -161,7 +161,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var array<string, string>
      *
      */
-    protected $table_refs = [];
+    protected array $table_refs = [];
 
     /**
      *
@@ -1241,10 +1241,10 @@ class Select extends AbstractQuery implements SelectInterface
      * Clears the current select properties; generally used after adding a
      * union.
      *
-     * @return void
+     * @return $this
      *
      */
-    public function reset(): void
+    public function reset(): static
     {
         $this->resetFlags();
         $this->resetCols();
@@ -1257,6 +1257,7 @@ class Select extends AbstractQuery implements SelectInterface
         $this->offset(0);
         $this->page(0);
         $this->forUpdate(false);
+        return $this;
     }
 
     /**

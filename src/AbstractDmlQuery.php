@@ -29,7 +29,7 @@ abstract class AbstractDmlQuery extends AbstractQuery
      * @var array<string, string>
      *
      */
-    protected $col_values = [];
+    protected array $col_values = [];
 
     /**
      *

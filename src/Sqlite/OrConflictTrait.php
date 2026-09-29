@@ -27,7 +27,7 @@ trait OrConflictTrait
      * @var string[]
      *
      */
-    protected $or_conflict_flags = [
+    protected array $or_conflict_flags = [
         'OR ABORT',
         'OR FAIL',
         'OR IGNORE',
