@@ -255,7 +255,7 @@
   the recommended catch-all. Aura\SqlQuery\Exception is now a deprecated
   interface extending that marker, so existing `catch
   (Aura\SqlQuery\Exception $e)` blocks keep working until its removal in
-  7.x; since every SPL parent used derives from \LogicException, `catch
+  8.x; since every SPL parent used derives from \LogicException, `catch
   (\LogicException $e)` also catches everything. Code that instantiated
   or subclassed Aura\SqlQuery\Exception directly must switch to one of
   the concrete classes. Fixes #151.
