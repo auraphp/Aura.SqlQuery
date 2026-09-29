@@ -55,18 +55,20 @@ trait LateralJoinTrait
             );
         }
 
-        $this->addTableRef("$join (SELECT ...)", $name);
+        return $this->atomically(function () use ($join, $spec, $name, $cond, $bind): void {
+            $this->addTableRef("$join (SELECT ...)", $name);
 
-        $spec = $this->subSelect($spec, '            ', 'join');
-        $name = $this->quoter->quoteName($name);
-        $cond = $this->fixJoinCondition($cond, $bind);
+            $spec = $this->subSelect($spec, '            ', 'join');
+            $name = $this->quoter->quoteName($name);
+            $cond = $this->fixJoinCondition($cond, $bind);
 
-        if ($cond === '' && ! $this->isUnconditionalJoin($join)) {
-            $cond = 'ON true';
-        }
+            if ($cond === '' && ! $this->isUnconditionalJoin($join)) {
+                $cond = 'ON true';
+            }
 
-        $text = rtrim("$join ($spec        ) $name $cond");
-        return $this->addJoin('        ' . $text);
+            $text = rtrim("$join ($spec        ) $name $cond");
+            $this->addJoin('        ' . $text);
+        });
     }
 
     /**

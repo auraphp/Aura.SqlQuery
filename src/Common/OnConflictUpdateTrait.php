@@ -153,15 +153,16 @@ trait OnConflictUpdateTrait
      */
     public function doUpdateCol(string $col, mixed ...$value): static
     {
-        $key = $this->quoter->quoteName($col);
-        if (count($value) > 0) {
-            $bind = $col . '__on_conflict';
-            $this->conflict_update_values[$key] = ":$bind";
-            $this->bindValueFrom($bind, $value[0], 'conflict');
-        } else {
-            $this->conflict_update_values[$key] = 'excluded.' . $key;
-        }
-        return $this;
+        return $this->atomically(function () use ($col, $value): void {
+            $key = $this->quoter->quoteName($col);
+            if (count($value) > 0) {
+                $bind = $col . '__on_conflict';
+                $this->conflict_update_values[$key] = ":$bind";
+                $this->bindValueFrom($bind, $value[0], 'conflict');
+            } else {
+                $this->conflict_update_values[$key] = 'excluded.' . $key;
+            }
+        });
     }
 
     /**
@@ -179,14 +180,15 @@ trait OnConflictUpdateTrait
      */
     public function doUpdateCols(array $cols): static
     {
-        foreach ($cols as $key => $val) {
-            if (is_int($key)) {
-                $this->doUpdateCol($val);
-            } else {
-                $this->doUpdateCol($key, $val);
+        return $this->atomically(function () use ($cols): void {
+            foreach ($cols as $key => $val) {
+                if (is_int($key)) {
+                    $this->doUpdateCol($val);
+                } else {
+                    $this->doUpdateCol($key, $val);
+                }
             }
-        }
-        return $this;
+        });
     }
 
     /**
@@ -226,16 +228,17 @@ trait OnConflictUpdateTrait
      */
     public function doUpdateWhere(string $condition, array ...$bind): static
     {
-        $condition = $this->quoter->quoteNamesIn($condition);
-        if (count($bind) > 0) {
-            $condition = $this->rebuildCondAndBindValues($condition, $bind[0]);
-        }
+        return $this->atomically(function () use ($condition, $bind): void {
+            $condition = $this->quoter->quoteNamesIn($condition);
+            if (count($bind) > 0) {
+                $condition = $this->rebuildCondAndBindValues($condition, $bind[0]);
+            }
 
-        if ($this->conflict_where) {
-            $this->conflict_where[] = "AND $condition";
-        } else {
-            $this->conflict_where[] = $condition;
-        }
-        return $this;
+            if ($this->conflict_where) {
+                $this->conflict_where[] = "AND $condition";
+            } else {
+                $this->conflict_where[] = $condition;
+            }
+        });
     }
 }

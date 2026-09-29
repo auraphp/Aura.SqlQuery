@@ -279,13 +279,14 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      */
     public function addRows(array $rows): static
     {
-        foreach ($rows as $cols) {
-            $this->addRow($cols);
-        }
-        if ($this->row > 1) {
-            $this->finishRow();
-        }
-        return $this;
+        return $this->atomically(function () use ($rows): void {
+            foreach ($rows as $cols) {
+                $this->addRow($cols);
+            }
+            if ($this->row > 1) {
+                $this->finishRow();
+            }
+        });
     }
 
     /**
@@ -311,14 +312,15 @@ class Insert extends AbstractDmlQuery implements InsertInterface
             return $this->cols($cols);
         }
 
-        if (empty($this->col_order)) {
-            $this->col_order = array_keys($this->col_values);
-        }
+        return $this->atomically(function () use ($cols): void {
+            if (empty($this->col_order)) {
+                $this->col_order = array_keys($this->col_values);
+            }
 
-        $this->finishRow();
-        $this->row ++;
-        $this->cols($cols);
-        return $this;
+            $this->finishRow();
+            $this->row ++;
+            $this->cols($cols);
+        });
     }
 
     /**
@@ -448,6 +450,17 @@ class Insert extends AbstractDmlQuery implements InsertInterface
     {
         if (empty($this->col_values)) {
             return;
+        }
+
+        // a column the first row did not have has no place in the column
+        // list, so it would be dropped from the statement while its value
+        // stayed bound -- and the placeholder count would no longer match
+        foreach (array_keys($this->col_values) as $col) {
+            if (! in_array($col, $this->col_order, true)) {
+                throw new InvalidArgumentException(
+                    "Column $col in row {$this->row} is not in the first row."
+                );
+            }
         }
 
         foreach ($this->col_order as $col) {

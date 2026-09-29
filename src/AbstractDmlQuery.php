@@ -76,12 +76,13 @@ abstract class AbstractDmlQuery extends AbstractQuery
      */
     protected function addCol(string $col, mixed ...$value): static
     {
-        $key = $this->quoter->quoteName($col);
-        $this->col_values[$key] = ":$col";
-        if (count($value) > 0) {
-            $this->bindValueFrom($col, $value[0], 'col');
-        }
-        return $this;
+        return $this->atomically(function () use ($col, $value): void {
+            $key = $this->quoter->quoteName($col);
+            $this->col_values[$key] = ":$col";
+            if (count($value) > 0) {
+                $this->bindValueFrom($col, $value[0], 'col');
+            }
+        });
     }
 
     /**
@@ -99,17 +100,18 @@ abstract class AbstractDmlQuery extends AbstractQuery
      */
     protected function addCols(array $cols): static
     {
-        foreach ($cols as $key => $val) {
-            if (is_int($key)) {
-                // integer key means the value is the column name
-                $this->addCol($val);
-            } else {
-                // the key is the column name and the value is a value to
-                // be bound to that column
-                $this->addCol($key, $val);
+        return $this->atomically(function () use ($cols): void {
+            foreach ($cols as $key => $val) {
+                if (is_int($key)) {
+                    // integer key means the value is the column name
+                    $this->addCol($val);
+                } else {
+                    // the key is the column name and the value is a value to
+                    // be bound to that column
+                    $this->addCol($key, $val);
+                }
             }
-        }
-        return $this;
+        });
     }
 
     /**

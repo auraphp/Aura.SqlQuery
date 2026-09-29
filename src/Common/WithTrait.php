@@ -104,25 +104,13 @@ trait WithTrait
 
         // the sub-select's values are taken over as it is rendered, and one
         // of them may collide with a name a clause of this query already
-        // holds. That leaves the values bound before it claimed for a CTE
-        // this query is not going to have: names held against nothing, and
-        // placeholders reported by getBindValues() that the statement never
-        // spells. Put them back and let the collision through.
-        $bind_values = $this->bind_values;
-        $bind_sources = $this->bind_sources;
-        $bind_shared = $this->bind_shared;
-
-        try {
+        // holds. atomically() puts back the values bound before it, which
+        // would otherwise be names held against a CTE this query is not
+        // going to have.
+        return $this->atomically(function () use ($name, $head, $spec): void {
             $body = $this->subSelect($spec, '    ', 'with');
-        } catch (\Exception $e) {
-            $this->bind_values = $bind_values;
-            $this->bind_sources = $bind_sources;
-            $this->bind_shared = $bind_shared;
-            throw $e;
-        }
-
-        $this->with[$name] = $head . ' AS (' . $body . ')';
-        return $this;
+            $this->with[$name] = $head . ' AS (' . $body . ')';
+        });
     }
 
     /**

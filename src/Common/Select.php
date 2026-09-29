@@ -620,10 +620,12 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function fromSubSelect(string|SelectInterface $spec, string $name): static
     {
-        $this->addTableRef('FROM (SELECT ...) AS', $name);
-        $spec = $this->subSelect($spec, '        ');
-        $name = $this->quoter->quoteName($name);
-        return $this->addFrom("({$spec}    ) AS $name");
+        return $this->atomically(function () use ($spec, $name): void {
+            $this->addTableRef('FROM (SELECT ...) AS', $name);
+            $spec = $this->subSelect($spec, '        ');
+            $name = $this->quoter->quoteName($name);
+            $this->addFrom("({$spec}    ) AS $name");
+        });
     }
 
     /**
@@ -646,12 +648,14 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function join(string $join, string $spec, ?string $cond = null, array $bind = []): static
     {
-        $join = strtoupper(ltrim("$join JOIN"));
-        $this->addTableRef($join, $spec);
+        return $this->atomically(function () use ($join, $spec, $cond, $bind): void {
+            $join = strtoupper(ltrim("$join JOIN"));
+            $this->addTableRef($join, $spec);
 
-        $spec = $this->quoter->quoteName($spec);
-        $cond = $this->fixJoinCondition($cond, $bind);
-        return $this->addJoin(rtrim("$join $spec $cond"));
+            $spec = $this->quoter->quoteName($spec);
+            $cond = $this->fixJoinCondition($cond, $bind);
+            $this->addJoin(rtrim("$join $spec $cond"));
+        });
     }
 
     /**
@@ -753,15 +757,17 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function joinSubSelect(string $join, string|SelectInterface $spec, string $name, ?string $cond = null, array $bind = []): static
     {
-        $join = strtoupper(ltrim("$join JOIN"));
-        $this->addTableRef("$join (SELECT ...) AS", $name);
+        return $this->atomically(function () use ($join, $spec, $name, $cond, $bind): void {
+            $join = strtoupper(ltrim("$join JOIN"));
+            $this->addTableRef("$join (SELECT ...) AS", $name);
 
-        $spec = $this->subSelect($spec, '            ', 'join');
-        $name = $this->quoter->quoteName($name);
-        $cond = $this->fixJoinCondition($cond, $bind);
+            $spec = $this->subSelect($spec, '            ', 'join');
+            $name = $this->quoter->quoteName($name);
+            $cond = $this->fixJoinCondition($cond, $bind);
 
-        $text = rtrim("$join ($spec        ) AS $name $cond");
-        return $this->addJoin('        ' . $text);
+            $text = rtrim("$join ($spec        ) AS $name $cond");
+            $this->addJoin('        ' . $text);
+        });
     }
 
     /**
@@ -929,10 +935,10 @@ class Select extends AbstractQuery implements SelectInterface
      * would have edits made to it after this call reach back into a union it
      * was only ever added to once; the SQL is what was asked for.
      *
-     * It is rendered before this query changes so that a branch that cannot
-     * render -- one with no columns yet -- leaves this query as it was, rather
-     * than having consumed and reset the branch it was building on the way to
-     * throwing.
+     * The change is made atomically, so that a branch that cannot render --
+     * one with no columns yet -- or whose values collide with this query's
+     * leaves this query as it was, rather than having consumed and reset the
+     * branch it was building on the way to throwing.
      *
      * @param string $type 'UNION' or 'UNION ALL'.
      *
@@ -972,20 +978,17 @@ class Select extends AbstractQuery implements SelectInterface
             );
         }
 
-        $branch = $select === null ? null : $select->getStatement();
+        return $this->atomically(function () use ($type, $select): void {
+            // the branch being closed is the supplied one when there is one,
+            // and otherwise whatever this query has been building.
+            $this->union[] = $this->unionTailOrBuild() . PHP_EOL . $type;
+            $this->union_tail = null;
+            $this->resetAfterRendering();
 
-        // the branch being closed is the supplied one when there is one, and
-        // otherwise whatever this query has been building.
-        $this->union[] = $this->unionTailOrBuild() . PHP_EOL . $type;
-        $this->union_tail = null;
-        $this->resetAfterRendering();
-
-        if ($branch !== null) {
-            $this->union_tail = $branch;
-            $this->bindValuesFromSelect($select, 'union');
-        }
-
-        return $this;
+            if ($select !== null) {
+                $this->union_tail = $this->importSelect($select, 'union');
+            }
+        });
     }
 
     /**

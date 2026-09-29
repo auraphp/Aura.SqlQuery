@@ -139,13 +139,14 @@ class Insert extends Common\Insert
      */
     public function onDuplicateKeyUpdateCol(string $col, mixed ...$value): static
     {
-        $key = $this->quoter->quoteName($col);
-        $bind = $col . '__on_duplicate_key';
-        $this->col_on_update_values[$key] = ":$bind";
-        if (count($value) > 0) {
-            $this->bindValueFrom($bind, $value[0], 'duplicate_key');
-        }
-        return $this;
+        return $this->atomically(function () use ($col, $value): void {
+            $key = $this->quoter->quoteName($col);
+            $bind = $col . '__on_duplicate_key';
+            $this->col_on_update_values[$key] = ":$bind";
+            if (count($value) > 0) {
+                $this->bindValueFrom($bind, $value[0], 'duplicate_key');
+            }
+        });
     }
 
     /**
@@ -163,17 +164,18 @@ class Insert extends Common\Insert
      */
     public function onDuplicateKeyUpdateCols(array $cols): static
     {
-        foreach ($cols as $key => $val) {
-            if (is_int($key)) {
-                // integer key means the value is the column name
-                $this->onDuplicateKeyUpdateCol($val);
-            } else {
-                // the key is the column name and the value is a value to
-                // be bound to that column
-                $this->onDuplicateKeyUpdateCol($key, $val);
+        return $this->atomically(function () use ($cols): void {
+            foreach ($cols as $key => $val) {
+                if (is_int($key)) {
+                    // integer key means the value is the column name
+                    $this->onDuplicateKeyUpdateCol($val);
+                } else {
+                    // the key is the column name and the value is a value to
+                    // be bound to that column
+                    $this->onDuplicateKeyUpdateCol($key, $val);
+                }
             }
-        }
-        return $this;
+        });
     }
 
     /**
