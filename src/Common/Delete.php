@@ -91,9 +91,15 @@ class Delete extends AbstractDmlQuery implements DeleteInterface
      *
      * @return string
      *
+     * @throws LogicException when there is no table to delete from.
+     *
      */
     protected function build(): string
     {
+        if ($this->from === null) {
+            throw new LogicException('No table to delete from.');
+        }
+
         return 'DELETE'
             . $this->builder->buildFlags($this->flags)
             . $this->builder->buildFrom($this->from)

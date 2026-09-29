@@ -78,9 +78,10 @@ abstract class AbstractDmlQuery extends AbstractQuery
     {
         return $this->atomically(function () use ($col, $value): void {
             $key = $this->quoter->quoteName($col);
-            $this->col_values[$key] = ":$col";
+            $name = $this->placeholderFor($col);
+            $this->col_values[$key] = ":$name";
             if (count($value) > 0) {
-                $this->bindValueFrom($col, $value[0], 'col');
+                $this->bindValueFrom($name, $value[0], 'col');
             }
         });
     }

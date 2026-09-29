@@ -19,9 +19,7 @@ interface WhereInterface
 {
     /**
      *
-     * Adds a WHERE condition to the query by AND. If the condition has
-     * ?-placeholders, additional arguments to the method will be bound to
-     * those placeholders sequentially.
+     * Adds a WHERE condition to the query by AND.
      *
      * @param string|\Closure $cond The WHERE condition.
      *
@@ -35,9 +33,7 @@ interface WhereInterface
 
     /**
      *
-     * Adds a WHERE condition to the query by OR. If the condition has
-     * ?-placeholders, additional arguments to the method will be bound to
-     * those placeholders sequentially.
+     * Adds a WHERE condition to the query by OR.
      *
      * @param string|\Closure $cond The WHERE condition.
      *

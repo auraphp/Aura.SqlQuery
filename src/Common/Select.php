@@ -9,6 +9,7 @@
 namespace Aura\SqlQuery\Common;
 
 use Aura\SqlQuery\AbstractQuery;
+use Aura\SqlQuery\Exception\InvalidArgumentException;
 use Aura\SqlQuery\Exception\LogicException;
 
 /**
@@ -344,19 +345,39 @@ class Select extends AbstractQuery implements SelectInterface
      * added.
      *
      * @param mixed $val If $key was an integer, the column to be added;
-     * otherwise, the column alias.
+     * otherwise, the column alias, where null or an empty string means none.
      *
      * @return void
+     *
+     * @throws InvalidArgumentException when the column or alias is not a
+     * string.
      *
      */
     protected function addCol(mixed $key, mixed $val): void
     {
         if (is_string($key)) {
-            // [col => alias]
+            // [col => alias], where an empty alias would render `AS ""`
+            if ($val === null || $val === '') {
+                $this->cols[] = $key;
+                return;
+            }
+            if (! is_string($val)) {
+                throw new InvalidArgumentException(
+                    "The alias for the column '{$key}' must be a string."
+                );
+            }
             $this->cols[$val] = $key;
-        } else {
-            $this->addColWithAlias($val);
+            return;
         }
+
+        if (! is_string($val)) {
+            throw new InvalidArgumentException(
+                'A column must be given as a string, or as a string key '
+                . 'with its alias.'
+            );
+        }
+
+        $this->addColWithAlias($val);
     }
 
     /**
@@ -373,6 +394,15 @@ class Select extends AbstractQuery implements SelectInterface
     {
         $parts = explode(' ', $spec);
         $count = count($parts);
+
+        // a set quantifier in front of a column is not a column itself, so
+        // the word after it is not an alias: `DISTINCT a` is not `DISTINCT
+        // AS "a"`
+        if (in_array(strtoupper($parts[0]), ['ALL', 'DISTINCT', 'DISTINCTROW'], true)) {
+            $this->cols[] = $spec;
+            return;
+        }
+
         if ($count == 2 && $this->isCompleteExpr($parts[0])) {
             // "col alias"
             $this->cols[$parts[1]] = $parts[0];
@@ -638,8 +668,9 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @param string|null $cond Join on this condition.
      *
-     * @param array<int|string, mixed> $bind Values to bind to
-     * ?-placeholders in the condition.
+     * @param array<int|string, mixed> $bind Values to bind to placeholders
+     * in the condition. Name them: a `?` here and one in another clause are
+     * both number 0, and collide.
      *
      * @return $this
      *
@@ -650,6 +681,7 @@ class Select extends AbstractQuery implements SelectInterface
     {
         return $this->atomically(function () use ($join, $spec, $cond, $bind): void {
             $join = strtoupper(ltrim("$join JOIN"));
+            $this->assertJoinTakesCondition($join, $cond);
             $this->addTableRef($join, $spec);
 
             $spec = $this->quoter->quoteName($spec);
@@ -660,13 +692,57 @@ class Select extends AbstractQuery implements SelectInterface
 
     /**
      *
+     * Refuses a condition on a join type that cannot take one, rather than
+     * rendering an ON clause the database will reject.
+     *
+     * @param string $join The upper-cased join clause.
+     *
+     * @param string|null $cond The condition given for it.
+     *
+     * @return void
+     *
+     * @throws LogicException when the join type forbids a condition.
+     *
+     */
+    protected function assertJoinTakesCondition(string $join, ?string $cond): void
+    {
+        if ($cond && $this->joinForbidsCondition($join)) {
+            throw new LogicException("A $join cannot take a condition.");
+        }
+    }
+
+    /**
+     *
+     * Does this join type reject an ON clause outright, so that supplying a
+     * condition can only produce a syntax error?
+     *
+     * A NATURAL join derives its condition from the common column names and
+     * rejects ON on every dialect. CROSS is dialect-specific: PostgreSQL,
+     * SQLite and SQL Server reject ON there as well, whereas MySQL accepts it, since CROSS and
+     * INNER are synonyms there. This default is the strict PostgreSQL rule;
+     * Mysql\Select loosens it.
+     *
+     * @param string $join The upper-cased join clause.
+     *
+     * @return bool
+     *
+     */
+    protected function joinForbidsCondition(string $join): bool
+    {
+        return str_starts_with($join, 'CROSS ')
+            || str_starts_with($join, 'NATURAL ');
+    }
+
+    /**
+     *
      * Fixes a JOIN condition to quote names in the condition and prefix it
      * with a condition type ('ON' is the default and 'USING' is recognized).
      *
      * @param string|null $cond Join on this condition.
      *
-     * @param array<int|string, mixed> $bind Values to bind to
-     * ?-placeholders in the condition.
+     * @param array<int|string, mixed> $bind Values to bind to placeholders
+     * in the condition. Name them: a `?` here and one in another clause are
+     * both number 0, and collide.
      *
      * @return string
      *
@@ -699,8 +775,9 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @param string|null $cond Join on this condition.
      *
-     * @param array<int|string, mixed> $bind Values to bind to
-     * ?-placeholders in the condition.
+     * @param array<int|string, mixed> $bind Values to bind to placeholders
+     * in the condition. Name them: a `?` here and one in another clause are
+     * both number 0, and collide.
      *
      * @return $this
      *
@@ -720,8 +797,9 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @param string|null $cond Join on this condition.
      *
-     * @param array<int|string, mixed> $bind Values to bind to
-     * ?-placeholders in the condition.
+     * @param array<int|string, mixed> $bind Values to bind to placeholders
+     * in the condition. Name them: a `?` here and one in another clause are
+     * both number 0, and collide.
      *
      * @return $this
      *
@@ -747,8 +825,9 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @param string|null $cond Join on this condition.
      *
-     * @param array<int|string, mixed> $bind Values to bind to
-     * ?-placeholders in the condition.
+     * @param array<int|string, mixed> $bind Values to bind to placeholders
+     * in the condition. Name them: a `?` here and one in another clause are
+     * both number 0, and collide.
      *
      * @return $this
      *
@@ -759,6 +838,7 @@ class Select extends AbstractQuery implements SelectInterface
     {
         return $this->atomically(function () use ($join, $spec, $name, $cond, $bind): void {
             $join = strtoupper(ltrim("$join JOIN"));
+            $this->assertJoinTakesCondition($join, $cond);
             $this->addTableRef("$join (SELECT ...) AS", $name);
 
             $spec = $this->subSelect($spec, '            ', 'join');

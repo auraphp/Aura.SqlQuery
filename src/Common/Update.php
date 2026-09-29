@@ -78,11 +78,16 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      *
      * @return string
      *
-     * @throws LogicException when there are no columns to update.
+     * @throws LogicException when there is no table or there are no columns
+     * to update.
      *
      */
     protected function build(): string
     {
+        if ($this->table === null) {
+            throw new LogicException('No table to update.');
+        }
+
         if (! $this->hasCols()) {
             throw new LogicException('No columns to update.');
         }

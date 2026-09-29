@@ -8,7 +8,7 @@
  */
 namespace Aura\SqlQuery\Common;
 
-use Aura\SqlQuery\Exception;
+use Aura\SqlQuery\Exception\LogicException;
 
 /**
  *
@@ -37,23 +37,20 @@ trait LateralJoinTrait
      * ON clause except on the join types that forbid one, so when no
      * condition is given for the other types, "ON true" is used.
      *
-     * @param array<int|string, mixed> $bind Values to bind to
-     * ?-placeholders in the condition.
+     * @param array<int|string, mixed> $bind Values to bind to placeholders
+     * in the condition. Name them: a `?` here and one in another clause are
+     * both number 0, and collide.
      *
      * @return $this
      *
-     * @throws Exception\LogicException
+     * @throws LogicException
      *
      */
     public function lateralJoinSubSelect(string $join, string|SelectInterface $spec, string $name, ?string $cond = null, array $bind = []): static
     {
         $join = strtoupper(ltrim("$join JOIN LATERAL"));
 
-        if ($cond && $this->joinForbidsCondition($join)) {
-            throw new Exception\LogicException(
-                "A $join cannot take a condition."
-            );
-        }
+        $this->assertJoinTakesCondition($join, $cond);
 
         return $this->atomically(function () use ($join, $spec, $name, $cond, $bind): void {
             $this->addTableRef("$join (SELECT ...)", $name);
@@ -85,28 +82,6 @@ trait LateralJoinTrait
      *
      */
     protected function isUnconditionalJoin(string $join): bool
-    {
-        return str_starts_with($join, 'CROSS ')
-            || str_starts_with($join, 'NATURAL ');
-    }
-
-    /**
-     *
-     * Does this join type reject an ON clause outright, so that supplying a
-     * condition can only produce a syntax error?
-     *
-     * A NATURAL join derives its condition from the common column names and
-     * rejects ON on every dialect. CROSS is dialect-specific: PostgreSQL
-     * rejects ON there as well, whereas MySQL accepts it, since CROSS and
-     * INNER are synonyms there. This default is the strict PostgreSQL rule;
-     * Mysql\Select loosens it.
-     *
-     * @param string $join The upper-cased join clause.
-     *
-     * @return bool
-     *
-     */
-    protected function joinForbidsCondition(string $join): bool
     {
         return str_starts_with($join, 'CROSS ')
             || str_starts_with($join, 'NATURAL ');

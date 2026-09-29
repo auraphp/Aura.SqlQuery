@@ -9,7 +9,8 @@
 namespace Aura\SqlQuery\Mysql;
 
 use Aura\SqlQuery\Common;
-use Aura\SqlQuery\Exception;
+use Aura\SqlQuery\Exception\BadMethodCallException;
+use Aura\SqlQuery\Exception\LogicException;
 
 /**
  *
@@ -141,7 +142,7 @@ class Insert extends Common\Insert
     {
         return $this->atomically(function () use ($col, $value): void {
             $key = $this->quoter->quoteName($col);
-            $bind = $col . '__on_duplicate_key';
+            $bind = $this->placeholderFor($col) . '__on_duplicate_key';
             $this->col_on_update_values[$key] = ":$bind";
             if (count($value) > 0) {
                 $this->bindValueFrom($bind, $value[0], 'duplicate_key');
@@ -221,14 +222,14 @@ class Insert extends Common\Insert
      *
      * @return void
      *
-     * @throws Exception\LogicException
+     * @throws LogicException
      *
      */
     protected function assertReplaceFlags(): void
     {
         foreach ($this->replace_forbids_flags as $flag) {
             if ($this->hasFlag($flag)) {
-                throw new Exception\LogicException(
+                throw new LogicException(
                     "A REPLACE cannot take the $flag flag."
                 );
             }
@@ -252,7 +253,7 @@ class Insert extends Common\Insert
      *
      * @return void
      *
-     * @throws Exception\LogicException
+     * @throws LogicException
      *
      */
     protected function assertOnePriorityFlag(): void
@@ -265,7 +266,7 @@ class Insert extends Common\Insert
         }
 
         if (count($set) > 1) {
-            throw new Exception\LogicException(
+            throw new LogicException(
                 'A statement takes only one priority modifier; got '
                 . implode(' and ', $set) . '.'
             );
@@ -289,12 +290,12 @@ class Insert extends Common\Insert
      *
      * @return $this
      *
-     * @throws Exception\BadMethodCallException always.
+     * @throws BadMethodCallException always.
      *
      */
     public function with(string $name, string|Common\SelectInterface $spec, array $cols = []): static
     {
-        throw new Exception\BadMethodCallException(
+        throw new BadMethodCallException(
             'MySQL does not allow a WITH clause on INSERT.'
         );
     }
@@ -309,7 +310,7 @@ class Insert extends Common\Insert
     protected function build(): string
     {
         if ($this->use_replace && ! empty($this->col_on_update_values)) {
-            throw new Exception\LogicException(
+            throw new LogicException(
                 'A REPLACE statement cannot take an ON DUPLICATE KEY UPDATE clause.'
             );
         }

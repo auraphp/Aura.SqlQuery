@@ -11,6 +11,7 @@ namespace Aura\SqlQuery\Common;
 use Aura\SqlQuery\AbstractDmlQuery;
 use Aura\SqlQuery\Exception\BadMethodCallException;
 use Aura\SqlQuery\Exception\InvalidArgumentException;
+use Aura\SqlQuery\Exception\LogicException;
 
 /**
  *
@@ -147,9 +148,15 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      *
      * @return string
      *
+     * @throws LogicException when there is no table to insert into.
+     *
      */
     protected function build(): string
     {
+        if ($this->into === null) {
+            throw new LogicException('No table to insert into.');
+        }
+
         $stm = 'INSERT'
             . $this->builder->buildFlags($this->flags)
             . $this->builder->buildInto($this->into);

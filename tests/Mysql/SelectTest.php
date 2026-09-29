@@ -56,7 +56,8 @@ class SelectTest extends Common\SelectTest
 
         $actual = $this->query->__toString();
 
-        $expect = sprintf($this->expected_sql_with_flag, 'SQL_CALC_FOUND_ROWS DISTINCT SQL_NO_CACHE');
+        // written in one fixed order, not the order they were called in
+        $expect = sprintf($this->expected_sql_with_flag, 'DISTINCT SQL_NO_CACHE SQL_CALC_FOUND_ROWS');
         $this->assertSameSql($expect, $actual);
     }
 

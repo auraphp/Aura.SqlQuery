@@ -187,8 +187,9 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string|null $cond Join on this condition.
      *
-     * @param array<int|string, mixed> $bind Values to bind to
-     * ?-placeholders in the condition.
+     * @param array<int|string, mixed> $bind Values to bind to placeholders
+     * in the condition. Name them: a `?` here and one in another clause are
+     * both number 0, and collide.
      *
      * @return $this
      *
@@ -205,8 +206,9 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string|null $cond Join on this condition.
      *
-     * @param array<int|string, mixed> $bind Values to bind to
-     * ?-placeholders in the condition.
+     * @param array<int|string, mixed> $bind Values to bind to placeholders
+     * in the condition. Name them: a `?` here and one in another clause are
+     * both number 0, and collide.
      *
      * @return $this
      *

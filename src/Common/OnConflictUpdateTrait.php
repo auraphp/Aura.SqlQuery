@@ -8,7 +8,8 @@
  */
 namespace Aura\SqlQuery\Common;
 
-use Aura\SqlQuery\Exception;
+use Aura\SqlQuery\Exception\BadMethodCallException;
+use Aura\SqlQuery\Exception\InvalidArgumentException;
 
 /**
  *
@@ -19,6 +20,8 @@ use Aura\SqlQuery\Exception;
  */
 trait OnConflictUpdateTrait
 {
+    use TableListTrait;
+
     /**
      *
      * Whether this dialect accepts `ON CONSTRAINT <name>` as the conflict
@@ -64,10 +67,14 @@ trait OnConflictUpdateTrait
      *
      * Sets the conflict target column(s) or constraint name.
      *
-     * @param string|array<array-key, string> $target The conflict target
-     * column(s) or constraint name.
+     * @param string|array<array-key, string> $target The conflict target:
+     * a column name, a list of them (as an array or a comma-separated
+     * string), or `ON CONSTRAINT <name>`.
      *
      * @return $this
+     *
+     * @throws InvalidArgumentException when the target is empty,
+     * or is an index expression rather than a column name.
      *
      */
     public function onConflict(string|array $target): static
@@ -78,7 +85,7 @@ trait OnConflictUpdateTrait
                 $cols[] = $this->quoter->quoteName($this->assertConflictName($col));
             }
             if (empty($cols)) {
-                throw new Exception\InvalidArgumentException(
+                throw new InvalidArgumentException(
                     'onConflict() requires a column name or constraint.'
                 );
             }
@@ -88,25 +95,26 @@ trait OnConflictUpdateTrait
 
         $target = trim($target);
 
-        // the keyword with nothing after it; trimming has already taken the
-        // space the prefix test below looks for, so catch it here or it goes
-        // on to be quoted as a column named "ON CONSTRAINT"
-        if (strcasecmp($target, 'ON CONSTRAINT') === 0) {
-            throw new Exception\InvalidArgumentException(
-                'onConflict() requires a column name or constraint.'
-            );
-        }
-
-        if (stripos($target, 'ON CONSTRAINT ') === 0) {
+        // any run of whitespace separates the keywords, and the keyword with
+        // nothing after it is no target at all -- matched here, or it would
+        // go on to be quoted as a column named "ON CONSTRAINT"
+        if (preg_match('/^ON\s+CONSTRAINT(?:\s+(.*))?$/is', $target, $matches)) {
+            $constraint = $this->assertConflictName($matches[1] ?? '');
             if (! $this->allowsConstraintTarget()) {
-                throw new Exception\BadMethodCallException(
+                throw new BadMethodCallException(
                     get_class($this)
                     . " doesn't support a constraint-name conflict target"
                 );
             }
-            $constraint = $this->assertConflictName(substr($target, 14));
             $this->conflict_target = 'ON CONSTRAINT ' . $this->quoter->quoteName($constraint);
             return $this;
+        }
+
+        // a comma-separated list is the array form written out; quoting it
+        // whole would give `("a," "b")`, which names no column
+        $names = $this->splitNamesList($target);
+        if (count($names) > 1) {
+            return $this->onConflict($names);
         }
 
         $this->conflict_target = '(' . $this->quoter->quoteName($this->assertConflictName($target)) . ')';
@@ -123,7 +131,7 @@ trait OnConflictUpdateTrait
      *
      * @return string
      *
-     * @throws Exception\InvalidArgumentException
+     * @throws InvalidArgumentException
      *
      */
     protected function assertConflictName(string $name): string
@@ -131,8 +139,18 @@ trait OnConflictUpdateTrait
         $name = trim($name);
 
         if ($name === '') {
-            throw new Exception\InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'onConflict() requires a column name or constraint.'
+            );
+        }
+
+        // an index expression cannot be quoted as a name, and needs a
+        // parenthesis of its own in the target; name the unique index's
+        // constraint instead, or its columns
+        if (str_contains($name, '(')) {
+            throw new InvalidArgumentException(
+                "onConflict() takes column names or a constraint, not the "
+                . "expression '{$name}'."
             );
         }
 
@@ -156,7 +174,7 @@ trait OnConflictUpdateTrait
         return $this->atomically(function () use ($col, $value): void {
             $key = $this->quoter->quoteName($col);
             if (count($value) > 0) {
-                $bind = $col . '__on_conflict';
+                $bind = $this->placeholderFor($col) . '__on_conflict';
                 $this->conflict_update_values[$key] = ":$bind";
                 $this->bindValueFrom($bind, $value[0], 'conflict');
             } else {

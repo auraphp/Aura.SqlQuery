@@ -891,6 +891,24 @@ abstract class AbstractQuery
 
     /**
      *
+     * Returns the placeholder name for a column's value.
+     *
+     * A placeholder name is letters, digits and underscores, so the column
+     * name is used as it is when it can be; a qualified one such as `t.a`
+     * would otherwise be read by PDO as `:t` followed by `.a`.
+     *
+     * @param string $col The column name.
+     *
+     * @return string
+     *
+     */
+    protected function placeholderFor(string $col): string
+    {
+        return (string) preg_replace('/\W/', '_', $col);
+    }
+
+    /**
+     *
      * Returns the next name in this query's sequence of generated
      * placeholder names.
      *

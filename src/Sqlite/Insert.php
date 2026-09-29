@@ -9,7 +9,7 @@
 namespace Aura\SqlQuery\Sqlite;
 
 use Aura\SqlQuery\Common;
-use Aura\SqlQuery\Exception;
+use Aura\SqlQuery\Exception\LogicException;
 
 /**
  *
@@ -89,7 +89,7 @@ class Insert extends Common\Insert implements Common\OnConflictUpdateInterface
      * Asserts that no legacy SQLite OR conflict flags are set when using ON CONFLICT.
      *
      * @return void
-     * @throws Exception\LogicException
+     * @throws LogicException
      *
      */
     protected function assertNoOrConflictFlags(): void
@@ -105,7 +105,7 @@ class Insert extends Common\Insert implements Common\OnConflictUpdateInterface
         }
 
         if (! empty($set)) {
-            throw new Exception\LogicException(
+            throw new LogicException(
                 'Cannot combine ON CONFLICT clause with SQLite OR conflict flags: '
                 . implode(' and ', $set) . '.'
             );
@@ -146,7 +146,7 @@ class Insert extends Common\Insert implements Common\OnConflictUpdateInterface
      *
      * Adds or removes OR IGNORE flag.
      *
-     * @deprecated use ignore instead
+     * @deprecated use ignore() instead; to be removed in 8.x.
      * @param bool $enable Set or unset flag (default true).
      *
      * @return $this
