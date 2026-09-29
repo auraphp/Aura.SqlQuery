@@ -4,13 +4,38 @@ The 'sqlsrv' query objects have no additional methods specific to Microsoft SQL
 Server. However, `limit()` and `offset()` behaviors are somewhat modified, and
 `withRecursive()` writes its clause the way T-SQL spells it.
 
+SQL Server has no `FOR UPDATE`, so `forUpdate()` on the _Select_ object throws
+`Aura\SqlQuery\Exception\BadMethodCallException`; `forUpdate(false)` is
+accepted.
+
 The `limit()` and `offset()` methods on the Microsoft SQL Server _Select_
 object generate sqlsrv-specific variations of `LIMIT ... OFFSET`:
 
 - If only a `LIMIT` is present, it is translated as a `TOP` clause.
 
 - If an `OFFSET` is present, it is translated as an `OFFSET ... ROWS` clause,
-  followed by `FETCH NEXT ... ROWS ONLY` when a `LIMIT` is present too.
+  followed by `FETCH NEXT ... ROWS ONLY` when a `LIMIT` is present too. An
+  offset alone is written without the `FETCH NEXT`, which leaves the rows after
+  the offset unlimited:
+
+```php
+$select = $queryFactory->newSelect();
+$select
+    ->cols(['*'])
+    ->from('foo')
+    ->orderBy(['id'])
+    ->offset(40);
+```
+
+```sql
+SELECT
+    *
+FROM
+    [foo]
+ORDER BY
+    id
+OFFSET 40 ROWS
+```
 
 SQL Server requires an `ORDER BY` whenever `OFFSET` or `FETCH` is used, since
 they are part of the `ORDER BY` clause. Adding one with `orderBy()` is up to

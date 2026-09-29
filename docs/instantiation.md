@@ -33,6 +33,10 @@ $queryFactory = new QueryFactory('sqlite', QueryFactory::COMMON);
 > N.b. You still need to pass a database type so that identifiers can be
 > quoted appropriately.
 
+The database type is one of `'mysql'`, `'pgsql'`, `'sqlite'`, `'sqlsrv'` or
+`'common'`. Any other throws `Aura\SqlQuery\Exception\InvalidArgumentException`
+when the factory is asked for a query object.
+
 All query objects implement the "Common" methods.
 
 The query objects do not execute queries against a database. When you are done

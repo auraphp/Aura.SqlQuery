@@ -62,9 +62,32 @@ and declare `static`, so an override must declare it too -- and there are a
 great many of them, since every method that returns the query for chaining is
 one.
 
+`Select::reset()` is one of them: 3.x returned nothing from it, and 7.x
+returns the query like every other reset method, so an override declares
+`static` and returns `$this`.
+
+Properties are typed as well. Every property the package declares has a
+native type, except `$builder`, and PHP requires a subclass that redeclares an
+inherited property to give it the same type:
+
+```php
+<?php
+// 3.x
+protected $limit = 0;
+
+// 7.x -- the untyped form fails on load with
+// "Type of MySelect::$limit must be int"
+protected int $limit = 0;
+?>
+```
+
+`$builder` stays untyped, since each query class narrows it to its own
+builder in a docblock and a native type could not be narrowed that way; a
+subclass redeclaring it leaves it untyped too.
+
 The quickest way to find every override you need to touch is to load your
-classes and let PHP report the incompatible signatures, since it checks each
-one against its parent at class-load time.
+classes and let PHP report the incompatible signatures and property types,
+since it checks each one against its parent at class-load time.
 
 Part of this does reach callers, and **how much depends on your files, not on
 this package's.** `strict_types` is declared by the calling file and governs
@@ -118,6 +141,12 @@ returns `?string` rather than `mixed`. Both say what the shipped code always
 did; `getLastInsertIdName()` still answers null when no name is mapped, which
 is the usual case.
 
+Two interfaces declare methods their implementations already had. A class of
+your own implementing _SelectInterface_ must accept the trailing
+`array $bind = []` on `join()` and `joinSubSelect()`, as it already did on
+`innerJoin()` and `leftJoin()`, and one implementing _QueryInterface_ must
+declare `resetBindValues(): static`.
+
 ### 3. Give Each Bound Value Its Own Placeholder Name
 
 This is the change most likely to surface in a working application, because
@@ -156,13 +185,15 @@ name as long as they bind it to the same value; binding it to different values
 throws. Two halves of a union may likewise share a name as long as they ask for
 the same value.
 
-Three particular cases are worth checking your code for:
+Four particular cases are worth checking your code for:
 
 - **Separate `?` placeholders.** Two `?` bound to different values by separate
   `where()` calls now throw, because each is numbered from the start of its own
   values array and so asks for the same name. This never worked -- both conditions rendered against
   one bound value and PDO rejected the statement at execute time -- so a query
-  doing it was already broken. Several `?` in a single call are unaffected.
+  doing it was already broken. Several `?` in a single call are unaffected. A
+  `?` in a `join()` condition counts too: it and a `?` in a `where()` are both
+  number 0, so use named placeholders in joins.
 
 - **Bulk inserts.** Each row's placeholders are renamed `<name>_<row>`, and
   those names are now tracked like any others. A condition binding `:status_0`
@@ -172,6 +203,13 @@ Three particular cases are worth checking your code for:
 - **Sub-selects.** A sub-select's bound values are claimed by the clause it is
   rendered into, so `fromSubSelect()` and `joinSubSelect()` hold theirs until
   `resetTables()`, not until `resetWhere()`.
+
+- **Table-qualified columns.** `col('t.a', ...)` on an _Insert_ or _Update_
+  now binds `:t_a` where 3.x bound `:t.a`, which PDO reads as `:t` followed by
+  `.a` and so could not execute. The upsert methods follow suit:
+  `doUpdateCol('t.a', ...)` binds `:t_a__on_conflict` and
+  `onDuplicateKeyUpdateCol('t.a', ...)` binds `:t_a__on_duplicate_key`. If you
+  set such a value yourself with `bindValue('t.a', ...)`, bind `t_a` instead.
 
 `resetWhere()`, `resetHaving()` and `resetTables()` release the names their
 clause claimed, so a placeholder can be reused after a reset. Binding by hand
@@ -256,6 +294,32 @@ methods were called in:
 An _Update_ with no columns to set also throws _Exception\LogicException_
 ("No columns to update.") where 3.x failed with a `TypeError`.
 
+An _Insert_, _Update_ or _Delete_ with no table throws
+_Exception\LogicException_ ("No table to insert into.", "No table to
+update.", "No table to delete from.") where 3.x built `INSERT INTO  (...)`,
+`UPDATE  SET ...` or `DELETE FROM ` with the table left blank.
+
+A few more calls now refuse input 3.x accepted:
+
+- `join()` and `joinSubSelect()` throw _Exception\LogicException_ when given
+  a condition for a `NATURAL` join, on any dialect, or for a `CROSS` join, on
+  every dialect but MySQL, which treats `CROSS` as `INNER`. 3.x wrote the `ON`
+  clause the database then rejected.
+- `forUpdate()` on SQLite and SQL Server throws
+  _Exception\BadMethodCallException_, since neither has `FOR UPDATE`; 3.x wrote
+  it anyway. `forUpdate(false)` is accepted.
+- A bulk-insert row with a column the first row lacks throws
+  _Exception\InvalidArgumentException_ when the statement is built; 3.x
+  dropped the column from the statement without a word.
+- A list bound for a `?` the condition does not have throws
+  _Exception\InvalidArgumentException_; 3.x emitted PHP warnings and wrote the
+  list over the start of the condition.
+- A column or alias given to `cols()` that is not a string throws
+  _Exception\InvalidArgumentException_; 3.x wrote it into the SELECT list.
+- A database type other than `mysql`, `pgsql`, `sqlite`, `sqlsrv` or `common`
+  throws _Exception\InvalidArgumentException_ when the factory is asked for a
+  query object, where 3.x failed with PHP's `Class ... not found` error.
+
 ### 6. Spell Insert-Ignore As ignore()
 
 `ignore()` is now the spelling on every dialect that supports it. Sqlite's
@@ -314,6 +378,35 @@ SQL does not surprise you.
 - A bulk insert combined with an upsert keeps the upsert's bound values;
   in 3.x finishing a row cleared every bound value, and `execute()` failed with
   `HY093: Invalid parameter number`.
+
+- Arrays bound in two queries that are then combined -- a sub-select, a FROM
+  or JOIN sub-select, a UNION branch, a CTE -- keep their own values. Each
+  query numbered its generated `:__1__`, `:__2__` from one, so in 3.x the
+  combined statement bound one query's list values to both and nothing
+  reported it. The incoming query's names are now renumbered from the
+  receiving query's own sequence.
+
+- Binding an array to `:id` no longer rewrites the start of `:id_2`, nor a
+  `:id` inside a quoted string; 3.x turned `id_2 = :id_2` into
+  `id_2 = :__1__, :__2___2`.
+
+- Two lists for `?` in one condition, as in `where('a IN (?) AND b IN (?)',
+  [[1, 2], [3, 4]])`, land where they belong. 3.x emitted warnings and wrote
+  the second list over the start of the condition.
+
+- An offset without a limit builds SQL the dialect accepts: `LIMIT -1 OFFSET
+  n` on SQLite and `LIMIT 18446744073709551615 OFFSET n` on MySQL, where 3.x
+  wrote an `OFFSET n` both reject, and `OFFSET n ROWS` on SQL Server, where
+  3.x added a `FETCH NEXT 0 ROWS ONLY` that SQL Server rejects.
+
+- Flags are written in one fixed order whatever order they were set in, with
+  `DISTINCT` first and, on MySQL, the priority before `IGNORE`: 3.x wrote
+  `UPDATE IGNORE LOW_PRIORITY`, which MySQL rejects, when `ignore()` was
+  called first.
+
+- `cols(['DISTINCT a'])` writes `DISTINCT a` where 3.x read `a` as an alias
+  and wrote `DISTINCT AS "a"`, and `cols(['a' => null])` writes `a` where 3.x
+  wrote `a AS ""`.
 
 ### What's New
 

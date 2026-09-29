@@ -24,6 +24,13 @@ $select->cols([
     ]);
 ```
 
+A column given as the key of the array is aliased by its value; a `null` or
+empty-string value means no alias, so `'col_name' => null` is the same as
+`'col_name'`. A column or alias that is not a string throws
+`Aura\SqlQuery\Exception\InvalidArgumentException`. A column beginning with
+`DISTINCT`, as in `'DISTINCT col_name'`, is written as given rather than read
+as `DISTINCT` aliased to `col_name`.
+
 Other related methods:
 
 - `removeCol($alias) : bool` -- Removes a column from the SELECT; returns
@@ -112,9 +119,38 @@ $select->joinSubSelect(
 Also as with FROM, you can pass a SELECT object instead of a query string as the
 subselect.
 
-Finally, all of the `*join*()` methods take an optional final argument, a
-sequential array of values to bind to sequential question-mark placeholders in
-the condition clause.
+Finally, all of the `*join*()` methods take an optional final argument, an
+array of values to bind to the placeholders in the condition clause, just as
+`where()` takes. Use named placeholders there. A `?` is numbered from the
+start of its own call's values, so a `?` in a join condition and a `?` in a
+`WHERE` condition are both placeholder 0, and the second one throws
+`Aura\SqlQuery\Exception\LogicException` rather than overwriting the first:
+
+```php
+$select = $queryFactory->newSelect();
+
+$select
+    ->cols(['*'])
+    ->from('foo')
+    ->join('INNER', 'doom AS d', 'd.foo_id = foo.id AND d.kind = :kind', ['kind' => 'x'])
+    ->where('foo.bar = :bar', ['bar' => 'y']);
+```
+
+```sql
+SELECT
+    *
+FROM
+    "foo"
+INNER JOIN "doom" AS "d" ON "d"."foo_id" = "foo"."id" AND "d"."kind" = :kind
+WHERE
+    "foo"."bar" = :bar
+```
+
+A `NATURAL` join derives its condition from the column names the two tables
+share, and a `CROSS` join takes none, so passing a condition to either through
+`join()` or `joinSubSelect()` throws `Aura\SqlQuery\Exception\LogicException`
+rather than building a statement the database rejects. MySQL is the exception for
+`CROSS`, which it treats as a synonym for `INNER`, and accepts a condition on.
 
 
 ## WHERE
@@ -309,6 +345,12 @@ FROM
     "foo"
 LIMIT 10 OFFSET 20
 ```
+
+An offset without a limit is written the way each dialect accepts it. The
+common, PostgreSQL and SQL Server objects write the offset alone (`OFFSET 40`,
+or `OFFSET 40 ROWS` on SQL Server, with no `FETCH NEXT`). SQLite and MySQL have
+no `OFFSET` without `LIMIT`, so they write the largest limit they take: `LIMIT
+-1 OFFSET 40` on SQLite, `LIMIT 18446744073709551615 OFFSET 40` on MySQL.
 
 Calling `limit()` or `offset()` after `page()` drops the paging: the page goes
 back to 0, and only the value just given is kept.
@@ -529,6 +571,13 @@ at the head of the statement; there, define the CTE on the outer query.
     ->isDistinct()                  // returns true if query is DISTINCT
 ```
 
+SQLite and SQL Server have no `FOR UPDATE`, so `forUpdate()` on their _Select_
+objects throws `Aura\SqlQuery\Exception\BadMethodCallException`;
+`forUpdate(false)` is still accepted there.
+
+Flags are written in a fixed order, whatever order they were set in, with
+`DISTINCT` first.
+
 ## Binding Values
 
 ```php
@@ -565,7 +614,7 @@ find the total number of rows to be paginated over).
 - `resetBindValues()` removes all values bound to named placeholders
 - `reset()` clears the columns, tables, flags, `WHERE`, `GROUP BY`, `HAVING`,
   `ORDER BY`, `LIMIT`, `OFFSET`, page and `FOR UPDATE` in one call; it leaves
-  the unions, the CTEs and the bound values in place, and returns nothing
+  the unions, the CTEs and the bound values in place, and returns the query
 
 ## Issuing The Query
 

@@ -18,6 +18,9 @@ $delete
     ]);
 ```
 
+A _Delete_ with no table throws `Aura\SqlQuery\Exception\LogicException`
+("No table to delete from.") when the statement is built.
+
 Once you have built the query, pass it to the database connection of your
 choice as a string, and send the bound values along with it.
 

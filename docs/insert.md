@@ -36,6 +36,27 @@ $insert->into('foo')             // insert into this table
     ]);
 ```
 
+A table-qualified column is bound under a placeholder with the dot replaced
+by an underscore, since PDO would read `:t.a` as `:t` followed by `.a`:
+
+```php
+$insert = $queryFactory->newInsert();
+
+$insert->into('foo')
+    ->col('foo.bar', 'bar_value');   // binds :foo_bar
+```
+
+```sql
+INSERT INTO "foo" (
+    "foo"."bar"
+) VALUES (
+    :foo_bar
+)
+```
+
+An _Insert_ with no table throws `Aura\SqlQuery\Exception\LogicException`
+("No table to insert into.") when the statement is built.
+
 Once you have built the query, pass it to the database connection of your
 choice as a string, and send the bound values along with it.
 
@@ -149,7 +170,10 @@ $sth->execute($insert->getBindValues());
 ```
 
 > N.b.: If you add a row and do not specify a value for a column that was
-> present in the first row, the _Insert_ will throw an exception.
+> present in the first row, the _Insert_ will throw an exception. The first
+> row also sets the column list, so a later row naming a column the first row
+> does not have throws `Aura\SqlQuery\Exception\InvalidArgumentException`
+> (`Column "b" in row 1 is not in the first row.`) when the statement is built.
 
 If you pass an array of column key-value pairs to `addRow()`, they will be
 bound to the next row, thus allowing you to skip setting up the first row

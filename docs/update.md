@@ -38,6 +38,14 @@ $update->table('foo')           // update this table
     ]);
 ```
 
+A table-qualified column is bound under a placeholder with the dot replaced by
+an underscore, so `col('foo.bar', ...)` writes `"foo"."bar" = :foo_bar`; see
+[Placeholder Names](./other.md#placeholder-names).
+
+An _Update_ with no table throws `Aura\SqlQuery\Exception\LogicException`
+("No table to update.") when the statement is built, as one with no columns
+does ("No columns to update.").
+
 ## One table at a time
 
 `table()` takes a single table. Naming several, comma-separated, throws

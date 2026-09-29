@@ -100,6 +100,58 @@ reserved, so do not bind them yourself. A column literally named
 `onDuplicateKeyUpdateCol('name', ...)`, and `name__on_conflict` collides with
 `doUpdateCol('name', ...)`. Both throw the same `LogicException`.
 
+A table-qualified column gets a placeholder with the dot replaced by an
+underscore, since PDO reads `:t.a` as the placeholder `:t` followed by `.a`.
+So `col('t.a', 1)` binds `:t_a`, `doUpdateCol('t.a', ...)` binds
+`:t_a__on_conflict`, and `onDuplicateKeyUpdateCol('t.a', ...)` binds
+`:t_a__on_duplicate_key`; bind those names, not `t.a`, if you set the value
+yourself.
+
+A method that throws part-way through leaves the query as it was before the
+call. A `where()` whose second placeholder collides does not keep the first
+one's value, and a `union()`, `join()` or `fromSubSelect()` that fails adds
+nothing to the query.
+
+### Lists And Question-Mark Placeholders
+
+A condition's placeholders are matched as whole names: binding `:id` does not
+touch `:id_2`, and in `x::int` the `::int` is a cast rather than a placeholder.
+A `?` or `:name` inside a quoted string or a quoted identifier is part of the
+text and is left alone.
+
+An array bound to a placeholder is written as a list of generated placeholders,
+`:__1__`, `:__2__` and so on, one per value. That works for `?` as well as for
+a named placeholder, and the lists are matched to the `?` placeholders in
+order, counting only the `?` placeholders -- a named value in the same array
+does not take up a position:
+
+```php
+$select = $queryFactory->newSelect();
+
+$select
+    ->cols(['*'])
+    ->from('t')
+    ->where('a IN (?) AND b = :b AND c IN (?)', [[1, 2], 'b' => 'x', [3, 4]]);
+```
+
+```sql
+SELECT
+    *
+FROM
+    "t"
+WHERE
+    a IN (:__1__, :__2__) AND b = :b AND c IN (:__3__, :__4__)
+```
+
+A list given for a `?` the condition does not have throws
+`Aura\SqlQuery\Exception\InvalidArgumentException`.
+
+The generated names are numbered by the query that holds them. When a query
+comes into another one -- as a sub-select bound to a placeholder, through
+`fromSubSelect()` or `joinSubSelect()`, as a `union()` branch, or as a CTE --
+its generated names are renumbered from the receiving query's own sequence, so
+two queries that each bind a list do not collide over `:__1__`.
+
 ### Bulk Insert Rows
 
 A bulk insert renames each row's placeholders, appending the row number: two
