@@ -26,7 +26,7 @@ choice as a string, and send the bound values along with it.
 $pdo = new PDO(...);
 
 // prepare the statement
-$sth = $pdo->prepare($delete->getStatement())
+$sth = $pdo->prepare($delete->getStatement());
 
 // execute with bound values
 $sth->execute($delete->getBindValues());

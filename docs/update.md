@@ -8,11 +8,11 @@ $update = $queryFactory->newUpdate();
 
 $update
     ->table('foo')                  // update this table
-    ->cols([                        // bind values as "SET bar = :bar"
+    ->cols([                        // bind values as SET "bar" = :bar
         'bar',
         'baz',
     ])
-    ->set('ts', 'NOW()')            // raw value as "(ts) VALUES (NOW())"
+    ->set('ts', 'NOW()')            // raw value as SET "ts" = NOW()
     ->where('zim = :zim')           // AND WHERE these conditions
     ->where('gir = :gir', ['gir' => 'gir_val'])      // bind this value to the condition
     ->orWhere('gir = :gir')         // OR WHERE these conditions
@@ -119,8 +119,9 @@ WHERE
 
 Only UPDATE can run into this: INSERT has no `where()`, DELETE has no `cols()`,
 and a SELECT `cols()` binds nothing. Two conditions sharing one placeholder
-name is a separate case that is *not* caught — see
-[Placeholder Names](./other.md#placeholder-names).
+name is a separate case: two conditions in the same clause may share a name
+when they bind it to the same value, but binding it to different values throws
+the same `LogicException` — see [Placeholder Names](./other.md#placeholder-names).
 
 Binding a value yourself is never blocked, whatever set it first:
 
@@ -142,7 +143,7 @@ choice as a string, and send the bound values along with it.
 $pdo = new PDO(...);
 
 // prepare the statement
-$sth = $pdo->prepare($update->getStatement())
+$sth = $pdo->prepare($update->getStatement());
 
 // execute with bound values
 $sth->execute($update->getBindValues());

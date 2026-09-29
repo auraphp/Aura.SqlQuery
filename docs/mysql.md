@@ -65,7 +65,7 @@ this differs from the PostgreSQL objects, which reject it.
 
 ## INSERT
 
-- `orReplace()` to add or remove `OR REPLACE`
+- `orReplace()` to write `REPLACE INTO` instead of `INSERT INTO`
 - `highPriority()` to add or remove `HIGH_PRIORITY` flag
 - `lowPriority()` to add or remove `LOW_PRIORITY` flag
 - `ignore()` to add or remove `IGNORE` flag
@@ -148,6 +148,10 @@ automatically suffixed with `__on_duplicate_key` to deconflict them from the
 insert placeholders — here the bind values are `email`, `name` and `hits` for
 the insert, plus `name__on_duplicate_key` for the update.
 
+A `REPLACE` has no `ON DUPLICATE KEY UPDATE` clause, so combining `orReplace()`
+with any of these methods throws `Aura\SqlQuery\Exception\LogicException` when
+the statement is built.
+
 Unlike MySQL, PostgreSQL and SQLite take an explicit conflict target and spell
 this `ON CONFLICT ... DO UPDATE`; see [the PostgreSQL page](./pgsql.md). Note
 that `onDuplicateKeyUpdateCols(['name'])` with no value emits a *new* placeholder
@@ -166,8 +170,8 @@ clause as the other dialects do; see [the UPDATE page](./update.md) and
 
 - `lowPriority()` to add or remove `LOW_PRIORITY` flag
 - `ignore()` to add or remove `IGNORE` flag
-- `where()` and `orWhere()` to add WHERE conditions flag
-- `orderBy()` to add an ORDER BY clause flag
+- `where()` and `orWhere()` to add WHERE conditions
+- `orderBy()` to add an ORDER BY clause
 - `limit()` to set a LIMIT count
 
 `ignore()` here leaves the rest of the statement to apply when one row fails.

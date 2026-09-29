@@ -1,24 +1,30 @@
+# Other Topics
+
 ## Identifier Quoting
 
-In most cases, the query objects will quote identifiers for you. For example,
-under the common _Select_ object with double-quotes for identifiers:
+The query objects quote most identifiers for you: table names, aliases, and
+table-qualified column names. A bare column name in a SELECT list is left as
+written. For example, under the common _Select_ object with double-quotes for
+identifiers:
 
 ```php
+$select = $queryFactory->newSelect();
+
 $select->cols(['foo', 'bar AS barbar'])
        ->from('table1')
        ->from('table2')
        ->where('table2.zim = 99');
+```
 
-echo $select->getStatement();
-// SELECT
-//     "foo",
-//     "bar" AS "barbar"
-// FROM
-//     "table1",
-//     "table2"
-// WHERE
-//     "table2"."zim" = 99
-
+```sql
+SELECT
+    foo,
+    bar AS "barbar"
+FROM
+    "table1",
+    "table2"
+WHERE
+    "table2"."zim" = 99
 ```
 
 If you discover that a partially-qualified identifier has not been auto-quoted
