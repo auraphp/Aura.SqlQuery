@@ -38,4 +38,32 @@ class InsertTest extends Common\InsertTest
         $this->expectExceptionMessage("doesn't support ON CONFLICT clause");
         $this->query->onConflict('id');
     }
+
+    public function testDoUpdateColNotSupported()
+    {
+        $this->expectException('Aura\SqlQuery\Exception\BadMethodCallException');
+        $this->expectExceptionMessage("doesn't support DO UPDATE SET clause");
+        $this->query->doUpdateCol('status', 'shipped');
+    }
+
+    public function testDoUpdateColsNotSupported()
+    {
+        $this->expectException('Aura\SqlQuery\Exception\BadMethodCallException');
+        $this->expectExceptionMessage("doesn't support DO UPDATE SET clause");
+        $this->query->doUpdateCols(['status' => 'shipped']);
+    }
+
+    public function testDoUpdateNotSupported()
+    {
+        $this->expectException('Aura\SqlQuery\Exception\BadMethodCallException');
+        $this->expectExceptionMessage("doesn't support DO UPDATE SET clause");
+        $this->query->doUpdate('status', "'shipped'");
+    }
+
+    public function testDoUpdateWhereNotSupported()
+    {
+        $this->expectException('Aura\SqlQuery\Exception\BadMethodCallException');
+        $this->expectExceptionMessage("doesn't support ON CONFLICT ... WHERE clause");
+        $this->query->doUpdateWhere('status = :status', ['status' => 'pending']);
+    }
 }

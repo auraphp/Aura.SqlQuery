@@ -32,7 +32,7 @@ trait BuildOnConflictTrait
      * @throws Exception\LogicException
      *
      */
-    public function buildOnConflict(?string $target, array $update_values, array $where, bool $ignore)
+    public function buildOnConflict(?string $target, array $update_values, array $where, bool $ignore): string
     {
         if ($ignore && ! empty($update_values)) {
             throw new Exception\LogicException(
@@ -71,7 +71,7 @@ trait BuildOnConflictTrait
      * @return string
      *
      */
-    protected function buildConflictUpdateValues(array $update_values)
+    protected function buildConflictUpdateValues(array $update_values): string
     {
         $values = [];
         foreach ($update_values as $key => $row) {
@@ -88,7 +88,7 @@ trait BuildOnConflictTrait
      * @return string
      *
      */
-    protected function buildConflictWhere(array $where)
+    protected function buildConflictWhere(array $where): string
     {
         if (empty($where)) {
             return '';

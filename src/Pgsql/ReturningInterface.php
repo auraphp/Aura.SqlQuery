@@ -30,5 +30,5 @@ interface ReturningInterface
      * @return $this
      *
      */
-    public function returning(array $cols);
+    public function returning(array $cols): static;
 }

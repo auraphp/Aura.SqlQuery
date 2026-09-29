@@ -27,5 +27,5 @@ interface OrderByInterface
      * @return $this
      *
      */
-    public function orderBy(array $spec);
+    public function orderBy(array $spec): static;
 }

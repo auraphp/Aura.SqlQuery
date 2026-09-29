@@ -27,7 +27,7 @@ interface OnConflictUpdateInterface
      * @return $this
      *
      */
-    public function onConflict(string|array $target);
+    public function onConflict(string|array $target): static;
 
     /**
      *
@@ -41,7 +41,7 @@ interface OnConflictUpdateInterface
      * @return $this
      *
      */
-    public function doUpdateCol(string $col, mixed ...$value);
+    public function doUpdateCol(string $col, mixed ...$value): static;
 
     /**
      *
@@ -56,7 +56,7 @@ interface OnConflictUpdateInterface
      * @return $this
      *
      */
-    public function doUpdateCols(array $cols);
+    public function doUpdateCols(array $cols): static;
 
     /**
      *
@@ -70,7 +70,7 @@ interface OnConflictUpdateInterface
      * @return $this
      *
      */
-    public function doUpdate(string $col, ?string $value);
+    public function doUpdate(string $col, ?string $value): static;
 
     /**
      *
@@ -84,5 +84,5 @@ interface OnConflictUpdateInterface
      * @return $this
      *
      */
-    public function doUpdateWhere(string $condition, array ...$bind);
+    public function doUpdateWhere(string $condition, array ...$bind): static;
 }

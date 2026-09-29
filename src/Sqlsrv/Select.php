@@ -35,7 +35,7 @@ class Select extends Common\Select
      * @return string
      *
      */
-    protected function build()
+    protected function build(): string
     {
         return $this->builder->applyLimit(parent::build(), $this->getLimit(), $this->offset);
     }

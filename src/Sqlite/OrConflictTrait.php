@@ -45,7 +45,7 @@ trait OrConflictTrait
      * @throws Exception\LogicException
      *
      */
-    protected function assertOneOrConflictFlag()
+    protected function assertOneOrConflictFlag(): void
     {
         $set = [];
         foreach ($this->or_conflict_flags as $flag) {

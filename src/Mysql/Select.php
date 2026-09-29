@@ -54,7 +54,7 @@ class Select extends Common\Select
      * @return bool
      *
      */
-    protected function joinForbidsCondition(string $join)
+    protected function joinForbidsCondition(string $join): bool
     {
         return str_starts_with($join, 'NATURAL ');
     }
@@ -68,7 +68,7 @@ class Select extends Common\Select
      * @return $this
      *
      */
-    public function calcFoundRows(bool $enable = true)
+    public function calcFoundRows(bool $enable = true): static
     {
         $this->setFlag('SQL_CALC_FOUND_ROWS', $enable);
         return $this;
@@ -83,7 +83,7 @@ class Select extends Common\Select
      * @return $this
      *
      */
-    public function cache(bool $enable = true)
+    public function cache(bool $enable = true): static
     {
         $this->setFlag('SQL_CACHE', $enable);
         return $this;
@@ -98,7 +98,7 @@ class Select extends Common\Select
      * @return $this
      *
      */
-    public function noCache(bool $enable = true)
+    public function noCache(bool $enable = true): static
     {
         $this->setFlag('SQL_NO_CACHE', $enable);
         return $this;
@@ -113,7 +113,7 @@ class Select extends Common\Select
      * @return $this
      *
      */
-    public function straightJoin(bool $enable = true)
+    public function straightJoin(bool $enable = true): static
     {
         $this->setFlag('STRAIGHT_JOIN', $enable);
         return $this;
@@ -128,7 +128,7 @@ class Select extends Common\Select
      * @return $this
      *
      */
-    public function highPriority(bool $enable = true)
+    public function highPriority(bool $enable = true): static
     {
         $this->setFlag('HIGH_PRIORITY', $enable);
         return $this;
@@ -143,7 +143,7 @@ class Select extends Common\Select
      * @return $this
      *
      */
-    public function smallResult(bool $enable = true)
+    public function smallResult(bool $enable = true): static
     {
         $this->setFlag('SQL_SMALL_RESULT', $enable);
         return $this;
@@ -158,7 +158,7 @@ class Select extends Common\Select
      * @return $this
      *
      */
-    public function bigResult(bool $enable = true)
+    public function bigResult(bool $enable = true): static
     {
         $this->setFlag('SQL_BIG_RESULT', $enable);
         return $this;
@@ -173,7 +173,7 @@ class Select extends Common\Select
      * @return $this
      *
      */
-    public function bufferResult(bool $enable = true)
+    public function bufferResult(bool $enable = true): static
     {
         $this->setFlag('SQL_BUFFER_RESULT', $enable);
         return $this;

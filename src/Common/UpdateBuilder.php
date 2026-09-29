@@ -26,7 +26,7 @@ class UpdateBuilder extends AbstractBuilder
      * @return string
      *
      */
-    public function buildTable(string $table)
+    public function buildTable(string $table): string
     {
         return " {$table}";
     }
@@ -40,7 +40,7 @@ class UpdateBuilder extends AbstractBuilder
      * @return string
      *
      */
-    public function buildValuesForUpdate(array $col_values)
+    public function buildValuesForUpdate(array $col_values): string
     {
         $values = [];
         foreach ($col_values as $col => $value) {

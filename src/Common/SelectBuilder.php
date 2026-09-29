@@ -30,7 +30,7 @@ class SelectBuilder extends AbstractBuilder
      * @throws LogicException when there are no columns in the SELECT.
      *
      */
-    public function buildCols(array $cols)
+    public function buildCols(array $cols): string
     {
         if (empty($cols)) {
             throw new LogicException('No columns in the SELECT.');
@@ -49,7 +49,7 @@ class SelectBuilder extends AbstractBuilder
      * @return string
      *
      */
-    public function buildFrom(array $from, array $join)
+    public function buildFrom(array $from, array $join): string
     {
         if (empty($from)) {
             return ''; // not applicable
@@ -74,7 +74,7 @@ class SelectBuilder extends AbstractBuilder
      * @return string
      *
      */
-    public function buildGroupBy(array $group_by)
+    public function buildGroupBy(array $group_by): string
     {
         if (empty($group_by)) {
             return ''; // not applicable
@@ -92,7 +92,7 @@ class SelectBuilder extends AbstractBuilder
      * @return string
      *
      */
-    public function buildHaving(array $having)
+    public function buildHaving(array $having): string
     {
         if (empty($having)) {
             return ''; // not applicable
@@ -110,7 +110,7 @@ class SelectBuilder extends AbstractBuilder
      * @return string
      *
      */
-    public function buildForUpdate(bool $for_update)
+    public function buildForUpdate(bool $for_update): string
     {
         if (! $for_update) {
             return ''; // not applicable

@@ -50,7 +50,7 @@ class Insert extends Common\Insert implements ReturningInterface, Common\OnConfl
      * @return $this
      *
      */
-    public function ignore(bool $enable = true)
+    public function ignore(bool $enable = true): static
     {
         $this->ignore = $enable;
         return $this;
@@ -63,7 +63,7 @@ class Insert extends Common\Insert implements ReturningInterface, Common\OnConfl
      * @return string
      *
      */
-    protected function build()
+    protected function build(): string
     {
         return parent::build()
             . $this->builder->buildOnConflict(
@@ -85,7 +85,7 @@ class Insert extends Common\Insert implements ReturningInterface, Common\OnConfl
      * value from `$last_insert_id_names`.
      *
      */
-    public function getLastInsertIdName(string $col)
+    public function getLastInsertIdName(string $col): string
     {
         $name = parent::getLastInsertIdName($col);
         if (! $name) {

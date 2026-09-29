@@ -54,7 +54,7 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      * @throws LogicException when the spec names more than one table.
      *
      */
-    public function table(string $table)
+    public function table(string $table): static
     {
         $names = $this->splitNamesList($table);
         if (count($names) > 1) {
@@ -81,7 +81,7 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      * @throws LogicException when there are no columns to update.
      *
      */
-    protected function build()
+    protected function build(): string
     {
         if (! $this->hasCols()) {
             throw new LogicException('No columns to update.');
@@ -104,7 +104,7 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      * @return static
      *
      */
-    public function ignore(bool $enable = true)
+    public function ignore(bool $enable = true): static
     {
         // override in child classes
         throw new BadMethodCallException(get_class($this) . " doesn't support IGNORE flag");
@@ -119,7 +119,7 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      * @return static
      *
      */
-    public function orReplace(bool $enable = true)
+    public function orReplace(bool $enable = true): static
     {
         // override in child classes
         throw new BadMethodCallException(get_class($this) . " doesn't support OR REPLACE flag");
@@ -136,7 +136,7 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      *
      * @return $this
      */
-    public function col(string $col, mixed ...$value)
+    public function col(string $col, mixed ...$value): static
     {
         return $this->addCol($col, ...$value);
     }
@@ -154,7 +154,7 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      * @return $this
      *
      */
-    public function cols(array $cols)
+    public function cols(array $cols): static
     {
         return $this->addCols($cols);
     }
@@ -171,7 +171,7 @@ class Update extends AbstractDmlQuery implements UpdateInterface
      * @return $this
      *
      */
-    public function set(string $col, ?string $value)
+    public function set(string $col, ?string $value): static
     {
         return $this->setCol($col, $value);
     }

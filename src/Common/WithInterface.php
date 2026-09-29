@@ -31,7 +31,7 @@ interface WithInterface
      * @return $this
      *
      */
-    public function with(string $name, string|SelectInterface $spec, array $cols = []);
+    public function with(string $name, string|SelectInterface $spec, array $cols = []): static;
 
     /**
      *
@@ -47,7 +47,7 @@ interface WithInterface
      * @return $this
      *
      */
-    public function withRecursive(string $name, string|SelectInterface $spec, array $cols = []);
+    public function withRecursive(string $name, string|SelectInterface $spec, array $cols = []): static;
 
     /**
      *
@@ -56,7 +56,7 @@ interface WithInterface
      * @return bool
      *
      */
-    public function hasWith();
+    public function hasWith(): bool;
 
     /**
      *
@@ -65,5 +65,5 @@ interface WithInterface
      * @return $this
      *
      */
-    public function resetWith();
+    public function resetWith(): static;
 }

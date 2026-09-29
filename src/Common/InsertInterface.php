@@ -28,7 +28,7 @@ interface InsertInterface extends QueryInterface, ValuesInterface, WithInterface
      * @return $this
      *
      */
-    public function into(string $into);
+    public function into(string $into): static;
 
     /**
      *
@@ -41,7 +41,7 @@ interface InsertInterface extends QueryInterface, ValuesInterface, WithInterface
      * @return void
      *
      */
-    public function setLastInsertIdNames(array $last_insert_id_names);
+    public function setLastInsertIdNames(array $last_insert_id_names): void;
 
     /**
      *
@@ -49,11 +49,11 @@ interface InsertInterface extends QueryInterface, ValuesInterface, WithInterface
      *
      * @param string $col The last insert ID column.
      *
-     * @return mixed Normally null, since most drivers do not need a name;
-     * alternatively, a string from `$last_insert_id_names`.
+     * @return string|null Normally null, since most drivers do not need a
+     * name; alternatively, a string from `$last_insert_id_names`.
      *
      */
-    public function getLastInsertIdName(string $col);
+    public function getLastInsertIdName(string $col): ?string;
 
     /**
      *
@@ -66,7 +66,7 @@ interface InsertInterface extends QueryInterface, ValuesInterface, WithInterface
      * @return $this
      *
      */
-    public function addRows(array $rows);
+    public function addRows(array $rows): static;
 
     /**
      *
@@ -85,5 +85,5 @@ interface InsertInterface extends QueryInterface, ValuesInterface, WithInterface
      * @return $this
      *
      */
-    public function addRow(array $cols = []);
+    public function addRow(array $cols = []): static;
 }

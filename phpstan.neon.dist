@@ -1,11 +1,12 @@
-# Start at the highest level that passes clean; raise the level as the 7.x
-# typing work lands.
+# The highest level that passes clean. Level 7 is the next step and wants
+# real narrowing at the union types rather than annotations, so it waits for
+# a change that does that work.
 #
 # Suppressions live inline at the line they describe, not here: a file-scoped
 # ignore would also absorb an unrelated diagnostic introduced later, and the
 # messages PHPStan emits for them are identical wherever they occur, so there
 # is nothing to key a pattern on.
 parameters:
-    level: 5
+    level: 6
     paths:
         - src

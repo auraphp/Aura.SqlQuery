@@ -35,7 +35,7 @@ trait LimitTrait
      * @return $this
      *
      */
-    public function limit(int $limit)
+    public function limit(int $limit): static
     {
         $this->limit = $limit;
         return $this;
@@ -48,7 +48,7 @@ trait LimitTrait
      * @return int
      *
      */
-    public function getLimit()
+    public function getLimit(): int
     {
         return $this->limit;
     }

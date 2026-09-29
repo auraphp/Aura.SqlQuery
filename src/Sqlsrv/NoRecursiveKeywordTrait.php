@@ -25,7 +25,7 @@ trait NoRecursiveKeywordTrait
      * @return bool
      *
      */
-    protected function allowsRecursiveKeyword()
+    protected function allowsRecursiveKeyword(): bool
     {
         return false;
     }

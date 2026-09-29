@@ -39,7 +39,7 @@ trait TableListTrait
      * dropped.
      *
      */
-    protected function splitNamesList(string $spec)
+    protected function splitNamesList(string $spec): array
     {
         $names = [];
         $name = '';

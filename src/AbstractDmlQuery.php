@@ -44,7 +44,7 @@ abstract class AbstractDmlQuery extends AbstractQuery
      * @return string An SQL statement string.
      *
      */
-    public function getStatement()
+    public function getStatement(): string
     {
         return $this->builder->buildWith($this->with, $this->with_recursive)
              . $this->build();
@@ -57,7 +57,7 @@ abstract class AbstractDmlQuery extends AbstractQuery
      * @return bool
      *
      */
-    public function hasCols()
+    public function hasCols(): bool
     {
         return !empty($this->col_values);
     }
@@ -74,7 +74,7 @@ abstract class AbstractDmlQuery extends AbstractQuery
      * @return $this
      *
      */
-    protected function addCol(string $col, mixed ...$value)
+    protected function addCol(string $col, mixed ...$value): static
     {
         $key = $this->quoter->quoteName($col);
         $this->col_values[$key] = ":$col";
@@ -97,7 +97,7 @@ abstract class AbstractDmlQuery extends AbstractQuery
      * @return $this
      *
      */
-    protected function addCols(array $cols)
+    protected function addCols(array $cols): static
     {
         foreach ($cols as $key => $val) {
             if (is_int($key)) {
@@ -124,7 +124,7 @@ abstract class AbstractDmlQuery extends AbstractQuery
      * @return $this
      *
      */
-    protected function setCol(string $col, ?string $value)
+    protected function setCol(string $col, ?string $value): static
     {
         if ($value === null) {
             $value = 'NULL';

@@ -37,7 +37,7 @@ class Delete extends Common\Delete implements ReturningInterface
      * @return string
      *
      */
-    protected function build()
+    protected function build(): string
     {
         return parent::build()
             . $this->builder->buildReturning($this->returning);
