@@ -1,7 +1,7 @@
-## Upgrading from 3.x
+# Upgrading from 3.x
 
 **Most calling code needs nothing beyond the PHP version.** The query-building
-API is the one you already know: the same factory, the same `select()`,
+API is the one you already know: the same factory, the same `newSelect()`,
 `cols()`, `where()`, the same `getStatement()` and `getBindValues()`.
 
 What changed is that several situations which used to fail quietly, or fail
@@ -26,6 +26,11 @@ Work through these in order.
 ```
 composer require aura/sqlquery:^7.0
 ```
+
+While 7.0 is in beta, Composer will not pick a pre-release for that constraint
+under the default `stable` minimum stability. Ask for it explicitly with
+`^7.0@beta`, or lower `minimum-stability` in your `composer.json`, and move to
+plain `^7.0` once the stable release is out.
 
 The package still has no runtime dependencies.
 
@@ -118,10 +123,9 @@ is the usual case.
 This is the change most likely to surface in a working application, because
 what it catches is a query that was already wrong.
 
-When two different parts of one query bind different values to the same
-placeholder name, the package now throws
-_Aura\SqlQuery\Exception\LogicException_ instead of discarding one of the
-values:
+When two parts of one query bind the same placeholder name, the package now
+throws _Aura\SqlQuery\Exception\LogicException_ instead of letting one value
+overwrite the other:
 
 ```php
 <?php
@@ -145,15 +149,18 @@ $update->table('orders')
 ?>
 ```
 
-The check counts conditions separately per clause, so two WHERE conditions, or
-a WHERE and a HAVING, binding different values to one name is caught as well.
-Two halves of a union may share a name as long as they ask for the same value.
+`cols()` and a condition collide even when they bind the same value, since
+either may be revised afterwards, and so do a WHERE condition and a HAVING
+condition. Two conditions in the same clause may share a
+name as long as they bind it to the same value; binding it to different values
+throws. Two halves of a union may likewise share a name as long as they ask for
+the same value.
 
 Three particular cases are worth checking your code for:
 
-- **Separate `?` placeholders.** Two `?` bound by separate `where()` calls now
-  throw, because each is numbered from the start of its own values array and so
-  asks for the same name. This never worked -- both conditions rendered against
+- **Separate `?` placeholders.** Two `?` bound to different values by separate
+  `where()` calls now throw, because each is numbered from the start of its own
+  values array and so asks for the same name. This never worked -- both conditions rendered against
   one bound value and PDO rejected the statement at execute time -- so a query
   doing it was already broken. Several `?` in a single call are unaffected.
 
@@ -232,6 +239,23 @@ Sqlite Delete, and Sqlsrv Update and Delete, and `orReplace()` on Mysql Update,
 Pgsql Insert and Update, and Sqlsrv Insert and Update. These are refusals, not
 gaps: SQLite's DELETE grammar has no OR clause and Postgres has no REPLACE.
 
+Some combinations 3.x rendered into SQL the database rejects now throw
+_Exception\LogicException_ when the statement is built, whichever order the
+methods were called in:
+
+- On MySQL, `orReplace()` together with `highPriority()` or `ignore()`, since
+  `REPLACE` takes neither.
+- On MySQL, `orReplace()` together with `onDuplicateKeyUpdate()`,
+  `onDuplicateKeyUpdateCol()` or `onDuplicateKeyUpdateCols()`, since `REPLACE`
+  has no `ON DUPLICATE KEY UPDATE` clause.
+- On MySQL, two of `lowPriority()`, `highPriority()` and `delayed()` on one
+  _Insert_, which 3.x wrote side by side, as in `LOW_PRIORITY HIGH_PRIORITY`.
+- On SQLite, two of the `OR` conflict flags on one _Insert_ or _Update_, which
+  3.x wrote side by side, as in `OR REPLACE OR IGNORE`.
+
+An _Update_ with no columns to set also throws _Exception\LogicException_
+("No columns to update.") where 3.x failed with a `TypeError`.
+
 ### 6. Spell Insert-Ignore As ignore()
 
 `ignore()` is now the spelling on every dialect that supports it. Sqlite's
@@ -286,11 +310,6 @@ SQL does not surprise you.
 
 - The quoter recognises `#` as an identifier character, leaves the dot in a
   variable alone, and leaves an identifier you quoted yourself as you wrote it.
-
-- A union of three or more branches holds the placeholder names from every
-  branch, not only the most recent one, and a branch no longer holds a name
-  that appears solely inside its string literals, comments or quoted
-  identifiers.
 
 - A bulk insert combined with an upsert keeps the upsert's bound values;
   in 3.x finishing a row cleared every bound value, and `execute()` failed with
