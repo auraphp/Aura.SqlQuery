@@ -152,6 +152,24 @@ comes into another one -- as a sub-select bound to a placeholder, through
 its generated names are renumbered from the receiving query's own sequence, so
 two queries that each bind a list do not collide over `:__1__`.
 
+#### Mixing `?` And Named Placeholders
+
+A list is always written as named placeholders, so a query that keeps a `?`
+anywhere and has a `:name` anywhere else -- including the names generated for a
+list -- is a statement that mixes the two styles. `where('a = ? AND b IN (?)',
+[1, [2, 3]])` is one: it renders `a = ? AND b IN (:__1__, :__2__)`. Whether that
+runs depends on what executes it, not on this package:
+
+- PDO's own placeholder parser, which pdo_mysql and pdo_pgsql use, rejects it
+  at `prepare()` with `SQLSTATE[HY093]: Invalid parameter number: mixed named
+  and positional parameters`.
+- pdo_sqlite accepts the statement, but `execute($query->getBindValues())`
+  leaves the `?` unbound and reports nothing, so the query runs against `NULL`.
+- Aura.Sql's _ExtendedPdo_ rewrites the placeholders before PDO sees them, and
+  runs it.
+
+With plain PDO, use named placeholders throughout, or `?` alone with no lists.
+
 ### Bulk Insert Rows
 
 A bulk insert renames each row's placeholders, appending the row number: two

@@ -193,7 +193,11 @@ Four particular cases are worth checking your code for:
   one bound value and PDO rejected the statement at execute time -- so a query
   doing it was already broken. Several `?` in a single call are unaffected. A
   `?` in a `join()` condition counts too: it and a `?` in a `where()` are both
-  number 0, so use named placeholders in joins.
+  number 0, so use named placeholders in joins. And a `?` in a query that also
+  has a named placeholder -- a list bound to a `?` counts, since it is written
+  as generated names -- mixes the two styles, which plain PDO rejects on MySQL
+  and PostgreSQL and pdo_sqlite runs with the `?` unbound; see _Mixing `?` And
+  Named Placeholders_ in other.md. Aura.Sql's _ExtendedPdo_ runs it.
 
 - **Bulk inserts.** Each row's placeholders are renamed `<name>_<row>`, and
   those names are now tracked like any others. A condition binding `:status_0`
