@@ -439,6 +439,25 @@ class MysqlIntegrationTest extends AbstractIntegrationTest
         $this->assertSame(['Engineering', 'Sales'], array_column($rows, 'name'));
     }
 
+    /**
+     *
+     * MySQL takes the priority before IGNORE and rejects the other order, so
+     * the flags are written in that order whatever order they were set in.
+     *
+     */
+    public function testUpdateIgnoreWithPriority()
+    {
+        $update = $this->query_factory->newUpdate()
+            ->table('test_dept')
+            ->ignore()
+            ->lowPriority()
+            ->cols(['name' => 'Renamed'])
+            ->where('id = :old_id', ['old_id' => 2]);
+
+        $this->assertStatementContains('UPDATE LOW_PRIORITY IGNORE <<test_dept>>', $update);
+        $this->assertSame(1, $this->exec($update));
+    }
+
     public function testDeleteIgnore()
     {
         // a child row pointing at Engineering, so the delete below violates

@@ -11,6 +11,7 @@ namespace Aura\SqlQuery\Common;
 use Aura\SqlQuery\AbstractDmlQuery;
 use Aura\SqlQuery\Exception\BadMethodCallException;
 use Aura\SqlQuery\Exception\InvalidArgumentException;
+use Aura\SqlQuery\Exception\LogicException;
 
 /**
  *
@@ -37,7 +38,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @var string
      *
      */
-    protected $into;
+    protected ?string $into = null;
 
     /**
      *
@@ -46,7 +47,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @var string
      *
      */
-    protected $into_raw;
+    protected ?string $into_raw = null;
 
     /**
      *
@@ -54,10 +55,10 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * This is used to look up the right last-insert-id name for a given table
      * and column. Generally useful only for extended tables in Postgres.
      *
-     * @var array<string, string>|null
+     * @var array<string, string>
      *
      */
-    protected $last_insert_id_names;
+    protected array $last_insert_id_names = [];
 
     /**
      *
@@ -67,7 +68,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @var int
      *
      */
-    protected $row = 0;
+    protected int $row = 0;
 
     /**
      *
@@ -76,7 +77,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @var array<int, array<string, string>>
      *
      */
-    protected $col_values_bulk = [];
+    protected array $col_values_bulk = [];
 
     /**
      *
@@ -85,7 +86,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @var array<string, mixed>
      *
      */
-    protected $bind_values_bulk = [];
+    protected array $bind_values_bulk = [];
 
     /**
      *
@@ -97,7 +98,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @var array<string, string>
      *
      */
-    protected $bind_sources_bulk = [];
+    protected array $bind_sources_bulk = [];
 
     /**
      *
@@ -107,7 +108,7 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      * @var list<string>
      *
      */
-    protected $col_order = [];
+    protected array $col_order = [];
 
     /**
      *
@@ -147,9 +148,15 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      *
      * @return string
      *
+     * @throws LogicException when there is no table to insert into.
+     *
      */
     protected function build(): string
     {
+        if ($this->into === null) {
+            throw new LogicException('No table to insert into.');
+        }
+
         $stm = 'INSERT'
             . $this->builder->buildFlags($this->flags)
             . $this->builder->buildInto($this->into);
@@ -279,13 +286,14 @@ class Insert extends AbstractDmlQuery implements InsertInterface
      */
     public function addRows(array $rows): static
     {
-        foreach ($rows as $cols) {
-            $this->addRow($cols);
-        }
-        if ($this->row > 1) {
-            $this->finishRow();
-        }
-        return $this;
+        return $this->atomically(function () use ($rows): void {
+            foreach ($rows as $cols) {
+                $this->addRow($cols);
+            }
+            if ($this->row > 1) {
+                $this->finishRow();
+            }
+        });
     }
 
     /**
@@ -311,14 +319,15 @@ class Insert extends AbstractDmlQuery implements InsertInterface
             return $this->cols($cols);
         }
 
-        if (empty($this->col_order)) {
-            $this->col_order = array_keys($this->col_values);
-        }
+        return $this->atomically(function () use ($cols): void {
+            if (empty($this->col_order)) {
+                $this->col_order = array_keys($this->col_values);
+            }
 
-        $this->finishRow();
-        $this->row ++;
-        $this->cols($cols);
-        return $this;
+            $this->finishRow();
+            $this->row ++;
+            $this->cols($cols);
+        });
     }
 
     /**
@@ -448,6 +457,17 @@ class Insert extends AbstractDmlQuery implements InsertInterface
     {
         if (empty($this->col_values)) {
             return;
+        }
+
+        // a column the first row did not have has no place in the column
+        // list, so it would be dropped from the statement while its value
+        // stayed bound -- and the placeholder count would no longer match
+        foreach (array_keys($this->col_values) as $col) {
+            if (! in_array($col, $this->col_order, true)) {
+                throw new InvalidArgumentException(
+                    "Column $col in row {$this->row} is not in the first row."
+                );
+            }
         }
 
         foreach ($this->col_order as $col) {

@@ -29,7 +29,7 @@ class QueryFactory
      * @var string
      *
      */
-    protected $db;
+    protected string $db;
 
     /**
      *
@@ -38,7 +38,7 @@ class QueryFactory
      * @var bool
      *
      */
-    protected $common = false;
+    protected bool $common = false;
 
     /**
      *
@@ -47,7 +47,7 @@ class QueryFactory
      * @var array<string, string>
      *
      */
-    protected $last_insert_id_names = [];
+    protected array $last_insert_id_names = [];
 
     /**
      *
@@ -56,7 +56,7 @@ class QueryFactory
      * @var Common\QuoterInterface|null
      *
      */
-    protected $quoter;
+    protected ?Common\QuoterInterface $quoter = null;
 
     /**
      *
@@ -147,6 +147,9 @@ class QueryFactory
      *
      * @return Common\SelectInterface|Common\InsertInterface|Common\UpdateInterface|Common\DeleteInterface
      *
+     * @throws Exception\InvalidArgumentException when there are no query
+     * objects for the database type.
+     *
      */
     protected function newInstance(string $query): Common\SelectInterface|Common\InsertInterface|Common\UpdateInterface|Common\DeleteInterface
     {
@@ -155,9 +158,12 @@ class QueryFactory
             $queryClass = "Aura\SqlQuery\Common\\{$query}";
         }
 
-        $builderClass = "Aura\SqlQuery\\{$this->db}\\{$query}Builder";
-        if ($this->common || ! class_exists($builderClass)) {
-            $builderClass = "Aura\SqlQuery\Common\\{$query}Builder";
+        // a named exception rather than PHP's error for a missing class
+        if (! class_exists($queryClass)) {
+            throw new Exception\InvalidArgumentException(
+                "Unknown database type '" . strtolower($this->db) . "'; "
+                . "expected 'mysql', 'pgsql', 'sqlite', 'sqlsrv', or 'common'."
+            );
         }
 
         return new $queryClass(

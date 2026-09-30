@@ -39,7 +39,7 @@ class Select extends Common\Select
      * @see Common\Select::$text_pattern
      *
      */
-    protected $text_pattern = "'(?:[^'\\\\]|''|\\\\.)*+'|--(?:[ \t\r\n][^\n]*|$)|#[^\n]*|\/\*.*?\*\/";
+    protected string $text_pattern = "'(?:[^'\\\\]|''|\\\\.)*+'|--(?:[ \t\r\n][^\n]*|$)|#[^\n]*|\/\*.*?\*\/";
 
     /**
      *

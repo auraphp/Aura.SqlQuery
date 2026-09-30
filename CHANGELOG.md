@@ -2,36 +2,24 @@
 
 ## 7.0.0 (unreleased)
 
-- [BRK] Every method declares a native return type, the two constructors
-  aside, where PHP allows none. As with the parameters, the type is the one
-  the docblock already claimed, which for the 155 methods documented
-  `@return $this` means `static` -- 166 declare it once the handful already
-  saying `static` are counted in. A subclass overriding any of them has to
-  declare `static` too, or it will fatal on load. Callers get a type they can
-  rely on where before they had a promise in a comment.
+The first release of the 7.x line. The version jumps from 3.x to 7.x, so that
+the Aura packages released together share a major version; there is no 4.x,
+5.x or 6.x of this package. docs/upgrading.md works through the breaking
+changes below as ordered steps.
 
-  Three docblocks turned out to be wrong rather than merely absent, and the
-  declaration follows the code. Quoter::quoteNamesIn() and replaceNamesIn()
-  return a string, not `string|array` -- that was left over from when they
-  took mixed input, and neither has for some time. getLastInsertIdName()
-  returns `string|null`, not `mixed`; the map it reads holds strings, and
-  the fall-through when the key is absent is now the `return null` that a
-  declared type requires to be spelled out. Its behaviour is unchanged --
-  the test asserting null for the default case is the one that caught it.
+### Breaking
 
-- [CHG] PHPStan runs at level 6, up from 5, which is what the typing work was
-  for. Getting there wanted seven array value types in docblocks rather than
-  any change to the code: the four dialect orderBy() overrides now say
-  `array<array-key, string>` the way OrderByInterface and Common\Select
-  already did, indent() and indentCsv() say `list<string>`, and
-  getListForQuoteNamesIn() says what its preg_split() returns. Level 7 is the
-  next step and wants real narrowing at the union types, so it waits for a
-  change that does that work.
+- [BRK] Bumped the minimum version to PHP 8.4; the CI matrix now covers
+  PHP 8.4 and 8.5.
 
-- [BRK] Every parameter in the package declares a native type, taken from the
-  type its docblock already claimed. A userland class overriding, say,
-  Quoter::quoteName($spec) must declare a matching signature or it will fatal
-  on load.
+- [BRK] Every parameter and every method return declares a native type, taken
+  from the type its docblock already claimed; only the two constructors,
+  where PHP allows no return type, are without one. A userland class
+  overriding, say, Quoter::quoteName($spec) or Select::limit() must declare a
+  matching signature or it will fatal on load. For the methods documented
+  `@return $this`, that means `static`: 166 methods declare it, so a subclass
+  overriding any of them has to declare `static` too. Callers get a type they
+  can rely on where before they had a promise in a comment.
 
   How this lands on calling code depends on the calling file, not on this
   package: strict_types is declared by the caller and governs the calls made
@@ -41,8 +29,9 @@
   From a file without `declare(strict_types=1)` -- the historical default --
   PHP coerces a scalar at the boundary the way it always has, and `limit('5')`
   still means `LIMIT 5`. Only a value that cannot coerce is new: `limit('abc')`
-  throws a TypeError where the cast inside used to make it `LIMIT 0` without
-  a word. Those casts are gone, the declaration having taken their job.
+  throws a TypeError where the cast inside used to make it zero, which
+  dropped the LIMIT without a word. Those casts are gone, the declaration
+  having taken their job.
 
   From a file with `declare(strict_types=1)`, every one of these calls is
   strict, so a scalar must already be the declared type: `limit('5')` throws
@@ -52,70 +41,56 @@
 
   Two parameters are wider than their docblock said rather than narrower:
   fromSubSelect() and joinSubSelect() take string|SelectInterface, not
-  string|Select. That is what the code already accepted -- subSelect() has
-  taken the interface all along -- and the docblocks now say so.
+  string|Select, which is what the code already accepted. Three docblocks
+  were wrong, and the declaration follows the code: Quoter::quoteNamesIn()
+  and replaceNamesIn() return a string, not `string|array`, and
+  getLastInsertIdName() returns `string|null`, not `mixed`, which also
+  narrows that method on InsertInterface.
 
-  Return types are a separate change; the parameters come first because they
-  are what a subclass must match.
+  Protected methods changed shape as well, for subclasses that override
+  them: subSelect() moved from Common\Select up to AbstractQuery and takes a
+  `$source` argument, and rebuildCondAndBindValues() takes a `$clause`
+  argument.
 
-- [ADD] INSERT, UPDATE and DELETE queries take common table expressions too,
-  via the same with() and withRecursive():
+- [BRK] Every property declares a native type, bar `$builder`: each query
+  class narrows that one to its own builder in a docblock, which a native
+  type -- invariant in PHP -- would not allow. A subclass redeclaring a
+  property has to declare the same type. The properties that were null until
+  set -- the INSERT, UPDATE and DELETE table and the conflict target -- are
+  nullable; the last-insert-id names and the ON DUPLICATE KEY UPDATE values
+  start as empty arrays rather than null.
 
-        $delete->with('seniors', $seniors)
-               ->from('employee')
-               ->where('id IN (SELECT id FROM seniors)');
+- [BRK] The interfaces gained methods an implementation outside this package
+  has to add. SelectInterface, InsertInterface, UpdateInterface and
+  DeleteInterface all extend the new WithInterface (with(),
+  withRecursive(), resetWith(), hasWith()); extending the concrete query, or
+  using Common\WithTrait, supplies them. SelectInterface::union() and
+  unionAll() take an optional `?SelectInterface $select`, and join() and
+  joinSubSelect() take the `array $bind = []` their implementations and
+  innerJoin()/leftJoin() already had. SelectInterface::reset() returns
+  `static`, like every other reset method, rather than void. QueryInterface
+  declares resetBindValues(), which every query already had. Pgsql\Insert
+  and Sqlite\Insert implement the new Common\OnConflictUpdateInterface.
 
-  The clause is the one SELECT already had -- WithTrait moved up to
-  AbstractDmlQuery and buildWith() to Common\AbstractBuilder -- so a CTE
-  behaves the same wherever it is written: the sub-select is rendered on the
-  spot with the values it bound, RECURSIVE is spelled once for the clause,
-  and resetWith() releases the names.
+- [BRK] AbstractQuery::getStatement() is abstract. Select and
+  AbstractDmlQuery both write clauses above the ones build() renders -- the
+  union branches, the WITH clause -- so nothing was left for the base
+  implementation to do, and a query type extending AbstractQuery directly now
+  says how its statement is assembled rather than inheriting
+  `return $this->build();`.
 
-  MySQL is the one dialect that takes no WITH on INSERT: it allows a CTE only
-  inside the SELECT an `INSERT ... SELECT` draws from, which this package does
-  not build, so Mysql\Insert::with() throws BadMethodCallException rather than
-  building a statement that could only fail at execute time. UPDATE and DELETE
-  are unaffected there. SQL Server still infers the recursion and rejects the
-  keyword, so withRecursive() renders a plain WITH on all four query types.
-  Fixes #261.
-
-- [BRK] InsertInterface, UpdateInterface and DeleteInterface extend
-  WithInterface, the way SelectInterface already did. Nothing shipped by this
-  package changes hands, but an implementation of one of those interfaces
-  outside it now has four more methods to declare; extending the concrete
-  query, or using Common\WithTrait, supplies them.
-
-- [BRK] AbstractQuery::getStatement() is abstract. Select and AbstractDmlQuery
-  both write clauses above the ones build() renders -- the union branches, the
-  WITH clause -- so nothing was left for the base implementation to do, and a
-  query type extending AbstractQuery directly now says how its statement is
-  assembled rather than inheriting `return $this->build();`.
-
-- [ADD] SELECT queries take common table expressions, via with() and
-  withRecursive():
-
-        $select->with('well_paid', $earners)
-               ->cols(['name'])
-               ->from('well_paid');
-
-  The CTE is given as a Select or as a raw string, with an optional column
-  list, and a Select is rendered on the spot the way a branch passed to
-  union() is; the values it bound come with it. RECURSIVE belongs to the
-  clause rather than to one CTE, so a statement mixing recursive and plain
-  members spells it once. SQL Server infers the recursion and rejects the
-  keyword, so withRecursive() renders a plain WITH there and the same PHP is
-  valid on every dialect.
-
-  A CTE belongs to the statement rather than to a branch, so it survives the
-  reset union() performs and is written once above every branch. The names it
-  binds stay claimed for as long as it is defined, and one other clause may
-  ask for a name when it wants the value already bound -- in either order,
-  since a CTE is written at the top of the statement whenever with() is
-  called. Asking for a second value still throws, and resetWith() releases
-  the names along with the clause. A branch passed to union() may not bring
-  a WITH clause of its own, which would render as `UNION WITH ... SELECT`;
-  it is reported rather than built. union() is otherwise unchanged.
-  Fixes #130.
+- [BRK] The package now throws concrete exceptions from the new
+  Aura\SqlQuery\Exception namespace — LogicException,
+  BadMethodCallException, and InvalidArgumentException — each extending
+  its SPL counterpart and implementing the new
+  Aura\SqlQuery\ExceptionInterface marker (extends \Throwable), which is
+  the recommended catch-all. Aura\SqlQuery\Exception is now a deprecated
+  interface extending that marker, so existing `catch
+  (Aura\SqlQuery\Exception $e)` blocks keep working until its removal in
+  8.x; since every SPL parent used derives from \LogicException, `catch
+  (\LogicException $e)` also catches everything. Code that instantiated
+  or subclassed Aura\SqlQuery\Exception directly must switch to one of
+  the concrete classes. Fixes #151.
 
 - [BRK] Two different parts of one query claiming the same placeholder name
   now throws Aura\SqlQuery\Exception\LogicException instead of silently
@@ -149,7 +124,10 @@
   placeholder as long as they ask for the same value -- the same tenant id
   either side of the union is not a collision -- but only one clause per
   branch may do so, and resetUnions() then leaves the name with that clause
-  rather than freeing it.
+  rather than freeing it. The names are held for every branch of a union,
+  however many there are, and only the names a branch's SQL actually spells
+  count: one inside a string literal, a comment or a quoted identifier does
+  not, read by each dialect's own quoting rules.
 
   Two consequences worth calling out. A sub-select's bound values are claimed
   by the clause it is rendered into -- fromSubSelect() and joinSubSelect()
@@ -160,21 +138,7 @@
   numbered from the start of their own values array and so ask for the same
   name; this never worked, since the two conditions rendered against a single
   bound value and PDO rejected the statement at execute time. Several `?` in
-  one call are unaffected. Fixes #238.
-
-- [BRK] Bumped the minimum version to PHP 8.4; the CI matrix now covers
-  PHP 8.4 and 8.5.
-
-- [CHG] Migrated the test suite to PHPUnit 12 (replacing
-  yoast/phpunit-polyfills).
-
-- [CHG] Added an `integration` test suite that executes the generated SQL
-  against real MySQL, PostgreSQL and SQL Server servers (in addition to
-  SQLite), so dialect output is proven to run and not merely to match a
-  string. CI runs it against MySQL 8.4/8.0, Postgres 17/15 and SQL Server
-  2022/2019 service containers. Locally those cases skip unless
-  `DB_MYSQL_DSN` / `DB_PGSQL_DSN` / `DB_SQLSRV_DSN` are set; see
-  CONTRIBUTING.md.
+  one call are unaffected. Fixes #238, #248.
 
 - [BRK] The placeholder names a bulk insert generates are now tracked like
   any others. Each row's placeholders are renamed `<name>_<row>`, and those
@@ -189,80 +153,68 @@
   Binding by hand with bindValue() is unaffected and now correctly overwrites
   a row's value, where before the banked value won regardless. Fixes #241.
 
-- [FIX] A bulk insert combined with an upsert no longer loses the upsert's
-  bound values. Finishing a row cleared every bound value, not just that
-  row's, and building the statement finishes the last row -- so
-  `cols(['a' => 1])->addRow(['a' => 2])->onDuplicateKeyUpdateCol('a', 3)`
-  rendered `:a__on_duplicate_key` while binding only `a_0` and `a_1`, and
-  execute() failed with `HY093: Invalid parameter number`. The same applied
-  to Postgres and SQLite `doUpdateCol()` and to `doUpdateWhere()`
-  conditions. Part of #241; the remaining half of that issue, bulk
-  placeholders bypassing collision tracking, is still open.
+- [BRK] A table-qualified column gets a placeholder PDO can read: `col('t.a',
+  1)` binds `:t_a` rather than `:t.a`, which PDO parsed as `:t` followed by
+  `.a`. The same goes for doUpdateCol() (`:t_a__on_conflict`) and
+  onDuplicateKeyUpdateCol(). Code that bound such a column's value by hand
+  under the dotted name must use the underscored one.
 
-- [FIX] A union of three or more branches now holds the placeholder names
-  from every branch, not just the one most recently retained. A third
-  branch could bind `:a` to a value of its own while the first branch's
-  rendered SQL still read `a = :a`, overwriting what that branch needed
-  with nothing reported -- the silent overwrite the placeholder tracking
-  above exists to prevent, arriving one branch later. The claims are
-  rebuilt from the retained SQL on each `union()`, and only the newest
-  branch was being read. Two-branch unions were unaffected. As elsewhere,
-  branches may share a name so long as they share its value. Fixes #248.
+- [BRK] Queries that cannot be built, or that would build SQL the database
+  rejects, now throw where they used to render something. Each is listed in
+  step 5 of docs/upgrading.md:
+  - an INSERT, UPDATE or DELETE with no table (LogicException; this was a
+    TypeError from the builder, and `UPDATE  SET ...` in 3.x);
+  - an UPDATE with no columns (LogicException, where it was a TypeError);
+  - forUpdate() on SQLite and SQL Server, which have no FOR UPDATE
+    (BadMethodCallException);
+  - a condition on a NATURAL join, or on a CROSS join except on MySQL, where
+    the two are synonyms (LogicException);
+  - a later bulk-insert row with a column the first row does not have
+    (InvalidArgumentException, where the column was dropped and its value
+    left bound);
+  - a list or sub-select for a `?` placeholder the condition does not have
+    (InvalidArgumentException);
+  - a column or alias given to Select::cols() that is not a string
+    (InvalidArgumentException);
+  - an unknown database type, from the factory's new*() methods
+    (InvalidArgumentException, where it was PHP's missing-class error).
 
-- [FIX] A union branch no longer holds a placeholder name that only its
-  string literals, comments or quoted identifiers spell. `where("name =
-  ':a'")` binds nothing by that name, and holding it reported a collision
-  against the next branch's legitimate `:a`. All three are passed over
-  before the names are read, each dialect by its own rules -- on MySQL a
-  backslash escapes the quote after it and a `#` begins a comment, where the
-  standard reading gives a backslash no such power, and a name is quoted
-  with backticks there, brackets on SQL Server, double quotes elsewhere.
+### Added
 
-  The forms read are the ordinary ones, and the reading stops where the
-  dialects part company: a Postgres dollar-quoted or `E''` string, a MySQL
-  string in double quotes, a SQL Server name in double quotes, and a nested
-  block comment are all left as SQL, as is anything unterminated. Each keeps
-  the names it spells, which costs at worst the needless collision report
-  this fix is about, where losing a name the branch does bind would let a
-  later branch overwrite the SQL silently -- so every doubtful reading falls
-  that way on purpose.
+- [ADD] Every query type takes common table expressions, via with() and
+  withRecursive():
 
-- [FIX] Naming several tables in one string no longer produces an identifier
-  no database has. `from('t1, t2')` was read as a name and its alias and
-  quoted whole, giving `"t1," "t2"`; a Select now builds the list, quoting
-  and reference-checking each table, so it is the same as calling `from()`
-  once per table. An identifier you quoted yourself is left as you wrote it,
-  as it already was inside expressions, so a comma within it stays part of
-  the name.
+        $select->with('well_paid', $earners)
+               ->cols(['name'])
+               ->from('well_paid');
 
-  Update::table() and Delete::from() take a single table and now throw
-  Aura\SqlQuery\Exception\LogicException for a list, naming the sub-select
-  alternative. There is no portable statement to build: MySQL writes a
-  multi-table update as `UPDATE a, b SET ...`, PostgreSQL and SQLite as
-  `UPDATE a SET ... FROM b`, and SQL Server as `UPDATE a SET ... FROM a JOIN
-  b`, while `DELETE FROM a, b` is valid nowhere. Fixes #160.
+        $delete->with('seniors', $seniors)
+               ->from('employee')
+               ->where('id IN (SELECT id FROM seniors)');
 
-- [FIX] An Insert with no columns no longer throws a TypeError; it now
-  renders `INSERT INTO t DEFAULT VALUES` (or `INSERT INTO t () VALUES ()`
-  on MySQL, which does not support DEFAULT VALUES), letting the database
-  apply column defaults. Fixes #149.
+  The CTE is given as a Select or as a raw string, with an optional column
+  list, and a Select is rendered on the spot the way a branch passed to
+  union() is; the values it bound come with it. RECURSIVE belongs to the
+  clause rather than to one CTE, so a statement mixing recursive and plain
+  members spells it once. SQL Server infers the recursion and rejects the
+  keyword, so withRecursive() renders a plain WITH there and the same PHP is
+  valid on every dialect.
 
-- [BRK] The package now throws concrete exceptions from the new
-  Aura\SqlQuery\Exception namespace — LogicException,
-  BadMethodCallException, and InvalidArgumentException — each extending
-  its SPL counterpart and implementing the new
-  Aura\SqlQuery\ExceptionInterface marker (extends \Throwable), which is
-  the recommended catch-all. Aura\SqlQuery\Exception is now a deprecated
-  interface extending that marker, so existing `catch
-  (Aura\SqlQuery\Exception $e)` blocks keep working until its removal in
-  8.x; since every SPL parent used derives from \LogicException, `catch
-  (\LogicException $e)` also catches everything. Code that instantiated
-  or subclassed Aura\SqlQuery\Exception directly must switch to one of
-  the concrete classes. Fixes #151.
+  A CTE belongs to the statement rather than to a branch, so it survives the
+  reset union() performs and is written once above every branch. The names it
+  binds stay claimed for as long as it is defined, and one other clause may
+  ask for a name when it wants the value already bound -- in either order,
+  since a CTE is written at the top of the statement whenever with() is
+  called. Asking for a second value still throws, and resetWith() releases
+  the names along with the clause. A branch passed to union() may not bring
+  a WITH clause of its own, which would render as `UNION WITH ... SELECT`;
+  it is reported rather than built.
 
-- [FIX] The quoter no longer treats an `AS` inside an expression (e.g.
-  `cast(col as varchar)`) as a column alias, which produced misquoted
-  SQL. Fixes #157.
+  MySQL is the one dialect that takes no WITH on INSERT: it allows a CTE only
+  inside the SELECT an `INSERT ... SELECT` draws from, which this package does
+  not build, so Mysql\Insert::with() throws BadMethodCallException rather than
+  building a statement that could only fail at execute time. Fixes #130,
+  #261.
 
 - [ADD] `union()` and `unionAll()` now accept a Select as the next branch,
   so branches that differ only in part can be built from one another
@@ -298,14 +250,11 @@
   lives in the new Common\LateralJoinTrait. A LATERAL join needs an `ON`
   clause on every join type except CROSS and NATURAL, so when no
   condition is given for the other join types, `ON true` is rendered.
-  Conversely, passing a condition to a join type that rejects an `ON`
-  clause now throws Aura\SqlQuery\Exception\LogicException rather than
-  building a statement that could only fail at execute time; that means
-  NATURAL on both dialects, plus CROSS on PostgreSQL, which MySQL allows
-  because CROSS and INNER are synonyms there. Note that LATERAL requires
-  MySQL 8.0.14 or later, and that MariaDB does not support it at all
-  despite sharing the `mysql` query objects. Thanks to @golgote for the
-  original implementation in #184.
+  Passing a condition to a join type that rejects an `ON` clause throws
+  Aura\SqlQuery\Exception\LogicException, as it now does for every join.
+  Note that LATERAL requires MySQL 8.0.14 or later, and that MariaDB does
+  not support it at all despite sharing the `mysql` query objects. Thanks
+  to @golgote for the original implementation in #184.
 
 - [ADD] Insert-ignore is now spelled `ignore()` on every dialect that
   supports it: Mysql\Insert renders `INSERT IGNORE` and Sqlite\Insert
@@ -313,17 +262,19 @@
   `ignore()`, rendering the Postgres equivalent `ON CONFLICT DO NOTHING`
   (before any RETURNING clause); and Sqlite\Update gains `ignore()`
   matching Mysql\Update. The Sqlite `orIgnore()` methods remain as
-  deprecated aliases. Sqlsrv, which has no equivalent, keeps throwing
-  Exception\BadMethodCallException. Fixes #172; related to #158.
+  deprecated aliases, to be removed in 8.x. Sqlsrv, which has no
+  equivalent, keeps throwing Exception\BadMethodCallException. Fixes #172;
+  related to #158.
 
-- [ADD] Pgsql\Insert and Sqlite\Insert gain an upsert API:
-  `onConflict()` sets the conflict target (a column, an array of columns,
-  or `ON CONSTRAINT <name>`), and `doUpdateCol()`, `doUpdateCols()`,
+- [ADD] Pgsql\Insert and Sqlite\Insert gain an upsert API, declared by the
+  new Common\OnConflictUpdateInterface: `onConflict()` sets the conflict
+  target (a column, a list of columns as an array or a comma-separated
+  string, or `ON CONSTRAINT <name>`), and `doUpdateCol()`, `doUpdateCols()`,
   `doUpdate()` and `doUpdateWhere()` build the `DO UPDATE SET` clause.
   `doUpdateCols()` refers to the proposed row through the `excluded`
   pseudo-table, `doUpdateCol()` binds a separate value, and `doUpdate()`
-  takes a raw expression. The two dialects share Common\OnConflictUpdate
-  Trait and Common\BuildOnConflictTrait, since SQLite adopted the Postgres
+  takes a raw expression. The two dialects share Common\OnConflictUpdateTrait
+  and Common\BuildOnConflictTrait, since SQLite adopted the Postgres
   grammar in 3.24. Both databases require a conflict target for DO UPDATE,
   and combining `ignore()` with the doUpdate methods is contradictory;
   either throws Exception\LogicException at build time. On SQLite the
@@ -332,14 +283,16 @@
   Note that a raw `doUpdate()` expression must qualify any column it names
   on Postgres, which reads a bare name as ambiguous between the target
   table and `excluded`; SQLite accepts either. The `ON CONSTRAINT <name>`
-  conflict target is Postgres-only -- SQLite accepts a column list and
-  nothing else, and rejects that syntax -- so passing it to Sqlite\Insert
-  throws Exception\BadMethodCallException instead of building SQL the
-  database cannot parse. An empty target -- `onConflict([])`,
+  conflict target is Postgres-only, so passing it to Sqlite\Insert throws
+  Exception\BadMethodCallException. An empty target -- `onConflict([])`,
   `onConflict('')`, a blank column in the array, or the bare keyword
   `ON CONSTRAINT` -- throws Exception\InvalidArgumentException, rather than
-  rendering `ON CONFLICT ()` for the database to reject. Addresses the
-  Postgres half of #124.
+  rendering `ON CONFLICT ()` for the database to reject, and so does an
+  index expression such as `lower(email)`, which cannot be quoted as a
+  name; name the unique index's constraint instead. Addresses the Postgres
+  half of #124.
+
+### Changed
 
 - [CHG] Calling `ignore()`, `orReplace()` or the upsert methods on a
   dialect that does not support them now throws
@@ -353,6 +306,102 @@
   than gaps to fill -- SQLite's DELETE grammar has no OR clause, and
   Postgres has no REPLACE. `orReplace()` on a Delete remains undefined on
   every dialect, since no dialect has such a flag there.
+
+- [CHG] Modifier flags are written in one fixed order rather than the order
+  their methods were called in. MySQL requires it for INSERT and UPDATE,
+  where the priority comes before IGNORE -- `ignore()->lowPriority()` built
+  `UPDATE IGNORE LOW_PRIORITY`, which MySQL rejects -- and the other
+  statements take their options in any order, so the one order suits them
+  all. A MySQL SELECT with several flags now renders them as DISTINCT,
+  HIGH_PRIORITY, STRAIGHT_JOIN, the SQL_* result and cache options, then
+  SQL_CALC_FOUND_ROWS.
+
+- [CHG] A method that fails part-way leaves the query as it was. where(),
+  having(), the join methods, fromSubSelect(), union(), with(), the column
+  methods, the upsert methods and addRows() used to keep whatever they had
+  done before the exception -- an appended union branch, a table reference,
+  a column, or values bound before the colliding one -- so a caller catching
+  it held a query whose next statement bound the wrong values or claimed
+  names for SQL it did not contain.
+
+- [CHG] The test suite runs on PHPUnit 12 (replacing yoast/phpunit-polyfills),
+  and PHPStan checks the source at level 6 in CI.
+
+- [CHG] Added an `integration` test suite that executes the generated SQL
+  against real MySQL, PostgreSQL and SQL Server servers (in addition to
+  SQLite), so dialect output is proven to run and not merely to match a
+  string. CI runs it against MySQL 8.4/8.0, Postgres 17/15 and SQL Server
+  2022/2019 service containers. Locally those cases skip unless
+  `DB_MYSQL_DSN` / `DB_PGSQL_DSN` / `DB_SQLSRV_DSN` are set; see
+  CONTRIBUTING.md.
+
+### Fixed
+
+- [FIX] Combining two queries that each bound an array no longer loses one
+  of the arrays. Each query named the placeholders it generates for an array
+  `:__1__`, `:__2__` and so on from one, so a sub-select, a union branch, a
+  CTE, a FROM or JOIN sub-select, or a clone combined with its original held
+  the same names as the query it was combined with, and one set of values
+  silently replaced the other. The names a sub-select brings are now renamed
+  from the receiving query's own sequence as it is taken in.
+
+- [FIX] Placeholders in a condition are matched as whole names. `:id` no
+  longer rewrites the start of `:id_2` when it is given an array, and a
+  sub-select given for `:s` no longer rewrites `:s2`; neither did anything
+  but corrupt the statement. `x::int` is not read as a placeholder, and a
+  `?` or `:name` inside a string literal or a quoted identifier is left as
+  written.
+
+- [FIX] Arrays for `?` placeholders land on the right one. Each array
+  replaced its `?` by counting every value given, named or not, and every
+  `?` in the condition, including those already replaced, so two lists in
+  one condition -- `a IN (?) AND b IN (?)` -- or a list after a named value
+  wrote the list in the wrong place and raised warnings.
+
+- [FIX] OFFSET without LIMIT builds SQL the dialect accepts: `LIMIT -1
+  OFFSET n` on SQLite and `LIMIT 18446744073709551615 OFFSET n` on MySQL,
+  neither of which has OFFSET alone, and `OFFSET n ROWS` with no `FETCH NEXT
+  0 ROWS` on SQL Server. The MySQL and SQLite builders that carry this are
+  new, and set the new AbstractBuilder::NO_LIMIT constant.
+
+- [FIX] Select::cols() no longer reads the word after DISTINCT or ALL as an
+  alias -- `cols(['DISTINCT a'])` rendered `DISTINCT AS "a"` -- and a null
+  or empty alias in `cols(['a' => null])` means none rather than `AS ""`.
+
+- [FIX] A select column whose expression has a space inside parentheses,
+  such as `COUNT(DISTINCT t1.c1)`, is no longer split into a column and an
+  alias; it rendered as `COUNT(DISTINCT AS ...)`. The implicit-alias form
+  still works after a balanced call (`COUNT(*) tally`). Fixes the rest of
+  #226.
+
+- [FIX] A bulk insert combined with an upsert no longer loses the upsert's
+  bound values. Finishing a row cleared every bound value, not just that
+  row's, and building the statement finishes the last row -- so
+  `cols(['a' => 1])->addRow(['a' => 2])->onDuplicateKeyUpdateCol('a', 3)`
+  rendered `:a__on_duplicate_key` while binding only `a_0` and `a_1`, and
+  execute() failed with `HY093: Invalid parameter number`. The same applied
+  to Postgres and SQLite `doUpdateCol()` and to `doUpdateWhere()`
+  conditions. Part of #241.
+
+- [FIX] Naming several tables in one string no longer produces an identifier
+  no database has. `from('t1, t2')` was read as a name and its alias and
+  quoted whole, giving `"t1," "t2"`; a Select now builds the list, quoting
+  and reference-checking each table, so it is the same as calling `from()`
+  once per table. An identifier you quoted yourself is left as you wrote it,
+  as it already was inside expressions, so a comma within it stays part of
+  the name.
+
+  Update::table() and Delete::from() take a single table and now throw
+  Aura\SqlQuery\Exception\LogicException for a list, naming the sub-select
+  alternative. There is no portable statement to build: MySQL writes a
+  multi-table update as `UPDATE a, b SET ...`, PostgreSQL and SQLite as
+  `UPDATE a SET ... FROM b`, and SQL Server as `UPDATE a SET ... FROM a JOIN
+  b`, while `DELETE FROM a, b` is valid nowhere. Fixes #160.
+
+- [FIX] An Insert with no columns no longer throws a TypeError; it now
+  renders `INSERT INTO t DEFAULT VALUES` (or `INSERT INTO t () VALUES ()`
+  on MySQL, which does not support DEFAULT VALUES), letting the database
+  apply column defaults. Fixes #149.
 
 - [FIX] Mysql\Insert::orReplace() combined with highPriority() or ignore()
   built `REPLACE HIGH_PRIORITY INTO` / `REPLACE IGNORE INTO`, which MySQL
@@ -383,6 +432,10 @@
   built, on both Sqlite\Insert and Sqlite\Update; switching clauses still
   works by turning the first one off.
 
+- [FIX] The quoter no longer treats an `AS` inside an expression (e.g.
+  `cast(col as varchar)`) as a column alias, which produced misquoted
+  SQL. Fixes #157.
+
 - [FIX] The quoter now recognizes `#` as an identifier character (legal
   on DB2 / IBM i, in any position), so `table.col#` quotes as
   `"table"."col#"` instead of the broken `"table"."col"#`. Fixes #177.
@@ -403,11 +456,42 @@
   (double quotes) were unaffected; MySQL (backticks) and SQL Server
   (brackets) were not. Reported in #183.
 
-- [CHG] An Update with no columns now throws
-  Aura\SqlQuery\Exception\LogicException with
-  a clear message, instead of a TypeError; an UPDATE with an empty SET
-  clause has no meaning. This matches the existing Select behavior of
-  throwing when no columns are given.
+## 3.0.0
+
+The 3.x line, released alongside 2.8.1; its notes were published only as a
+GitHub release until now.
+
+- [BRK] The query builder logic moved out of the query objects into separate
+  builder classes, one per query type and dialect where they differ. #131
+- [BRK] The SubSelect interface is removed; sub-selects are typehinted on
+  SelectInterface. #133
+- [BRK] where(), having() and the other conditions take named placeholders,
+  with their values passed as an array rather than as trailing arguments.
+  #134, #114
+- [ADD] where() and having() conditions can be grouped in parentheses by
+  passing a closure. #136
+- [ADD] Conditions accept an array value for an `IN (:name)` placeholder,
+  which is expanded to one placeholder per element. #162, #198
+- [ADD] Insert::orReplace(), and ignore() on Common\Insert. #115, #173
+- [ADD] insert->col() and update->col() take a variable argument list. #111
+- [CHG] The quoter was rewritten, and a database-specific quoter is used
+  whenever one exists. #132, #141
+- [CHG] limit()/offset() and where()/orWhere() share their code through
+  traits; SelectInterface gained the public methods it was missing. #112,
+  #116, #120
+- [FIX] Bad use of strripos in the quoter. #206
+- PHP 5.6 through 8.2 supported; HHVM dropped. #153, #195, #204
+
+## 2.8.1
+
+- [FIX] Bad use of strripos in the quoter. #206, #207
+
+## 2.8.0
+
+- [ADD] Array parameters are split into one placeholder per element, fixing
+  the "Array to string conversion" error from PDO. #127
+- [FIX] Corrected a preg_split() call. #190
+- PHP 5.4 through 8.1 supported in CI; HHVM dropped. #154, #203
 
 ## 2.7.1
 

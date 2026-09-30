@@ -24,7 +24,7 @@ class Quoter implements QuoterInterface
      * @var string
      *
      */
-    protected $quote_name_prefix = '"';
+    protected string $quote_name_prefix = '"';
 
     /**
      *
@@ -33,7 +33,7 @@ class Quoter implements QuoterInterface
      * @var string
      *
      */
-    protected $quote_name_suffix = '"';
+    protected string $quote_name_suffix = '"';
 
     /**
      *

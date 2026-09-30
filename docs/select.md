@@ -21,12 +21,20 @@ $select->cols([
         'name AS namecol',          // one way of aliasing
         'col_name' => 'col_alias',  // another way of aliasing
         'COUNT(foo) AS foo_count'   // embed calculations directly
-    ])
+    ]);
 ```
+
+A column given as the key of the array is aliased by its value; a `null` or
+empty-string value means no alias, so `'col_name' => null` is the same as
+`'col_name'`. A column or alias that is not a string throws
+`Aura\SqlQuery\Exception\InvalidArgumentException`. A column beginning with
+`DISTINCT`, as in `'DISTINCT col_name'`, is written as given rather than read
+as `DISTINCT` aliased to `col_name`.
 
 Other related methods:
 
-- `removeCol($alias) : null` -- Removes a column from the SELECT.
+- `removeCol($alias) : bool` -- Removes a column from the SELECT; returns
+  `false` if there was no such column.
 - `hasCol($alias) : bool` -- Will a column be SELECTed with this query?
 - `hasCols() : bool` -- Does the SELECT have any columns in it at all?
 - `getCols() : array` -- Returns the columns named in the SELECT.
@@ -37,7 +45,7 @@ Other related methods:
 To add a FROM clause, call the `from()` method as needed:
 
 ```php
-// FROM foo, "bar" as "b"
+// FROM "foo", "bar" AS "b"
 $select
     ->from('foo')           // table name
     ->from('bar AS b');     // alias the table as desired
@@ -85,7 +93,7 @@ This allows you to create an entire SELECT query and use it as a subselect.
 To add a JOIN clause, call the `join()` method as needed:
 
 ```php
-// LEFT JOIN doom AS d ON foo.id = d.foo_id
+// LEFT JOIN "doom" AS "d" ON "foo"."id" = "d"."foo_id"
 $select->join(
     'LEFT',             // the join-type
     'doom AS d',        // join to this table ...
@@ -94,12 +102,12 @@ $select->join(
 ```
 
 For convenience, the methods `leftJoin()` and `innerJoin()` exist to allow you
-to elmininate the join-type argument for LEFT and INNER joins, respectively.
+to eliminate the join-type argument for LEFT and INNER joins, respectively.
 
 As with FROM, you can join to a subselect using `joinSubSelect()`:
 
 ```php
-// INNER JOIN (SELECT ...) AS subjoin ON subjoin.id = foo.id
+// INNER JOIN (SELECT ...) AS "subjoin" ON "subjoin"."id" = "foo"."id"
 $select->joinSubSelect(
     'INNER',                    // left/inner/natural/etc
     'SELECT ...',               // the subselect to join on
@@ -111,9 +119,38 @@ $select->joinSubSelect(
 Also as with FROM, you can pass a SELECT object instead of a query string as the
 subselect.
 
-Finally, all of the `*join*()` methods take an optional final argument, a
-sequential array of values to bind to sequential question-mark placeholders in
-the condition clause.
+Finally, all of the `*join*()` methods take an optional final argument, an
+array of values to bind to the placeholders in the condition clause, just as
+`where()` takes. Use named placeholders there. A `?` is numbered from the
+start of its own call's values, so a `?` in a join condition and a `?` in a
+`WHERE` condition are both placeholder 0, and the second one throws
+`Aura\SqlQuery\Exception\LogicException` rather than overwriting the first:
+
+```php
+$select = $queryFactory->newSelect();
+
+$select
+    ->cols(['*'])
+    ->from('foo')
+    ->join('INNER', 'doom AS d', 'd.foo_id = foo.id AND d.kind = :kind', ['kind' => 'x'])
+    ->where('foo.bar = :bar', ['bar' => 'y']);
+```
+
+```sql
+SELECT
+    *
+FROM
+    "foo"
+INNER JOIN "doom" AS "d" ON "d"."foo_id" = "foo"."id" AND "d"."kind" = :kind
+WHERE
+    "foo"."bar" = :bar
+```
+
+A `NATURAL` join derives its condition from the column names the two tables
+share, and a `CROSS` join takes none, so passing a condition to either through
+`join()` or `joinSubSelect()` throws `Aura\SqlQuery\Exception\LogicException`
+rather than building a statement the database rejects. MySQL is the exception for
+`CROSS`, which it treats as a synonym for `INNER`, and accepts a condition on.
 
 
 ## WHERE
@@ -124,24 +161,22 @@ will OR the condition.
 
 ```php
     ->where('bar > :bar')           // WHERE bar > :bar
-    ->where('zim = :zim')           // AND zim = :ZIM
+    ->where('zim = :zim')           // AND zim = :zim
     ->orWhere('baz < :baz')         // OR baz < :baz
 ```
 
-The `*where()` and `*having()` methods take a trailing trailing argument of a
+The `*where()` and `*having()` methods take an optional trailing argument of a
 placeholder-to-value array, which will be bound to the query right then.
 
-    // bind 'zim_val' to the :zim placeholder
-    ->where('zim = :zim', ['zim' => 'zim_val'])
-    
+```php
+    ->where('zim = :zim', ['zim' => 'zim_val'])     // bind 'zim_val' to the :zim placeholder
+```
+
 You can also use `IN` conditions by binding an array to the placeholder.
 
 ```php
     ->where('bar IN (:bar)', ['bar' => [1, 2, 3]])
 ```
-
-    // bind values to the :zims placeholder
-    ->where('zims IN (:zims)', ['zims' => ['zim_val', 'zim_val2', 'zim_val3']])
 
 ### Grouping Conditions With Parentheses
 
@@ -236,6 +271,7 @@ $select = $queryFactory->newSelect()
     ->cols(['*'])
     ->from('users')
     ->where('EXISTS (:sub)', ['sub' => $sub]);
+// compacted onto one line:
 // SELECT * FROM "users" WHERE EXISTS (SELECT * FROM "orders" WHERE "orders"."user_id" = "users"."id")
 ```
 
@@ -269,10 +305,6 @@ $select = $queryFactory->newSelect()
     ->orHaving('baz < :baz')        // OR HAVING these conditions
 ```
 
-The `*where()` and `*having()` methods take an arbitrary number of
-trailing arguments, each of which is a value to bind to a sequential question-
-mark placeholder in the condition clause.
-
 ## ORDER BY
 
 ```php
@@ -284,11 +316,44 @@ mark placeholder in the condition clause.
 ```php
     ->limit(10)                     // LIMIT 10
     ->offset(40)                    // OFFSET 40
-    public function page($page)
-    public function getPage()
-    public function setPaging($paging)
-    public function getPaging()
 ```
+
+To select by page instead, set the number of rows per page with
+`setPaging()` (10 unless you change it) and then pick a page with `page()`,
+which computes the `LIMIT` and `OFFSET` for you:
+
+- `setPaging(int $paging) : static` -- Sets the number of rows per page.
+- `getPaging() : int` -- Returns the number of rows per page.
+- `page(int $page) : static` -- Selects this page, counting from 1; `page(0)`
+  clears the limit and offset.
+- `getPage() : int` -- Returns the page being selected, or 0 if none.
+
+```php
+$select = $queryFactory->newSelect();
+
+$select
+    ->cols(['*'])
+    ->from('foo')
+    ->setPaging(10)
+    ->page(3);
+```
+
+```sql
+SELECT
+    *
+FROM
+    "foo"
+LIMIT 10 OFFSET 20
+```
+
+An offset without a limit is written the way each dialect accepts it. The
+common, PostgreSQL and SQL Server objects write the offset alone (`OFFSET 40`,
+or `OFFSET 40 ROWS` on SQL Server, with no `FETCH NEXT`). SQLite and MySQL have
+no `OFFSET` without `LIMIT`, so they write the largest limit they take: `LIMIT
+-1 OFFSET 40` on SQLite, `LIMIT 18446744073709551615 OFFSET 40` on MySQL.
+
+Calling `limit()` or `offset()` after `page()` drops the paging: the page goes
+back to 0, and only the value just given is kept.
 
 ## UNION
 
@@ -506,6 +571,13 @@ at the head of the statement; there, define the CTE on the outer query.
     ->isDistinct()                  // returns true if query is DISTINCT
 ```
 
+SQLite and SQL Server have no `FOR UPDATE`, so `forUpdate()` on their _Select_
+objects throws `Aura\SqlQuery\Exception\BadMethodCallException`;
+`forUpdate(false)` is still accepted there.
+
+Flags are written in a fixed order, whatever order they were set in, with
+`DISTINCT` first.
+
 ## Binding Values
 
 ```php
@@ -518,11 +590,17 @@ at the head of the statement; there, define the CTE on the outer query.
 
 ## Inspecting The Query
 
+- `getStatement() : string` -- Returns the SQL built so far.
+- `__toString() : string` -- The same, so `echo $select` or `(string) $select`
+  works too.
+- `getBindValues() : array` -- Returns the values bound so far, keyed by
+  placeholder name, including those brought in by sub-selects and union
+  branches.
 
 ## Resetting Query Elements
 
 The _Select_ class comes with the following methods to "reset" various clauses
-a blank state. This can be useful when reusing the same query in different
+to a blank state. This can be useful when reusing the same query in different
 variations (e.g., to re-issue a query to get a `COUNT(*)` without a `LIMIT`, to
 find the total number of rows to be paginated over).
 
@@ -534,13 +612,9 @@ find the total number of rows to be paginated over).
 - `resetWith()` removes all Common Table Expressions
 - `resetFlags()` removes all database-engine-specific flags
 - `resetBindValues()` removes all values bound to named placeholders
-
-    public function reset()
-    public function resetWhere()
-    public function resetGroupBy()
-    public function resetHaving()
-    public function resetOrderBy()
-    public function resetWith()
+- `reset()` clears the columns, tables, flags, `WHERE`, `GROUP BY`, `HAVING`,
+  `ORDER BY`, `LIMIT`, `OFFSET`, page and `FOR UPDATE` in one call; it leaves
+  the unions, the CTEs and the bound values in place, and returns the query
 
 ## Issuing The Query
 

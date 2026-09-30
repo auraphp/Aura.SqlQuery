@@ -20,7 +20,45 @@ abstract class AbstractBuilder
 {
     /**
      *
-     * Builds the flags as a space-separated string.
+     * The LIMIT to write when there is an OFFSET but no limit, for a dialect
+     * that cannot have one without the other; null for a dialect that can.
+     *
+     */
+    protected const ?string NO_LIMIT = null;
+
+    /**
+     *
+     * The order to write the modifier keywords in. MySQL fixes it for
+     * INSERT and UPDATE, where the priority comes before IGNORE: it reads
+     * `UPDATE LOW_PRIORITY IGNORE` and rejects `UPDATE IGNORE LOW_PRIORITY`.
+     * SELECT and DELETE take their options in any order, so one order for
+     * all of them costs nothing and makes the output independent of the
+     * order the methods were called in. A flag not listed here keeps the
+     * order it was set in, after these.
+     *
+     * @var list<string>
+     *
+     */
+    protected const FLAG_ORDER = [
+        'DISTINCT',
+        'LOW_PRIORITY',
+        'DELAYED',
+        'HIGH_PRIORITY',
+        'STRAIGHT_JOIN',
+        'SQL_SMALL_RESULT',
+        'SQL_BIG_RESULT',
+        'SQL_BUFFER_RESULT',
+        'SQL_CACHE',
+        'SQL_NO_CACHE',
+        'SQL_CALC_FOUND_ROWS',
+        'QUICK',
+        'IGNORE',
+    ];
+
+    /**
+     *
+     * Builds the flags as a space-separated string, in the order the
+     * grammar requires rather than the order they were set in.
      *
      * @param array<string, true> $flags The flags to build.
      *
@@ -33,7 +71,14 @@ abstract class AbstractBuilder
             return ''; // not applicable
         }
 
-        return ' ' . implode(' ', array_keys($flags));
+        $rank = array_flip(static::FLAG_ORDER);
+        $names = array_keys($flags);
+
+        // usort() is stable, so unlisted flags keep the order they were set in
+        usort($names, fn (string $a, string $b): int =>
+            ($rank[$a] ?? PHP_INT_MAX) <=> ($rank[$b] ?? PHP_INT_MAX));
+
+        return ' ' . implode(' ', $names);
     }
 
     /**
@@ -139,6 +184,12 @@ abstract class AbstractBuilder
     public function buildLimitOffset(int $limit, int $offset): string
     {
         $clause = '';
+
+        // a dialect whose grammar has no OFFSET without LIMIT spells "no
+        // limit" as the largest one it takes
+        if (empty($limit) && !empty($offset) && static::NO_LIMIT !== null) {
+            $clause .= 'LIMIT ' . static::NO_LIMIT;
+        }
 
         if (!empty($limit)) {
             $clause .= "LIMIT {$limit}";

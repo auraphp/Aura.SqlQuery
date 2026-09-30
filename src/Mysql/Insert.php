@@ -9,7 +9,8 @@
 namespace Aura\SqlQuery\Mysql;
 
 use Aura\SqlQuery\Common;
-use Aura\SqlQuery\Exception;
+use Aura\SqlQuery\Exception\BadMethodCallException;
+use Aura\SqlQuery\Exception\LogicException;
 
 /**
  *
@@ -36,17 +37,17 @@ class Insert extends Common\Insert
      * @var bool
      *
      */
-    protected $use_replace = false;
+    protected bool $use_replace = false;
 
     /**
      *
      * Column values for ON DUPLICATE KEY UPDATE section of query; the key is
      * the column name and the value is the column value.
      *
-     * @var array<string, string>|null
+     * @var array<string, string>
      *
      */
-    protected $col_on_update_values;
+    protected array $col_on_update_values = [];
 
     /**
      *
@@ -139,13 +140,14 @@ class Insert extends Common\Insert
      */
     public function onDuplicateKeyUpdateCol(string $col, mixed ...$value): static
     {
-        $key = $this->quoter->quoteName($col);
-        $bind = $col . '__on_duplicate_key';
-        $this->col_on_update_values[$key] = ":$bind";
-        if (count($value) > 0) {
-            $this->bindValueFrom($bind, $value[0], 'duplicate_key');
-        }
-        return $this;
+        return $this->atomically(function () use ($col, $value): void {
+            $key = $this->quoter->quoteName($col);
+            $bind = $this->placeholderFor($col) . '__on_duplicate_key';
+            $this->col_on_update_values[$key] = ":$bind";
+            if (count($value) > 0) {
+                $this->bindValueFrom($bind, $value[0], 'duplicate_key');
+            }
+        });
     }
 
     /**
@@ -163,17 +165,18 @@ class Insert extends Common\Insert
      */
     public function onDuplicateKeyUpdateCols(array $cols): static
     {
-        foreach ($cols as $key => $val) {
-            if (is_int($key)) {
-                // integer key means the value is the column name
-                $this->onDuplicateKeyUpdateCol($val);
-            } else {
-                // the key is the column name and the value is a value to
-                // be bound to that column
-                $this->onDuplicateKeyUpdateCol($key, $val);
+        return $this->atomically(function () use ($cols): void {
+            foreach ($cols as $key => $val) {
+                if (is_int($key)) {
+                    // integer key means the value is the column name
+                    $this->onDuplicateKeyUpdateCol($val);
+                } else {
+                    // the key is the column name and the value is a value to
+                    // be bound to that column
+                    $this->onDuplicateKeyUpdateCol($key, $val);
+                }
             }
-        }
-        return $this;
+        });
     }
 
     /**
@@ -209,7 +212,7 @@ class Insert extends Common\Insert
      * @var string[]
      *
      */
-    protected $replace_forbids_flags = ['HIGH_PRIORITY', 'IGNORE'];
+    protected array $replace_forbids_flags = ['HIGH_PRIORITY', 'IGNORE'];
 
     /**
      *
@@ -219,14 +222,14 @@ class Insert extends Common\Insert
      *
      * @return void
      *
-     * @throws Exception\LogicException
+     * @throws LogicException
      *
      */
     protected function assertReplaceFlags(): void
     {
         foreach ($this->replace_forbids_flags as $flag) {
             if ($this->hasFlag($flag)) {
-                throw new Exception\LogicException(
+                throw new LogicException(
                     "A REPLACE cannot take the $flag flag."
                 );
             }
@@ -241,7 +244,7 @@ class Insert extends Common\Insert
      * @var string[]
      *
      */
-    protected $priority_flags = ['LOW_PRIORITY', 'HIGH_PRIORITY', 'DELAYED'];
+    protected array $priority_flags = ['LOW_PRIORITY', 'HIGH_PRIORITY', 'DELAYED'];
 
     /**
      *
@@ -250,7 +253,7 @@ class Insert extends Common\Insert
      *
      * @return void
      *
-     * @throws Exception\LogicException
+     * @throws LogicException
      *
      */
     protected function assertOnePriorityFlag(): void
@@ -263,7 +266,7 @@ class Insert extends Common\Insert
         }
 
         if (count($set) > 1) {
-            throw new Exception\LogicException(
+            throw new LogicException(
                 'A statement takes only one priority modifier; got '
                 . implode(' and ', $set) . '.'
             );
@@ -287,12 +290,12 @@ class Insert extends Common\Insert
      *
      * @return $this
      *
-     * @throws Exception\BadMethodCallException always.
+     * @throws BadMethodCallException always.
      *
      */
     public function with(string $name, string|Common\SelectInterface $spec, array $cols = []): static
     {
-        throw new Exception\BadMethodCallException(
+        throw new BadMethodCallException(
             'MySQL does not allow a WITH clause on INSERT.'
         );
     }
@@ -307,7 +310,7 @@ class Insert extends Common\Insert
     protected function build(): string
     {
         if ($this->use_replace && ! empty($this->col_on_update_values)) {
-            throw new Exception\LogicException(
+            throw new LogicException(
                 'A REPLACE statement cannot take an ON DUPLICATE KEY UPDATE clause.'
             );
         }

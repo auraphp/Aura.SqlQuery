@@ -28,7 +28,7 @@ abstract class AbstractQuery
      * @var array<int|string, mixed>
      *
      */
-    protected $bind_values = [];
+    protected array $bind_values = [];
 
     /**
      *
@@ -38,7 +38,7 @@ abstract class AbstractQuery
      * @var array<int|string, string>
      *
      */
-    protected $bind_sources = [];
+    protected array $bind_sources = [];
 
     /**
      *
@@ -50,7 +50,7 @@ abstract class AbstractQuery
      * @var array<int|string, string>
      *
      */
-    protected $bind_shared = [];
+    protected array $bind_shared = [];
 
     /**
      *
@@ -59,7 +59,7 @@ abstract class AbstractQuery
      * @var array<string, string>
      *
      */
-    protected $bind_source_labels = [
+    protected array $bind_source_labels = [
         'col' => 'cols()',
         'cond' => 'a condition',
         'where' => 'a WHERE condition',
@@ -80,7 +80,7 @@ abstract class AbstractQuery
      * @var list<string>
      *
      */
-    protected $where = [];
+    protected array $where = [];
 
     /**
      *
@@ -89,7 +89,7 @@ abstract class AbstractQuery
      * @var list<string>
      *
      */
-    protected $order_by = [];
+    protected array $order_by = [];
 
     /**
      *
@@ -98,7 +98,7 @@ abstract class AbstractQuery
      * @var array<string, true>
      *
      */
-    protected $flags = [];
+    protected array $flags = [];
 
     /**
      *
@@ -107,7 +107,7 @@ abstract class AbstractQuery
      * @var Common\QuoterInterface
      *
      */
-    protected $quoter;
+    protected Common\QuoterInterface $quoter;
 
     /**
      *
@@ -121,7 +121,7 @@ abstract class AbstractQuery
     /**
      * @var int
      */
-    protected $inlineCount = 0;
+    protected int $inlineCount = 0;
 
     /**
      *
@@ -357,8 +357,15 @@ abstract class AbstractQuery
 
     /**
      *
-     * Takes over the values a sub-select has bound, claiming them for the
-     * clause the sub-select was rendered into.
+     * Renders a sub-select and takes over the values it has bound, claiming
+     * them for the clause the sub-select was rendered into.
+     *
+     * The names inlineArray() generated are renamed from this query's own
+     * sequence on the way in. Every query numbers them from one, so two
+     * queries that each bound an array both hold `:__1__`: taken over as
+     * they are, the second would collide with the first over a name neither
+     * caller wrote and neither can change. Renaming each import keeps them
+     * apart however the queries are nested, cloned or combined.
      *
      * The sub-select's own clause labels are deliberately not carried over.
      * They describe parts of a different query: recording them here would
@@ -368,18 +375,74 @@ abstract class AbstractQuery
      * claimed forever. The message would name that absent clause too, and
      * send the reader looking for it.
      *
-     * @param SelectInterface $select The sub-select to take the values from.
+     * @param SelectInterface $select The sub-select to render.
      *
-     * @param string $source The part of THIS query the sub-select was
+     * @param string $source The part of THIS query the sub-select is
      * rendered into.
+     *
+     * @return string The sub-select statement, with any generated
+     * placeholder names renamed.
+     *
+     */
+    protected function importSelect(SelectInterface $select, string $source): string
+    {
+        $statement = $select->getStatement();
+
+        $renamed = [];
+        $values = [];
+        foreach ($select->getBindValues() as $name => $value) {
+            if (is_string($name) && preg_match('/^__\d+__$/', $name)) {
+                $renamed[$name] = $this->nextInlineName();
+                $name = $renamed[$name];
+            }
+            $values[$name] = $value;
+        }
+
+        if ($renamed) {
+            $statement = (string) preg_replace_callback(
+                '/:(__\d+__)(?!\w)/',
+                fn (array $m): string => isset($renamed[$m[1]])
+                    ? ':' . $renamed[$m[1]]
+                    : $m[0],
+                $statement
+            );
+        }
+
+        foreach ($values as $name => $value) {
+            $this->bindValueFrom($name, $value, $source);
+        }
+
+        return $statement;
+    }
+
+    /**
+     *
+     * Applies a change to this query, putting every property back the way
+     * it was if the change throws.
+     *
+     * A method that binds values usually records part of its work first --
+     * the column, the branch, the table reference -- and the collision that
+     * ends it comes later. A caller catching that exception would otherwise
+     * be left holding a query with half the change in it, whose next
+     * statement binds the wrong values or claims names for SQL it does not
+     * contain. The arrays are copied on write, so the snapshot is cheap.
+     *
+     * @param callable(): mixed $change The change to apply.
      *
      * @return $this
      *
      */
-    protected function bindValuesFromSelect(SelectInterface $select, string $source): static
+    protected function atomically(callable $change): static
     {
-        foreach ($select->getBindValues() as $name => $value) {
-            $this->bindValueFrom($name, $value, $source);
+        $before = get_object_vars($this);
+
+        try {
+            $change();
+        } catch (\Throwable $e) {
+            foreach ($before as $property => $value) {
+                $this->$property = $value;
+            }
+            throw $e;
         }
 
         return $this;
@@ -403,11 +466,11 @@ abstract class AbstractQuery
     protected function subSelect(string|SelectInterface $spec, string $indent, string $source = 'table'): string
     {
         if ($spec instanceof SelectInterface) {
-            $this->bindValuesFromSelect($spec, $source);
+            $spec = $this->importSelect($spec, $source);
         }
 
         return PHP_EOL . $indent
-            . ltrim(preg_replace('/^/m', $indent, (string) $spec))
+            . ltrim((string) preg_replace('/^/m', $indent, $spec))
             . PHP_EOL;
     }
 
@@ -444,11 +507,10 @@ abstract class AbstractQuery
 
         // a positional placeholder is bound by number and keeps its `?` in
         // the statement, so quoting it as ':1' would name a token the query
-        // does not contain and send the reader looking for it.
-        // a positional placeholder is numbered by its offset in the values
-        // array, which starts again at zero on every call, so "use a
-        // different one" is advice the caller cannot act on: naming them is
-        // the only way to keep the two apart.
+        // does not contain. It is numbered by its offset in the values array,
+        // which starts again at zero on every call, so "use a different one"
+        // is advice the caller cannot act on: naming them is the only way to
+        // keep the two apart.
         $positional = ctype_digit((string) $name);
 
         $which = $positional
@@ -605,6 +667,28 @@ abstract class AbstractQuery
      */
     protected function addClauseCondWithBind(string $clause, string $andor, string|Closure $cond, array $bind): void
     {
+        $this->atomically(function () use ($clause, $andor, $cond, $bind): void {
+            $this->addClauseCond($clause, $andor, $cond, $bind);
+        });
+    }
+
+    /**
+     *
+     * Does the work of addClauseCondWithBind(), which undoes it on failure.
+     *
+     * @param string $clause The clause to work with.
+     *
+     * @param string $andor 'AND' or 'OR'.
+     *
+     * @param string|Closure $cond The condition.
+     *
+     * @param array<int|string, mixed> $bind Values to bind.
+     *
+     * @return void
+     *
+     */
+    private function addClauseCond(string $clause, string $andor, string|Closure $cond, array $bind): void
+    {
         if ($cond instanceof Closure) {
             $this->addClauseCondClosure($clause, $andor, $cond);
             foreach ($bind as $key => $val) {
@@ -698,26 +782,89 @@ abstract class AbstractQuery
      */
     protected function rebuildCondAndBindValues(string $cond, array $bind_values, string $clause = 'cond'): string
     {
-        $index = 0;
+        // replacements for named placeholders, and for positional ones by
+        // their order among the positional values -- not by key, and not by
+        // their offset among all the values, since a named value in between
+        // takes up no `?`
+        $named = [];
+        $positional = [];
         $selects = [];
+        $position = 0;
 
         foreach ($bind_values as $key => $val) {
+            $slot = is_int($key) ? $position++ : $key;
+
             if ($val instanceof SelectInterface) {
-                $selects[":{$key}"] = $val;
-            } elseif (is_array($val)) {
-                $cond = $this->getCond($key, $cond, $val, $index);
-            } else {
-                $this->bindValueFrom($key, $val, $clause);
+                // rendered below, once the arrays have their names, so that
+                // the numbering of generated names is the order they are
+                // written in rather than the order of nesting
+                $selects[] = [$slot, $val];
+                continue;
             }
-            $index++;
+
+            if (is_array($val)) {
+                $list = $this->inlineArray($val);
+                if (is_int($key)) {
+                    $positional[$slot] = $list;
+                } else {
+                    $named[$slot] = $list;
+                }
+                continue;
+            }
+
+            $this->bindValueFrom($key, $val, $clause);
         }
 
-        foreach ($selects as $key => $select) {
-            $selects[$key] = $select->getStatement();
-            $this->bindValuesFromSelect($select, $clause);
+        foreach ($selects as [$slot, $select]) {
+            $statement = $this->importSelect($select, $clause);
+            if (is_int($slot)) {
+                $positional[$slot] = $statement;
+            } else {
+                $named[$slot] = $statement;
+            }
         }
 
-        $cond = strtr($cond, $selects);
+        if (! $named && ! $positional) {
+            return $cond;
+        }
+
+        // One pass over the condition, so that nothing written in is read
+        // again: a sub-select spelling `:id` of its own, or a list of
+        // generated names, is not a placeholder of this condition. String
+        // literals and quoted identifiers are passed over whole, so a `?` or
+        // a `:name` inside one is left as written. A placeholder is matched
+        // only as a whole name (`:id` is not the start of `:id_2`), and not
+        // after a second colon, which is a PostgreSQL cast (`x::int`).
+        $seen = 0;
+        $cond = (string) preg_replace_callback(
+            '/\'(?:[^\'\\\\]|\\\\.)*\'|"(?:[^"\\\\]|\\\\.)*"|`[^`]*`|(?<!:):(\w+)|\?/',
+            function (array $m) use ($named, $positional, &$seen): string {
+                if ($m[0] === '?') {
+                    $slot = $seen++;
+                    return $positional[$slot] ?? '?';
+                }
+
+                if (isset($m[1], $named[$m[1]])) {
+                    return $named[$m[1]];
+                }
+
+                return $m[0];
+            },
+            $cond
+        );
+
+        // a list or sub-select for a `?` the condition does not have would
+        // otherwise vanish from the statement while its values stay bound
+        foreach (array_keys($positional) as $slot) {
+            if ($slot >= $seen) {
+                throw new Exception\InvalidArgumentException(
+                    'The condition has ' . $seen . " '?' placeholder(s), but "
+                    . 'a list or sub-select was given for placeholder number '
+                    . ($slot + 1) . '.'
+                );
+            }
+        }
+
         return $cond;
     }
 
@@ -735,12 +882,43 @@ abstract class AbstractQuery
     {
         $keys = [];
         foreach ($array as $val) {
-            $this->inlineCount++;
-            $key = "__{$this->inlineCount}__";
+            $key = $this->nextInlineName();
             $this->bindValueFrom($key, $val, 'cond');
             $keys[] = ":{$key}";
         }
         return implode(', ', $keys);
+    }
+
+    /**
+     *
+     * Returns the placeholder name for a column's value.
+     *
+     * A placeholder name is letters, digits and underscores, so the column
+     * name is used as it is when it can be; a qualified one such as `t.a`
+     * would otherwise be read by PDO as `:t` followed by `.a`.
+     *
+     * @param string $col The column name.
+     *
+     * @return string
+     *
+     */
+    protected function placeholderFor(string $col): string
+    {
+        return (string) preg_replace('/\W/', '_', $col);
+    }
+
+    /**
+     *
+     * Returns the next name in this query's sequence of generated
+     * placeholder names.
+     *
+     * @return string
+     *
+     */
+    protected function nextInlineName(): string
+    {
+        $this->inlineCount++;
+        return "__{$this->inlineCount}__";
     }
 
     /**
@@ -759,31 +937,5 @@ abstract class AbstractQuery
             $this->order_by[] = $this->quoter->quoteNamesIn($col);
         }
         return $this;
-    }
-
-    /**
-     * @param int|string               $key
-     * @param string                   $cond
-     * @param array<array-key, mixed>  $val
-     * @param int                      $index
-     *
-     * @return string
-     */
-    private function getCond(int|string $key, string $cond, array $val, int $index): string
-    {
-        if (is_string($key)) {
-            return str_replace(':' . $key, $this->inlineArray($val), $cond);
-        }
-        // a deliberate guard; PHP guarantees an int key once the string case
-        // above has returned, so PHPStan reports both the assert and the
-        // is_int() inside it as always true
-        /** @phpstan-ignore function.alreadyNarrowedType, function.alreadyNarrowedType */
-        assert(is_int($key));
-
-        if (preg_match_all('/\?/', $cond, $matches, PREG_OFFSET_CAPTURE) !== false) {
-            return substr_replace($cond, $this->inlineArray($val), $matches[0][$index][1], 1);
-        }
-
-        return $cond;
     }
 }

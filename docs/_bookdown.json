@@ -10,6 +10,7 @@
         "pgsql.md",
         "sqlite.md",
         "sqlsrv.md",
-        "other.md"
+        "other.md",
+        "upgrading.md"
     ]
 }

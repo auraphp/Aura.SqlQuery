@@ -137,16 +137,24 @@ inserted if that email is new, and its `name` is overwritten with the proposed
 `'Alice'` if the email is already present.
 
 The target must be covered by a unique index or primary key. It may be one
-column, an array of columns, or a named constraint:
+column, an array of columns, the same list as a comma-separated string, or a
+named constraint:
 
 ```php
 $insert->onConflict('email');                         // ON CONFLICT ("email")
 $insert->onConflict(['tenant_id', 'email']);          // ON CONFLICT ("tenant_id", "email")
+$insert->onConflict('tenant_id, email');              // ON CONFLICT ("tenant_id", "email")
 $insert->onConflict('ON CONSTRAINT users_email_key'); // ON CONFLICT ON CONSTRAINT "users_email_key"
 ```
 
 The constraint-name form is PostgreSQL-only; SQLite takes a column list and
 nothing else, and rejects it.
+
+A unique index on an expression cannot be named as a column list:
+`onConflict('lower(email)')` throws
+`Aura\SqlQuery\Exception\InvalidArgumentException` rather than quoting the
+expression as one column name. Use a unique constraint, named with the `ON
+CONSTRAINT` form, or a unique index on plain columns as the target instead.
 
 PostgreSQL requires a target for `DO UPDATE`; omitting it throws
 `Aura\SqlQuery\Exception\LogicException` rather than failing at execute time.

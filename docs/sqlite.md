@@ -2,6 +2,32 @@
 
 These 'sqlite' query objects have additional SQLite-specific behaviors.
 
+## SELECT
+
+SQLite has no `FOR UPDATE`, so `forUpdate()` throws
+`Aura\SqlQuery\Exception\BadMethodCallException`; `forUpdate(false)` is
+accepted.
+
+SQLite takes no `OFFSET` without a `LIMIT`, so an offset on its own is written
+with `LIMIT -1`, which SQLite reads as no limit. The same goes for UPDATE and
+DELETE below.
+
+```php
+$select = $queryFactory->newSelect();
+$select
+    ->cols(['*'])
+    ->from('foo')
+    ->offset(40);
+```
+
+```sql
+SELECT
+    *
+FROM
+    "foo"
+LIMIT -1 OFFSET 40
+```
+
 ## INSERT
 
 - `orAbort()` to add or remove an `OR ABORT` flag
@@ -90,8 +116,12 @@ ON CONFLICT ("email") DO UPDATE SET
     "name" = excluded."name"
 ```
 
-The target may be one column or an array of them. Unlike PostgreSQL, SQLite has
-no constraint-name form, so `onConflict('ON CONSTRAINT users_email_key')` throws
+The target may be one column, an array of them, or the same list as one
+comma-separated string: `onConflict('tenant_id, email')` is
+`onConflict(['tenant_id', 'email'])`. An index expression such as
+`onConflict('lower(email)')` throws
+`Aura\SqlQuery\Exception\InvalidArgumentException` rather than being quoted as
+one column name. Unlike PostgreSQL, SQLite has no constraint-name form, so `onConflict('ON CONSTRAINT users_email_key')` throws
 `Aura\SqlQuery\Exception\BadMethodCallException` here; name the indexed columns
 instead.
 

@@ -70,7 +70,7 @@ class Update extends Common\Update implements Common\OrderByInterface, Common\Li
      *
      * Adds or removes OR IGNORE flag.
      *
-     * @deprecated use ignore instead
+     * @deprecated use ignore() instead; to be removed in 8.x.
      * @param bool $enable Set or unset flag (default true).
      *
      * @return $this

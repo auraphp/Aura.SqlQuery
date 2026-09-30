@@ -8,7 +8,7 @@
  */
 namespace Aura\SqlQuery\Common;
 
-use Aura\SqlQuery\Exception;
+use Aura\SqlQuery\Exception\LogicException;
 
 /**
  *
@@ -29,13 +29,13 @@ trait BuildOnConflictTrait
      * @param list<string> $where Optional WHERE conditions.
      * @param bool $ignore Whether the ignore clause is enabled.
      * @return string
-     * @throws Exception\LogicException
+     * @throws LogicException
      *
      */
     public function buildOnConflict(?string $target, array $update_values, array $where, bool $ignore): string
     {
         if ($ignore && ! empty($update_values)) {
-            throw new Exception\LogicException(
+            throw new LogicException(
                 'Cannot combine IGNORE / DO NOTHING with DO UPDATE SET.'
             );
         }
@@ -52,7 +52,7 @@ trait BuildOnConflictTrait
         }
 
         if (empty($target)) {
-            throw new Exception\LogicException(
+            throw new LogicException(
                 'Database requires a conflict target for DO UPDATE.'
             );
         }

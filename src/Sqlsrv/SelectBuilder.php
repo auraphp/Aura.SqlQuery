@@ -68,9 +68,14 @@ class SelectBuilder extends Common\SelectBuilder
             );
         }
 
-        // both limit and offset. must have an ORDER clause to work; OFFSET is
-        // a sub-clause of the ORDER clause. cannot use FETCH without OFFSET.
-        return $stm . PHP_EOL . "OFFSET {$offset} ROWS "
-                    . "FETCH NEXT {$limit} ROWS ONLY";
+        // offset, with or without a limit. must have an ORDER clause to work;
+        // OFFSET is a sub-clause of the ORDER clause. cannot use FETCH without
+        // OFFSET, and FETCH NEXT 0 ROWS is an error rather than "no limit",
+        // so it is left off when there is none.
+        $stm .= PHP_EOL . "OFFSET {$offset} ROWS";
+        if ($limit) {
+            $stm .= " FETCH NEXT {$limit} ROWS ONLY";
+        }
+        return $stm;
     }
 }

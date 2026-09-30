@@ -304,6 +304,49 @@ abstract class AbstractIntegrationTest extends TestCase
 
     /**
      *
+     * An offset with no limit means "every row after these". SQLite and MySQL
+     * have no OFFSET without LIMIT, and SQL Server has no FETCH NEXT 0 ROWS,
+     * so each spells it its own way.
+     *
+     */
+    public function testSelectOffsetWithoutLimit()
+    {
+        $select = $this->query_factory->newSelect()
+            ->cols(['name'])
+            ->from('test_employee')
+            ->orderBy(['seq'])
+            ->offset(2);
+
+        $actual = $this->fetchAll($select);
+        $this->assertSame(['Clara', 'Donna'], array_column($actual, 'name'));
+    }
+
+    /**
+     *
+     * Two queries that each bind an array both generate names from one, so
+     * combining them used to collide over a name neither caller wrote.
+     *
+     */
+    public function testSelectArraysInOuterQueryAndSubSelect()
+    {
+        $sub = $this->query_factory->newSelect()
+            ->cols(['id'])
+            ->from('test_dept')
+            ->where('name IN (:names)', ['names' => ['Sales', 'Marketing']]);
+
+        $select = $this->query_factory->newSelect()
+            ->cols(['name'])
+            ->from('test_employee')
+            ->where('salary IN (:salaries)', ['salaries' => [100, 300, 400]])
+            ->where('dept_id IN (:sub)', ['sub' => $sub])
+            ->orderBy(['seq']);
+
+        $actual = $this->fetchAll($select);
+        $this->assertSame(['Clara', 'Donna'], array_column($actual, 'name'));
+    }
+
+    /**
+     *
      * Naming several tables in one from() is an old-style join, and it has to
      * be a list the database accepts -- the names used to be quoted whole as
      * one identifier, which no server would take. See #160.

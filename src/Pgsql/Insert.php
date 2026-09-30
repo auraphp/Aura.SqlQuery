@@ -38,7 +38,7 @@ class Insert extends Common\Insert implements ReturningInterface, Common\OnConfl
      * @var bool
      *
      */
-    protected $ignore = false;
+    protected bool $ignore = false;
 
     /**
      *

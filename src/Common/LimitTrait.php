@@ -24,7 +24,7 @@ trait LimitTrait
      * @var int
      *
      */
-    protected $limit = 0;
+    protected int $limit = 0;
 
     /**
      *

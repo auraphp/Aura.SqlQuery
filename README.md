@@ -7,7 +7,14 @@ although [PDO](http://php.net/PDO) in general is recommended.
 ## Installation and Autoloading
 
 This package is installable and PSR-4 autoloadable via Composer as
-[aura/sqlquery][].
+[aura/sqlquery][]:
+
+```
+composer require aura/sqlquery
+```
+
+While 7.0 is in beta, ask for the pre-release explicitly with
+`composer require aura/sqlquery:^7.0@beta`.
 
 Alternatively, [download a release][], or clone this repository, then map
 the `Aura\SqlQuery\` namespace to the package `src/` directory.
@@ -15,7 +22,7 @@ the `Aura\SqlQuery\` namespace to the package `src/` directory.
 
 ## Dependencies
 
-This package requires PHP 5.6 or later; it has been tested on PHP 5.6-8.5. We recommend using the latest available version of PHP as a matter of principle.
+This package requires PHP 8.4 or later; it has been tested on PHP 8.4 and 8.5. We recommend using the latest available version of PHP as a matter of principle.
 
 Aura library packages may sometimes depend on external interfaces, but never on
 external implementations. This allows compliance with community standards
@@ -34,21 +41,20 @@ To run the unit tests at the command line, issue `composer install` and then
 `./vendor/bin/phpunit` at the package root. This requires [Composer][] to be
 available as `composer`.
 
-This package attempts to comply with [PSR-1][], [PSR-2][], and [PSR-4][]. If
+This package attempts to comply with [PSR-1][], [PSR-4][], and [PSR-12][]. If
 you notice compliance oversights, please send a patch via pull request.
 
 ## Community
 
 To ask questions, provide feedback, or otherwise communicate with other Aura
-users, please join our [Google Group][], follow [@auraphp][], or chat with us
-on Freenode in the #auraphp channel.
+users, please join our [Google Group][] or follow [@auraphp][].
 
 ## Documentation
 
 This package is fully documented [here](./docs/index.md).
 
 [PSR-1]: https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-1-basic-coding-standard.md
-[PSR-2]: https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-2-coding-style-guide.md
+[PSR-12]: https://www.php-fig.org/psr/psr-12/
 [PSR-4]: https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader.md
 [Composer]: http://getcomposer.org/
 [PHPUnit]: http://phpunit.de/

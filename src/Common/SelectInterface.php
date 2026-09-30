@@ -174,10 +174,16 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string|null $cond Join on this condition.
      *
+     * @param array<int|string, mixed> $bind Values to bind to placeholders
+     * in the condition. Name them: a `?` here and one in another clause are
+     * both number 0, and collide.
+     *
      * @return $this
      *
+     * @throws \Aura\SqlQuery\Exception\LogicException
+     *
      */
-    public function join(string $join, string $spec, ?string $cond = null): static;
+    public function join(string $join, string $spec, ?string $cond = null, array $bind = []): static;
 
     /**
      *
@@ -187,8 +193,9 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string|null $cond Join on this condition.
      *
-     * @param array<int|string, mixed> $bind Values to bind to
-     * ?-placeholders in the condition.
+     * @param array<int|string, mixed> $bind Values to bind to placeholders
+     * in the condition. Name them: a `?` here and one in another clause are
+     * both number 0, and collide.
      *
      * @return $this
      *
@@ -205,8 +212,9 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string|null $cond Join on this condition.
      *
-     * @param array<int|string, mixed> $bind Values to bind to
-     * ?-placeholders in the condition.
+     * @param array<int|string, mixed> $bind Values to bind to placeholders
+     * in the condition. Name them: a `?` here and one in another clause are
+     * both number 0, and collide.
      *
      * @return $this
      *
@@ -229,10 +237,16 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      *
      * @param string|null $cond Join on this condition.
      *
+     * @param array<int|string, mixed> $bind Values to bind to placeholders
+     * in the condition. Name them: a `?` here and one in another clause are
+     * both number 0, and collide.
+     *
      * @return $this
      *
+     * @throws \Aura\SqlQuery\Exception\LogicException
+     *
      */
-    public function joinSubSelect(string $join, string|SelectInterface $spec, string $name, ?string $cond = null): static;
+    public function joinSubSelect(string $join, string|SelectInterface $spec, string $name, ?string $cond = null, array $bind = []): static;
 
     /**
      *
@@ -332,10 +346,10 @@ interface SelectInterface extends QueryInterface, WhereInterface, OrderByInterfa
      * Clears the current select properties, usually called after a union.
      * You may need to call resetUnions() if you have used one
      *
-     * @return void
+     * @return $this
      *
      */
-    public function reset(): void;
+    public function reset(): static;
 
     /**
      *

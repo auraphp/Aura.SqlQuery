@@ -9,6 +9,7 @@
 namespace Aura\SqlQuery\Common;
 
 use Aura\SqlQuery\AbstractQuery;
+use Aura\SqlQuery\Exception\InvalidArgumentException;
 use Aura\SqlQuery\Exception\LogicException;
 
 /**
@@ -41,7 +42,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var list<string>
      *
      */
-    protected $union = [];
+    protected array $union = [];
 
     /**
      *
@@ -60,7 +61,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @see resetAfterRendering()
      *
      */
-    protected $text_pattern = "'(?:[^']|'')*+'|--[^\n]*|\/\*.*?\*\/";
+    protected string $text_pattern = "'(?:[^']|'')*+'|--[^\n]*|\/\*.*?\*\/";
 
     /**
      *
@@ -70,7 +71,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var string|null
      *
      */
-    protected $union_tail = null;
+    protected ?string $union_tail = null;
 
     /**
      *
@@ -79,7 +80,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var bool
      *
      */
-    protected $for_update = false;
+    protected bool $for_update = false;
 
     /**
      *
@@ -88,7 +89,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var array<int|string, string>
      *
      */
-    protected $cols = [];
+    protected array $cols = [];
 
     /**
      *
@@ -97,7 +98,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var list<list<string>>
      *
      */
-    protected $from = [];
+    protected array $from = [];
 
     /**
      *
@@ -106,7 +107,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var int
      *
      */
-    protected $from_key = -1;
+    protected int $from_key = -1;
 
     /**
      *
@@ -115,7 +116,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var array<int, list<string>>
      *
      */
-    protected $join = [];
+    protected array $join = [];
 
     /**
      *
@@ -124,7 +125,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var list<string>
      *
      */
-    protected $group_by = [];
+    protected array $group_by = [];
 
     /**
      *
@@ -133,7 +134,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var list<string>
      *
      */
-    protected $having = [];
+    protected array $having = [];
 
     /**
      *
@@ -142,7 +143,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var int
      *
      */
-    protected $page = 0;
+    protected int $page = 0;
 
     /**
      *
@@ -151,7 +152,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var int
      *
      */
-    protected $paging = 10;
+    protected int $paging = 10;
 
     /**
      *
@@ -160,7 +161,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @var array<string, string>
      *
      */
-    protected $table_refs = [];
+    protected array $table_refs = [];
 
     /**
      *
@@ -344,19 +345,39 @@ class Select extends AbstractQuery implements SelectInterface
      * added.
      *
      * @param mixed $val If $key was an integer, the column to be added;
-     * otherwise, the column alias.
+     * otherwise, the column alias, where null or an empty string means none.
      *
      * @return void
+     *
+     * @throws InvalidArgumentException when the column or alias is not a
+     * string.
      *
      */
     protected function addCol(mixed $key, mixed $val): void
     {
         if (is_string($key)) {
-            // [col => alias]
+            // [col => alias], where an empty alias would render `AS ""`
+            if ($val === null || $val === '') {
+                $this->cols[] = $key;
+                return;
+            }
+            if (! is_string($val)) {
+                throw new InvalidArgumentException(
+                    "The alias for the column '{$key}' must be a string."
+                );
+            }
             $this->cols[$val] = $key;
-        } else {
-            $this->addColWithAlias($val);
+            return;
         }
+
+        if (! is_string($val)) {
+            throw new InvalidArgumentException(
+                'A column must be given as a string, or as a string key '
+                . 'with its alias.'
+            );
+        }
+
+        $this->addColWithAlias($val);
     }
 
     /**
@@ -373,6 +394,15 @@ class Select extends AbstractQuery implements SelectInterface
     {
         $parts = explode(' ', $spec);
         $count = count($parts);
+
+        // a set quantifier in front of a column is not a column itself, so
+        // the word after it is not an alias: `DISTINCT a` is not `DISTINCT
+        // AS "a"`
+        if (in_array(strtoupper($parts[0]), ['ALL', 'DISTINCT', 'DISTINCTROW'], true)) {
+            $this->cols[] = $spec;
+            return;
+        }
+
         if ($count == 2 && $this->isCompleteExpr($parts[0])) {
             // "col alias"
             $this->cols[$parts[1]] = $parts[0];
@@ -620,10 +650,12 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function fromSubSelect(string|SelectInterface $spec, string $name): static
     {
-        $this->addTableRef('FROM (SELECT ...) AS', $name);
-        $spec = $this->subSelect($spec, '        ');
-        $name = $this->quoter->quoteName($name);
-        return $this->addFrom("({$spec}    ) AS $name");
+        return $this->atomically(function () use ($spec, $name): void {
+            $this->addTableRef('FROM (SELECT ...) AS', $name);
+            $spec = $this->subSelect($spec, '        ');
+            $name = $this->quoter->quoteName($name);
+            $this->addFrom("({$spec}    ) AS $name");
+        });
     }
 
     /**
@@ -636,8 +668,9 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @param string|null $cond Join on this condition.
      *
-     * @param array<int|string, mixed> $bind Values to bind to
-     * ?-placeholders in the condition.
+     * @param array<int|string, mixed> $bind Values to bind to placeholders
+     * in the condition. Name them: a `?` here and one in another clause are
+     * both number 0, and collide.
      *
      * @return $this
      *
@@ -646,12 +679,58 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function join(string $join, string $spec, ?string $cond = null, array $bind = []): static
     {
-        $join = strtoupper(ltrim("$join JOIN"));
-        $this->addTableRef($join, $spec);
+        return $this->atomically(function () use ($join, $spec, $cond, $bind): void {
+            $join = strtoupper(ltrim("$join JOIN"));
+            $this->assertJoinTakesCondition($join, $cond);
+            $this->addTableRef($join, $spec);
 
-        $spec = $this->quoter->quoteName($spec);
-        $cond = $this->fixJoinCondition($cond, $bind);
-        return $this->addJoin(rtrim("$join $spec $cond"));
+            $spec = $this->quoter->quoteName($spec);
+            $cond = $this->fixJoinCondition($cond, $bind);
+            $this->addJoin(rtrim("$join $spec $cond"));
+        });
+    }
+
+    /**
+     *
+     * Refuses a condition on a join type that cannot take one, rather than
+     * rendering an ON clause the database will reject.
+     *
+     * @param string $join The upper-cased join clause.
+     *
+     * @param string|null $cond The condition given for it.
+     *
+     * @return void
+     *
+     * @throws LogicException when the join type forbids a condition.
+     *
+     */
+    protected function assertJoinTakesCondition(string $join, ?string $cond): void
+    {
+        if ($cond && $this->joinForbidsCondition($join)) {
+            throw new LogicException("A $join cannot take a condition.");
+        }
+    }
+
+    /**
+     *
+     * Does this join type reject an ON clause outright, so that supplying a
+     * condition can only produce a syntax error?
+     *
+     * A NATURAL join derives its condition from the common column names and
+     * rejects ON on every dialect. CROSS is dialect-specific: PostgreSQL,
+     * SQLite and SQL Server reject ON there as well, whereas MySQL accepts it, since CROSS and
+     * INNER are synonyms there. This default is the strict PostgreSQL rule;
+     * Mysql\Select loosens it.
+     *
+     * @param string $join The upper-cased join clause.
+     *
+     * @return bool
+     *
+     */
+    protected function joinForbidsCondition(string $join): bool
+    {
+        return str_starts_with($join, 'CROSS ')
+            || str_starts_with($join, 'NATURAL ');
     }
 
     /**
@@ -661,8 +740,9 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @param string|null $cond Join on this condition.
      *
-     * @param array<int|string, mixed> $bind Values to bind to
-     * ?-placeholders in the condition.
+     * @param array<int|string, mixed> $bind Values to bind to placeholders
+     * in the condition. Name them: a `?` here and one in another clause are
+     * both number 0, and collide.
      *
      * @return string
      *
@@ -695,8 +775,9 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @param string|null $cond Join on this condition.
      *
-     * @param array<int|string, mixed> $bind Values to bind to
-     * ?-placeholders in the condition.
+     * @param array<int|string, mixed> $bind Values to bind to placeholders
+     * in the condition. Name them: a `?` here and one in another clause are
+     * both number 0, and collide.
      *
      * @return $this
      *
@@ -716,8 +797,9 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @param string|null $cond Join on this condition.
      *
-     * @param array<int|string, mixed> $bind Values to bind to
-     * ?-placeholders in the condition.
+     * @param array<int|string, mixed> $bind Values to bind to placeholders
+     * in the condition. Name them: a `?` here and one in another clause are
+     * both number 0, and collide.
      *
      * @return $this
      *
@@ -743,8 +825,9 @@ class Select extends AbstractQuery implements SelectInterface
      *
      * @param string|null $cond Join on this condition.
      *
-     * @param array<int|string, mixed> $bind Values to bind to
-     * ?-placeholders in the condition.
+     * @param array<int|string, mixed> $bind Values to bind to placeholders
+     * in the condition. Name them: a `?` here and one in another clause are
+     * both number 0, and collide.
      *
      * @return $this
      *
@@ -753,15 +836,18 @@ class Select extends AbstractQuery implements SelectInterface
      */
     public function joinSubSelect(string $join, string|SelectInterface $spec, string $name, ?string $cond = null, array $bind = []): static
     {
-        $join = strtoupper(ltrim("$join JOIN"));
-        $this->addTableRef("$join (SELECT ...) AS", $name);
+        return $this->atomically(function () use ($join, $spec, $name, $cond, $bind): void {
+            $join = strtoupper(ltrim("$join JOIN"));
+            $this->assertJoinTakesCondition($join, $cond);
+            $this->addTableRef("$join (SELECT ...) AS", $name);
 
-        $spec = $this->subSelect($spec, '            ', 'join');
-        $name = $this->quoter->quoteName($name);
-        $cond = $this->fixJoinCondition($cond, $bind);
+            $spec = $this->subSelect($spec, '            ', 'join');
+            $name = $this->quoter->quoteName($name);
+            $cond = $this->fixJoinCondition($cond, $bind);
 
-        $text = rtrim("$join ($spec        ) AS $name $cond");
-        return $this->addJoin('        ' . $text);
+            $text = rtrim("$join ($spec        ) AS $name $cond");
+            $this->addJoin('        ' . $text);
+        });
     }
 
     /**
@@ -929,10 +1015,10 @@ class Select extends AbstractQuery implements SelectInterface
      * would have edits made to it after this call reach back into a union it
      * was only ever added to once; the SQL is what was asked for.
      *
-     * It is rendered before this query changes so that a branch that cannot
-     * render -- one with no columns yet -- leaves this query as it was, rather
-     * than having consumed and reset the branch it was building on the way to
-     * throwing.
+     * The change is made atomically, so that a branch that cannot render --
+     * one with no columns yet -- or whose values collide with this query's
+     * leaves this query as it was, rather than having consumed and reset the
+     * branch it was building on the way to throwing.
      *
      * @param string $type 'UNION' or 'UNION ALL'.
      *
@@ -972,20 +1058,17 @@ class Select extends AbstractQuery implements SelectInterface
             );
         }
 
-        $branch = $select === null ? null : $select->getStatement();
+        return $this->atomically(function () use ($type, $select): void {
+            // the branch being closed is the supplied one when there is one,
+            // and otherwise whatever this query has been building.
+            $this->union[] = $this->unionTailOrBuild() . PHP_EOL . $type;
+            $this->union_tail = null;
+            $this->resetAfterRendering();
 
-        // the branch being closed is the supplied one when there is one, and
-        // otherwise whatever this query has been building.
-        $this->union[] = $this->unionTailOrBuild() . PHP_EOL . $type;
-        $this->union_tail = null;
-        $this->resetAfterRendering();
-
-        if ($branch !== null) {
-            $this->union_tail = $branch;
-            $this->bindValuesFromSelect($select, 'union');
-        }
-
-        return $this;
+            if ($select !== null) {
+                $this->union_tail = $this->importSelect($select, 'union');
+            }
+        });
     }
 
     /**
@@ -1158,10 +1241,10 @@ class Select extends AbstractQuery implements SelectInterface
      * Clears the current select properties; generally used after adding a
      * union.
      *
-     * @return void
+     * @return $this
      *
      */
-    public function reset(): void
+    public function reset(): static
     {
         $this->resetFlags();
         $this->resetCols();
@@ -1174,6 +1257,7 @@ class Select extends AbstractQuery implements SelectInterface
         $this->offset(0);
         $this->page(0);
         $this->forUpdate(false);
+        return $this;
     }
 
     /**

@@ -8,7 +8,7 @@
  */
 namespace Aura\SqlQuery\Sqlite;
 
-use Aura\SqlQuery\Exception;
+use Aura\SqlQuery\Exception\LogicException;
 
 /**
  *
@@ -27,7 +27,7 @@ trait OrConflictTrait
      * @var string[]
      *
      */
-    protected $or_conflict_flags = [
+    protected array $or_conflict_flags = [
         'OR ABORT',
         'OR FAIL',
         'OR IGNORE',
@@ -42,7 +42,7 @@ trait OrConflictTrait
      *
      * @return void
      *
-     * @throws Exception\LogicException
+     * @throws LogicException
      *
      */
     protected function assertOneOrConflictFlag(): void
@@ -55,7 +55,7 @@ trait OrConflictTrait
         }
 
         if (count($set) > 1) {
-            throw new Exception\LogicException(
+            throw new LogicException(
                 'A statement takes only one conflict clause; got '
                 . implode(' and ', $set) . '.'
             );

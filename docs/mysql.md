@@ -15,6 +15,29 @@ These 'mysql' query objects have additional MySQL-specific behaviors.
 - `lateralJoinSubSelect()` to add a `JOIN LATERAL` against an aliased
   sub-select
 
+The flags are written in one fixed order, whatever order they were set in:
+`DISTINCT` first, then the others in the order MySQL's SELECT grammar lists
+them (`HIGH_PRIORITY`, `STRAIGHT_JOIN`, the `SQL_*` options).
+
+MySQL takes no `OFFSET` without a `LIMIT`, so an offset on its own is written
+with the largest limit MySQL accepts:
+
+```php
+$select = $queryFactory->newSelect();
+$select
+    ->cols(['*'])
+    ->from('foo')
+    ->offset(40);
+```
+
+```sql
+SELECT
+    *
+FROM
+    `foo`
+LIMIT 18446744073709551615 OFFSET 40
+```
+
 A `LATERAL` join lets the sub-select reference columns from the tables to its
 left, which is how you express "the top row per group":
 
@@ -57,7 +80,8 @@ Passing a condition to a `NATURAL` lateral join throws
 `Aura\SqlQuery\Exception\LogicException`, because a `NATURAL` join derives its
 condition from the common column names and rejects `ON`. A `CROSS` join *does*
 accept a condition on MySQL, where `CROSS` and `INNER` are synonyms — note that
-this differs from the PostgreSQL objects, which reject it.
+this differs from the other dialects, which reject it. The same holds for
+`join()` and `joinSubSelect()`.
 
 > `LATERAL` requires MySQL 8.0.14 or later. MariaDB has no `LATERAL` support at
 > all, so do not use this method against a MariaDB server even though it shares
@@ -65,7 +89,7 @@ this differs from the PostgreSQL objects, which reject it.
 
 ## INSERT
 
-- `orReplace()` to add or remove `OR REPLACE`
+- `orReplace()` to write `REPLACE INTO` instead of `INSERT INTO`
 - `highPriority()` to add or remove `HIGH_PRIORITY` flag
 - `lowPriority()` to add or remove `LOW_PRIORITY` flag
 - `ignore()` to add or remove `IGNORE` flag
@@ -112,6 +136,10 @@ The flags are not all combinable. `REPLACE` accepts only `LOW_PRIORITY` and
 them throws as well. Both are raised when the statement is built, whichever
 order the methods were called in.
 
+The flags that may be combined are written in the order MySQL requires, so
+`ignore()->lowPriority()` renders `INSERT LOW_PRIORITY IGNORE`, as it does
+called the other way round. The same holds for UPDATE and DELETE.
+
 ### ON DUPLICATE KEY UPDATE
 
 In addition, the MySQL _Insert_ object has support for `ON DUPLICATE KEY UPDATE`:
@@ -148,6 +176,10 @@ automatically suffixed with `__on_duplicate_key` to deconflict them from the
 insert placeholders — here the bind values are `email`, `name` and `hits` for
 the insert, plus `name__on_duplicate_key` for the update.
 
+A `REPLACE` has no `ON DUPLICATE KEY UPDATE` clause, so combining `orReplace()`
+with any of these methods throws `Aura\SqlQuery\Exception\LogicException` when
+the statement is built.
+
 Unlike MySQL, PostgreSQL and SQLite take an explicit conflict target and spell
 this `ON CONFLICT ... DO UPDATE`; see [the PostgreSQL page](./pgsql.md). Note
 that `onDuplicateKeyUpdateCols(['name'])` with no value emits a *new* placeholder
@@ -166,8 +198,8 @@ clause as the other dialects do; see [the UPDATE page](./update.md) and
 
 - `lowPriority()` to add or remove `LOW_PRIORITY` flag
 - `ignore()` to add or remove `IGNORE` flag
-- `where()` and `orWhere()` to add WHERE conditions flag
-- `orderBy()` to add an ORDER BY clause flag
+- `where()` and `orWhere()` to add WHERE conditions
+- `orderBy()` to add an ORDER BY clause
 - `limit()` to set a LIMIT count
 
 `ignore()` here leaves the rest of the statement to apply when one row fails.

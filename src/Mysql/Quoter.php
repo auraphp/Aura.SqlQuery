@@ -26,7 +26,7 @@ class Quoter extends Common\Quoter
      * @var string
      *
      */
-    protected $quote_name_prefix = '`';
+    protected string $quote_name_prefix = '`';
 
     /**
      *
@@ -35,5 +35,5 @@ class Quoter extends Common\Quoter
      * @var string
      *
      */
-    protected $quote_name_suffix = '`';
+    protected string $quote_name_suffix = '`';
 }

@@ -24,7 +24,7 @@ trait ReturningTrait
      * @var list<string>
      *
      */
-    protected $returning = [];
+    protected array $returning = [];
 
     /**
      *
