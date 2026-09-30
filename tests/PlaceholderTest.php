@@ -229,6 +229,30 @@ class PlaceholderTest extends TestCase
         $this->assertSame([1, 4, 5], $this->ids($select));
     }
 
+    public function testSubSelectForAPositionalPlaceholder()
+    {
+        $sub = $this->query_factory->newSelect()
+            ->cols(['id'])
+            ->from('u')
+            ->where('a IN (:a)', ['a' => [2, 3]]);
+
+        $select = $this->query_factory->newSelect()
+            ->cols(['id'])
+            ->from('t')
+            ->where('b IN (?) AND id IN (?)', [[20, 30, 40], $sub])
+            ->orderBy(['id']);
+
+        $this->assertStringContainsString(
+            'b IN (:__1__, :__2__, :__3__) AND id IN (SELECT',
+            $select->getStatement()
+        );
+        $this->assertSame(
+            ['__1__' => 20, '__2__' => 30, '__3__' => 40, '__4__' => 2, '__5__' => 3],
+            $select->getBindValues()
+        );
+        $this->assertSame([2, 3], $this->ids($select));
+    }
+
     public function testPositionalListWithoutAPlaceholderThrows()
     {
         $select = $this->query_factory->newSelect()->cols(['id'])->from('t');
