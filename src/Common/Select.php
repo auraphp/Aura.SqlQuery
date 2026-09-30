@@ -1342,6 +1342,21 @@ class Select extends AbstractQuery implements SelectInterface
 
     /**
      *
+     * The rendered UNION branches, and a branch supplied whole, keep the SQL
+     * they were rendered to, and with it any generated placeholder a clause
+     * reset would otherwise drop.
+     *
+     * {@inheritdoc}
+     *
+     */
+    protected function isSpelledInRetainedSql(string $name): bool
+    {
+        $retained = implode(PHP_EOL, $this->union) . PHP_EOL . $this->union_tail;
+        return (bool) preg_match('/:' . preg_quote($name, '/') . '(?!\w)/', $retained);
+    }
+
+    /**
+     *
      * Resets the UNION and UNION ALL clauses on the SELECT.
      *
      * @return $this

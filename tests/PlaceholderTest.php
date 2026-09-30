@@ -344,6 +344,84 @@ class PlaceholderTest extends TestCase
         $this->assertSame([2], $this->ids($named));
     }
 
+    public function testResetDropsTheGeneratedValuesItsClauseBound()
+    {
+        // a value left behind would be a parameter the statement no longer
+        // spells, and PDO rejects that at execute()
+        $select = $this->query_factory->newSelect()
+            ->cols(['id'])
+            ->from('t')
+            ->where('a = ?', [1])
+            ->where('b IN (?)', [[10, 20]])
+            ->resetWhere()
+            ->where('a = ?', [2]);
+
+        $this->assertStringContainsString('a = :__4__', $select->getStatement());
+        $this->assertSame(['__4__' => 2], $select->getBindValues());
+        $this->assertSame([2], $this->ids($select));
+
+        $having = $this->query_factory->newSelect()
+            ->cols(['a'])
+            ->from('t')
+            ->groupBy(['a'])
+            ->having('a IN (?)', [[1, 2]])
+            ->resetHaving();
+        $this->assertSame([], $having->getBindValues());
+
+        $join = $this->query_factory->newSelect()
+            ->cols(['t.id'])
+            ->from('t')
+            ->join('INNER', 'u', 'u.id = t.id AND u.a = ?', [3])
+            ->resetTables()
+            ->from('t');
+        $this->assertSame([], $join->getBindValues());
+    }
+
+    public function testResetKeepsNamedValues()
+    {
+        // a name the caller wrote may be rebound by hand, so it stays, as
+        // it always has
+        $select = $this->query_factory->newSelect()
+            ->cols(['id'])
+            ->from('t')
+            ->where('a = :a', ['a' => 1])
+            ->resetWhere();
+
+        $this->assertSame(['a' => 1], $select->getBindValues());
+    }
+
+    public function testUnionKeepsTheGeneratedValuesOfARenderedBranch()
+    {
+        $select = $this->query_factory->newSelect()
+            ->cols(['id'])
+            ->from('t')
+            ->where('id IN (?)', [[1, 2]]);
+
+        $select->union()
+            ->cols(['id'])
+            ->from('u')
+            ->where('id = ?', [5]);
+
+        $this->assertSame(['__1__' => 1, '__2__' => 2, '__3__' => 5], $select->getBindValues());
+        $this->assertSame([1, 2, 5], $this->ids($select));
+
+        $select->resetUnions();
+        $this->assertSame(['__3__' => 5], $select->getBindValues());
+    }
+
+    public function testQuestionMarksInCommentsAreNotPlaceholders()
+    {
+        $select = $this->query_factory->newSelect()
+            ->cols(['id'])
+            ->from('t')
+            ->where("a > ? /* why? :no */ AND b < ? -- really? :no\n", [1, 50]);
+
+        $statement = $select->getStatement();
+        $this->assertStringContainsString('a > :__1__ /* why? :no */ AND b < :__2__ -- really? :no', $statement);
+        $this->assertSame(['__1__' => 1, '__2__' => 50], $select->getBindValues());
+        $this->assertSame([2, 3, 4], $this->ids($select));
+    }
+
     public function testFailedWhereLeavesQueryUnchanged()
     {
         $select = $this->query_factory->newSelect()

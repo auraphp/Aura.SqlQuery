@@ -149,7 +149,13 @@ The values have to match the `?` placeholders one for one; more or fewer throws
 `Aura\SqlQuery\Exception\InvalidArgumentException`. A condition given no values
 at all keeps its `?` as written, for a value bound by hand with `bindValue()`.
 A doubled `??` is PDO's escape for a literal `?`, such as PostgreSQL's JSON
-operator, and is left alone.
+operator, and is left alone, as is a `?` inside a `--` or `/* */` comment.
+
+Resetting a clause -- `resetWhere()`, `resetHaving()`, `resetTables()`,
+`resetUnions()` -- drops the generated values it bound, since nobody can rebind
+a generated name and a value left behind would be a parameter the statement no
+longer spells. A value bound under a name you wrote is kept, as it always has
+been, and so is a generated one that a rendered `union()` branch still uses.
 
 The generated names are numbered by the query that holds them. When a query
 comes into another one -- as a sub-select bound to a placeholder, through

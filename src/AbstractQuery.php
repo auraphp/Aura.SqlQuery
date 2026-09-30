@@ -560,7 +560,8 @@ abstract class AbstractQuery
      *
      * Releases the placeholder names a query source claimed, so they may be
      * claimed again. The bound values themselves are kept: the clause resets
-     * have never removed them, and union() depends on that.
+     * have never removed them, and union() depends on that. Generated names
+     * are the exception, dropped unless retained SQL still spells them.
      *
      * A name another clause is sharing passes to that clause rather than
      * being released, since it is still in use.
@@ -596,8 +597,37 @@ abstract class AbstractQuery
                 continue;
             }
             unset($this->bind_sources[$name]);
+
+            // A generated name is the exception to keeping the value. Nobody
+            // wrote it, so nobody can rebind or reuse it; the next list or `?`
+            // gets a fresh one. Left behind, it is a parameter the statement no
+            // longer spells, which PDO rejects at execute(). SQL that was
+            // already rendered -- a UNION branch -- may still spell it, and
+            // then it stays.
+            if (
+                is_string($name)
+                && preg_match('/^__\d+__$/', $name)
+                && ! $this->isSpelledInRetainedSql($name)
+            ) {
+                unset($this->bind_values[$name]);
+            }
         }
         return $this;
+    }
+
+    /**
+     *
+     * Does SQL this query has already rendered and kept -- a UNION branch --
+     * still spell this placeholder?
+     *
+     * @param string $name The placeholder name, without the colon.
+     *
+     * @return bool
+     *
+     */
+    protected function isSpelledInRetainedSql(string $name): bool
+    {
+        return false;
     }
 
     /**
@@ -803,7 +833,7 @@ abstract class AbstractQuery
             }
 
             if (is_array($val)) {
-                $list = $this->inlineArray($val);
+                $list = $this->inlineArray($val, $clause);
                 if (is_int($key)) {
                     $positional[$slot] = $list;
                 } else {
@@ -847,10 +877,13 @@ abstract class AbstractQuery
         // only as a whole name (`:id` is not the start of `:id_2`), and not
         // after a second colon, which is a PostgreSQL cast (`x::int`). A
         // doubled `??` is PDO's escape for a literal `?`, such as the
-        // PostgreSQL JSON operator, and is not a placeholder either.
+        // PostgreSQL JSON operator, and is not a placeholder either. Comments
+        // -- `-- ...` to the end of the line, and `/* ... */` -- are passed
+        // over too, as PDO does, so `a = ? /* why? */` has one placeholder.
         $seen = 0;
         $cond = (string) preg_replace_callback(
-            '/\'(?:[^\'\\\\]|\\\\.)*\'|"(?:[^"\\\\]|\\\\.)*"|`[^`]*`|(?<!:):(\w+)|\?\?|\?/',
+            '/\'(?:[^\'\\\\]|\\\\.)*\'|"(?:[^"\\\\]|\\\\.)*"|`[^`]*`|--[^\n]*|\/\*.*?\*\/'
+            . '|(?<!:):(\w+)|\?\?|\?/s',
             function (array $m) use ($named, $positional, &$seen): string {
                 if ($m[0] === '?') {
                     $slot = $seen++;
@@ -886,15 +919,18 @@ abstract class AbstractQuery
      *
      * @param array<array-key, mixed> $array The values to bind.
      *
+     * @param string $source The clause the list is written into, which
+     * claims the names -- and whose reset releases them.
+     *
      * @return string The comma-separated placeholder names.
      *
      */
-    protected function inlineArray(array $array): string
+    protected function inlineArray(array $array, string $source = 'cond'): string
     {
         $keys = [];
         foreach ($array as $val) {
             $key = $this->nextInlineName();
-            $this->bindValueFrom($key, $val, 'cond');
+            $this->bindValueFrom($key, $val, $source);
             $keys[] = ":{$key}";
         }
         return implode(', ', $keys);

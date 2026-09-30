@@ -160,7 +160,13 @@ changes below as ordered steps.
   number 0, which 3.x rendered against a single value. A condition given no
   values keeps its `?` for binding by hand, and the values given have to
   match the `?` one for one or InvalidArgumentException is thrown. A doubled
-  `??`, PDO's escape for a literal `?`, is not read as a placeholder.
+  `??`, PDO's escape for a literal `?`, is not read as a placeholder, and
+  neither is a `?` inside a `--` or `/* */` comment. resetWhere(),
+  resetHaving(), resetTables() and resetUnions() drop the generated values
+  their clause bound -- for `?` values and lists alike -- unless a rendered
+  UNION branch still spells them, since nobody can rebind a generated name
+  and a value left behind is a parameter PDO rejects at execute(). Values
+  bound under a name you wrote are kept, as before.
 
 - [BRK] A table-qualified column gets a placeholder PDO can read: `col('t.a',
   1)` binds `:t_a` rather than `:t.a`, which PDO parsed as `:t` followed by
