@@ -377,6 +377,26 @@ class PlaceholderTest extends TestCase
         $this->assertSame([], $join->getBindValues());
     }
 
+    public function testResetWithOnADataModifyingQueryDropsTheCteGeneratedValues()
+    {
+        // an UPDATE has no UNION branches to keep a generated value alive
+        $cte = $this->query_factory->newSelect()
+            ->cols(['id'])
+            ->from('u')
+            ->where('a IN (?)', [[1, 2]]);
+
+        $update = $this->query_factory->newUpdate()
+            ->with('picked', $cte)
+            ->table('t')
+            ->cols(['b' => 0])
+            ->where('id IN (SELECT id FROM picked)');
+
+        $this->assertSame(['__1__' => 1, '__2__' => 2, 'b' => 0], $update->getBindValues());
+
+        $update->resetWith();
+        $this->assertSame(['b' => 0], $update->getBindValues());
+    }
+
     public function testResetKeepsNamedValues()
     {
         // a name the caller wrote may be rebound by hand, so it stays, as
