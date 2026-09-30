@@ -38,8 +38,7 @@ trait LateralJoinTrait
      * condition is given for the other types, "ON true" is used.
      *
      * @param array<int|string, mixed> $bind Values to bind to placeholders
-     * in the condition. Name them: a `?` here and one in another clause are
-     * both number 0, and collide.
+     * in the condition, by name or, for `?` placeholders, in order.
      *
      * @return $this
      *

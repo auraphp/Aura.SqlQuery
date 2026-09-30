@@ -181,10 +181,10 @@ class PlaceholderTest extends TestCase
             ->where("'?' <> ? AND a IN (?)", ['x', [1, 2]]);
 
         $this->assertStringContainsString(
-            "'?' <> ? AND a IN (:__1__, :__2__)",
+            "'?' <> :__1__ AND a IN (:__2__, :__3__)",
             $select->getStatement()
         );
-        $this->assertSame([0 => 'x', '__1__' => 1, '__2__' => 2], $select->getBindValues());
+        $this->assertSame(['__1__' => 'x', '__2__' => 1, '__3__' => 2], $select->getBindValues());
     }
 
     public function testTwoPositionalArrays()
@@ -209,10 +209,11 @@ class PlaceholderTest extends TestCase
             ->where('a = ? OR b IN (?)', [1, [40, 50]]);
 
         $this->assertStringContainsString(
-            'a = ? OR b IN (:__1__, :__2__)',
+            'a = :__1__ OR b IN (:__2__, :__3__)',
             $select->getStatement()
         );
-        $this->assertSame([0 => 1, '__1__' => 40, '__2__' => 50], $select->getBindValues());
+        $this->assertSame(['__1__' => 1, '__2__' => 40, '__3__' => 50], $select->getBindValues());
+        $this->assertSame([1, 4, 5], $this->ids($select));
     }
 
     public function testPositionalArrayCountsOnlyPositionalValues()
@@ -258,8 +259,89 @@ class PlaceholderTest extends TestCase
         $select = $this->query_factory->newSelect()->cols(['id'])->from('t');
 
         $this->expectException(Exception\InvalidArgumentException::class);
-        $this->expectExceptionMessage("placeholder number 2");
+        $this->expectExceptionMessage("1 '?' placeholder(s), but 2 value(s)");
         $select->where('a IN (?)', [[1, 2], [3, 4]]);
+    }
+
+    public function testQuestionMarksFromSeparateCallsDoNotCollide()
+    {
+        $select = $this->query_factory->newSelect()
+            ->cols(['id'])
+            ->from('t')
+            ->where('a > ?', [1])
+            ->where('b < ?', [50])
+            ->orderBy(['id']);
+
+        $this->assertStringContainsString('a > :__1__', $select->getStatement());
+        $this->assertStringContainsString('b < :__2__', $select->getStatement());
+        $this->assertSame([2, 3, 4], $this->ids($select));
+    }
+
+    public function testQuestionMarksInJoinAndWhereDoNotCollide()
+    {
+        $select = $this->query_factory->newSelect()
+            ->cols(['t.id'])
+            ->from('t')
+            ->join('INNER', 'u', 'u.id = t.id AND u.a > ?', [2])
+            ->where('t.b < ?', [50])
+            ->orderBy(['t.id']);
+
+        $this->assertSame([3, 4], $this->ids($select));
+    }
+
+    public function testTooFewValuesForQuestionMarksThrows()
+    {
+        $select = $this->query_factory->newSelect()->cols(['id'])->from('t');
+
+        $this->expectException(Exception\InvalidArgumentException::class);
+        $this->expectExceptionMessage("2 '?' placeholder(s), but 1 value(s)");
+        $select->where('a = ? AND b = ?', [1]);
+    }
+
+    public function testConditionWithoutValuesKeepsItsQuestionMarks()
+    {
+        // nothing given with the condition, so nothing to name: the `?` is
+        // left for a value bound by hand, as it always was
+        $select = $this->query_factory->newSelect()
+            ->cols(['id'])
+            ->from('t')
+            ->where('a = ?');
+        $select->bindValue(0, 3);
+
+        $this->assertStringContainsString('a = ?', $select->getStatement());
+        $this->assertSame([0 => 3], $select->getBindValues());
+    }
+
+    public function testDoubledQuestionMarkIsNotAPlaceholder()
+    {
+        $select = (new QueryFactory('pgsql'))->newSelect()
+            ->cols(['id'])
+            ->from('t')
+            ->where('data ?? :key AND a = ?', ['key' => 'x', 0 => 1]);
+
+        $this->assertStringContainsString('data ?? :key AND a = :__1__', $select->getStatement());
+        $this->assertSame(['key' => 'x', '__1__' => 1], $select->getBindValues());
+    }
+
+    public function testRebindingByNumberDoesNotReachAValueGivenWithTheCondition()
+    {
+        // the value has a generated name now, so binding number 0 by hand
+        // adds a value the statement does not use; rebind by name instead
+        $select = $this->query_factory->newSelect()
+            ->cols(['id'])
+            ->from('t')
+            ->where('a = ?', [5]);
+        $select->bindValue(0, 7);
+
+        $this->assertStringContainsString('a = :__1__', $select->getStatement());
+        $this->assertSame(['__1__' => 5, 0 => 7], $select->getBindValues());
+
+        $named = $this->query_factory->newSelect()
+            ->cols(['id'])
+            ->from('t')
+            ->where('a = :a', ['a' => 5]);
+        $named->bindValue('a', 2);
+        $this->assertSame([2], $this->ids($named));
     }
 
     public function testFailedWhereLeavesQueryUnchanged()

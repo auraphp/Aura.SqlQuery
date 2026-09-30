@@ -669,8 +669,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @param string|null $cond Join on this condition.
      *
      * @param array<int|string, mixed> $bind Values to bind to placeholders
-     * in the condition. Name them: a `?` here and one in another clause are
-     * both number 0, and collide.
+     * in the condition, by name or, for `?` placeholders, in order.
      *
      * @return $this
      *
@@ -741,8 +740,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @param string|null $cond Join on this condition.
      *
      * @param array<int|string, mixed> $bind Values to bind to placeholders
-     * in the condition. Name them: a `?` here and one in another clause are
-     * both number 0, and collide.
+     * in the condition, by name or, for `?` placeholders, in order.
      *
      * @return string
      *
@@ -776,8 +774,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @param string|null $cond Join on this condition.
      *
      * @param array<int|string, mixed> $bind Values to bind to placeholders
-     * in the condition. Name them: a `?` here and one in another clause are
-     * both number 0, and collide.
+     * in the condition, by name or, for `?` placeholders, in order.
      *
      * @return $this
      *
@@ -798,8 +795,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @param string|null $cond Join on this condition.
      *
      * @param array<int|string, mixed> $bind Values to bind to placeholders
-     * in the condition. Name them: a `?` here and one in another clause are
-     * both number 0, and collide.
+     * in the condition, by name or, for `?` placeholders, in order.
      *
      * @return $this
      *
@@ -826,8 +822,7 @@ class Select extends AbstractQuery implements SelectInterface
      * @param string|null $cond Join on this condition.
      *
      * @param array<int|string, mixed> $bind Values to bind to placeholders
-     * in the condition. Name them: a `?` here and one in another clause are
-     * both number 0, and collide.
+     * in the condition, by name or, for `?` placeholders, in order.
      *
      * @return $this
      *

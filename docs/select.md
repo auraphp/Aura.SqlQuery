@@ -121,10 +121,7 @@ subselect.
 
 Finally, all of the `*join*()` methods take an optional final argument, an
 array of values to bind to the placeholders in the condition clause, just as
-`where()` takes. Use named placeholders there. A `?` is numbered from the
-start of its own call's values, so a `?` in a join condition and a `?` in a
-`WHERE` condition are both placeholder 0, and the second one throws
-`Aura\SqlQuery\Exception\LogicException` rather than overwriting the first:
+`where()` takes:
 
 ```php
 $select = $queryFactory->newSelect();

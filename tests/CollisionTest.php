@@ -731,6 +731,9 @@ class CollisionTest extends TestCase
      * subset its SQL spells out as ':name'. A positional placeholder is the
      * case that shows why: the retained SQL keeps the '?' token and the value
      * is keyed by number, so reading the SQL back cannot recover the name.
+     * A value given with a condition is bound under a generated name, so the
+     * number comes here from bindValue(), and the second claim from the
+     * values passed alongside a closure condition, which are bound as given.
      *
      * Narrowing the claim to the names a branch visibly mentions looks like a
      * tidy-up and passes every other test in this file. It frees this one,
@@ -749,7 +752,7 @@ class CollisionTest extends TestCase
         $this->assertStringContainsString('id = ?', $select->getStatement());
 
         $this->expectException(Exception\LogicException::class);
-        $select->where('id = ?', [1 => 6]);
+        $select->where(function ($select) { $select->where('id = ?'); }, [1 => 6]);
     }
 
     /**
@@ -767,7 +770,7 @@ class CollisionTest extends TestCase
         $select->union()->cols(['*'])->from('b');
 
         try {
-            $select->where('id = ?', [1 => 6]);
+            $select->where(function ($select) { $select->where('id = ?'); }, [1 => 6]);
             $this->fail('Expected a collision on the positional placeholder.');
         } catch (Exception\LogicException $e) {
             $message = $e->getMessage();

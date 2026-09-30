@@ -812,6 +812,17 @@ abstract class AbstractQuery
                 continue;
             }
 
+            // a value for a `?` is bound under a generated name as well, so
+            // the statement never mixes `?` with named placeholders -- which
+            // plain PDO rejects on MySQL and PostgreSQL -- and two `?` from
+            // separate calls do not both claim the number 0
+            if (is_int($key)) {
+                $name = $this->nextInlineName();
+                $this->bindValueFrom($name, $val, $clause);
+                $positional[$slot] = ":{$name}";
+                continue;
+            }
+
             $this->bindValueFrom($key, $val, $clause);
         }
 
@@ -834,10 +845,12 @@ abstract class AbstractQuery
         // literals and quoted identifiers are passed over whole, so a `?` or
         // a `:name` inside one is left as written. A placeholder is matched
         // only as a whole name (`:id` is not the start of `:id_2`), and not
-        // after a second colon, which is a PostgreSQL cast (`x::int`).
+        // after a second colon, which is a PostgreSQL cast (`x::int`). A
+        // doubled `??` is PDO's escape for a literal `?`, such as the
+        // PostgreSQL JSON operator, and is not a placeholder either.
         $seen = 0;
         $cond = (string) preg_replace_callback(
-            '/\'(?:[^\'\\\\]|\\\\.)*\'|"(?:[^"\\\\]|\\\\.)*"|`[^`]*`|(?<!:):(\w+)|\?/',
+            '/\'(?:[^\'\\\\]|\\\\.)*\'|"(?:[^"\\\\]|\\\\.)*"|`[^`]*`|(?<!:):(\w+)|\?\?|\?/',
             function (array $m) use ($named, $positional, &$seen): string {
                 if ($m[0] === '?') {
                     $slot = $seen++;
@@ -853,16 +866,14 @@ abstract class AbstractQuery
             $cond
         );
 
-        // a list or sub-select for a `?` the condition does not have would
-        // otherwise vanish from the statement while its values stay bound
-        foreach (array_keys($positional) as $slot) {
-            if ($slot >= $seen) {
-                throw new Exception\InvalidArgumentException(
-                    'The condition has ' . $seen . " '?' placeholder(s), but "
-                    . 'a list or sub-select was given for placeholder number '
-                    . ($slot + 1) . '.'
-                );
-            }
+        // values for `?` have to match the `?` one for one: an extra value
+        // would stay bound to nothing, and a `?` left without one would be
+        // the only positional placeholder in an otherwise named statement
+        if ($positional && count($positional) !== $seen) {
+            throw new Exception\InvalidArgumentException(
+                'The condition has ' . $seen . " '?' placeholder(s), but "
+                . count($positional) . ' value(s) were given for them.'
+            );
         }
 
         return $cond;

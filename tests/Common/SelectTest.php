@@ -643,7 +643,7 @@ class SelectTest extends AbstractQueryTest
             WHERE
                 c1 = c2
                 AND c3 = :c3 AND c4 IN (:__1__, :__2__, :__3__) AND c5 = :c5
-                AND c6 = ? AND c7 IN (:__4__, :__5__, :__6__)
+                AND c6 = :__4__ AND c7 IN (:__5__, :__6__, :__7__)
         ';
 
         $actual = $this->query->__toString();
@@ -656,10 +656,10 @@ class SelectTest extends AbstractQueryTest
             '__2__' => 2,
             '__3__' => 1,
             'c5' => 'bar',
-            0 => 'foo1',
-            '__4__' => 6,
-            '__5__' => 5,
-            '__6__' => 4
+            '__4__' => 'foo1',
+            '__5__' => 6,
+            '__6__' => 5,
+            '__7__' => 4
         ];
         $this->assertSame($expect, $actual);
     }
@@ -1294,15 +1294,17 @@ class SelectTest extends AbstractQueryTest
             WHERE
                 foo = :foo
             HAVING
-                baz IN (?, ?, ?)
+                baz IN (:__1__, :__2__, :__3__)
         ';
         $actual = $this->query->__toString();
         $this->assertSameSql($expect, $actual);
 
+        // a value given for a `?` is bound under a generated name, so the
+        // statement never mixes `?` with named placeholders
         $expect = [
-            0 => 'dib',
-            1 => 'zim',
-            2 => 'gir',
+            '__1__' => 'dib',
+            '__2__' => 'zim',
+            '__3__' => 'gir',
             'foo' => 'bar',
         ];
         $actual = $this->query->getBindValues();

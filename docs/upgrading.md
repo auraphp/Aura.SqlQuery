@@ -187,17 +187,21 @@ the same value.
 
 Four particular cases are worth checking your code for:
 
-- **Separate `?` placeholders.** Two `?` bound to different values by separate
-  `where()` calls now throw, because each is numbered from the start of its own
-  values array and so asks for the same name. This never worked -- both conditions rendered against
-  one bound value and PDO rejected the statement at execute time -- so a query
-  doing it was already broken. Several `?` in a single call are unaffected. A
-  `?` in a `join()` condition counts too: it and a `?` in a `where()` are both
-  number 0, so use named placeholders in joins. And a `?` in a query that also
-  has a named placeholder -- a list bound to a `?` counts, since it is written
-  as generated names -- mixes the two styles, which plain PDO rejects on MySQL
-  and PostgreSQL and pdo_sqlite runs with the `?` unbound; see _Mixing `?` And
-  Named Placeholders_ in other.md. Aura.Sql's _ExtendedPdo_ runs it.
+- **`?` placeholders are named now.** A value given for a `?` in `where()`,
+  `having()`, a join or `doUpdateWhere()` is bound under a generated name, as a
+  list already was: `where('id = ?', [5])` renders `id = :__1__` and
+  `getBindValues()` returns `['__1__' => 5]`, not `[0 => 5]`. Passing
+  `getBindValues()` to `execute()` is unaffected, and two things that failed
+  before now work -- `?` in separate calls (a join and a `WHERE`, say), which
+  3.x rendered against a single bound value, and a `?` beside a named
+  placeholder, which plain PDO rejects on MySQL and PostgreSQL. What breaks is
+  reaching the value by number afterwards: `getBindValues()[0]` is gone, and
+  `bindValue(0, 7)` adds a value the statement does not use rather than
+  replacing 5. To rebind a value later, give it a name --
+  `where('id = :id', ['id' => 5])`, then `bindValue('id', 7)`. A condition
+  given no values keeps its `?` for binding by hand, as before. The values now
+  have to match the `?` one for one; more or fewer throws
+  _Exception\InvalidArgumentException_.
 
 - **Bulk inserts.** Each row's placeholders are renamed `<name>_<row>`, and
   those names are now tracked like any others. A condition binding `:status_0`
@@ -315,9 +319,10 @@ A few more calls now refuse input 3.x accepted:
 - A bulk-insert row with a column the first row lacks throws
   _Exception\InvalidArgumentException_ when the statement is built; 3.x
   dropped the column from the statement without a word.
-- A list bound for a `?` the condition does not have throws
-  _Exception\InvalidArgumentException_; 3.x emitted PHP warnings and wrote the
-  list over the start of the condition.
+- More or fewer values than a condition has `?` placeholders throws
+  _Exception\InvalidArgumentException_. In 3.x an extra list emitted PHP
+  warnings and was written over the start of the condition, and a missing or
+  extra plain value failed only when PDO executed the statement.
 - A column or alias given to `cols()` that is not a string throws
   _Exception\InvalidArgumentException_; 3.x wrote it into the SELECT list.
 - A database type other than `mysql`, `pgsql`, `sqlite`, `sqlsrv` or `common`
