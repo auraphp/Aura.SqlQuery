@@ -474,6 +474,30 @@ class PlaceholderTest extends TestCase
         $this->assertStringContainsString('a # :__1__ = 0', $pgsql->getStatement());
     }
 
+    public function testResetKeepsTheValuesOfABranchSuppliedWhole()
+    {
+        // a branch passed to union() is kept as rendered SQL, so its
+        // generated values stay; a value bound and reset after it does not
+        $branch = $this->query_factory->newSelect()
+            ->cols(['id'])
+            ->from('u')
+            ->where('id IN (?)', [[4, 5]]);
+
+        $select = $this->query_factory->newSelect()
+            ->cols(['id'])
+            ->from('t')
+            ->where('id = ?', [1])
+            ->union($branch);
+
+        $before = $select->getBindValues();
+        $this->assertSame(['__1__' => 1, '__2__' => 4, '__3__' => 5], $before);
+
+        $select->where('id = ?', [9])->resetWhere();
+
+        $this->assertSame($before, $select->getBindValues());
+        $this->assertSame([1, 4, 5], $this->ids($select));
+    }
+
     public function testNameInsideALiteralOfARenderedBranchDoesNotKeepAValue()
     {
         $select = $this->query_factory->newSelect()
