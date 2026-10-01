@@ -57,6 +57,16 @@ class Select extends AbstractQuery implements SelectInterface
 
     /**
      *
+     * The placeholder names each retained UNION branch spells, by the branch's
+     * index in $union, read once; see getRetainedSpelledNames().
+     *
+     * @var array<int, array<string, int>>
+     *
+     */
+    protected array $union_spelled = [];
+
+    /**
+     *
      * Is this a SELECT FOR UPDATE?
      *
      * @var bool
@@ -1146,10 +1156,7 @@ class Select extends AbstractQuery implements SelectInterface
         // Each branch is read on its own for the same reason, so that a stray
         // quote in one cannot pair with a quote in the next and swallow the
         // placeholders between them.
-        $spelled = [];
-        foreach ($this->union as $branch) {
-            $spelled += $this->getSpelledNames($branch);
-        }
+        $spelled = $this->getRetainedSpelledNames();
 
         $this->bind_sources = [];
         foreach (array_keys($this->bind_values) as $name) {
@@ -1292,28 +1299,27 @@ class Select extends AbstractQuery implements SelectInterface
     /**
      *
      * The rendered UNION branches, and a branch supplied whole, keep the SQL
-     * they were rendered to, and with it any generated placeholder a clause
-     * reset would otherwise drop.
+     * they were rendered to. Each branch is read the way this dialect reads
+     * it, so that a name inside a string literal or a comment does not count,
+     * and read once: a branch never changes after it is retained, so its
+     * names are kept until resetUnions() discards the branches.
      *
      * {@inheritdoc}
      *
      */
-    protected function isSpelledInRetainedSql(string $name): bool
+    protected function getRetainedSpelledNames(): array
     {
-        // read the way resetAfterRendering() reads a branch, so that a name
-        // inside a string literal or a comment does not keep a value alive
-        $branches = $this->union;
+        $spelled = [];
+        foreach ($this->union as $index => $branch) {
+            $this->union_spelled[$index] ??= $this->getSpelledNames($branch);
+            $spelled += $this->union_spelled[$index];
+        }
+
         if ($this->union_tail !== null) {
-            $branches[] = $this->union_tail;
+            $spelled += $this->getSpelledNames($this->union_tail);
         }
 
-        foreach ($branches as $branch) {
-            if (isset($this->getSpelledNames($branch)[$name])) {
-                return true;
-            }
-        }
-
-        return false;
+        return $spelled;
     }
 
     /**
@@ -1333,7 +1339,7 @@ class Select extends AbstractQuery implements SelectInterface
     protected function getSpelledNames(string $sql): array
     {
         $find = "/{$this->getQuotedNamePattern()}|{$this->getTextPattern()}"
-              . "|(?<!:):(\w+)/s";
+              . "|(?<!:):(?<name>\w+)/s";
         preg_match_all($find, $sql, $matches);
 
         // 'strlen' as a callable string is the idiom for dropping the empty
@@ -1341,7 +1347,7 @@ class Select extends AbstractQuery implements SelectInterface
         // closure that would satisfy the callable(string): bool PHPStan
         // wants; keeping it costs this one line.
         /** @phpstan-ignore argument.type */
-        return array_flip(array_filter($matches[1], 'strlen'));
+        return array_flip(array_filter($matches['name'], 'strlen'));
     }
 
     /**
@@ -1354,6 +1360,7 @@ class Select extends AbstractQuery implements SelectInterface
     public function resetUnions(): static
     {
         $this->union = [];
+        $this->union_spelled = [];
         $this->union_tail = null;
 
         // the rendered branches are gone, so nothing binds their placeholders

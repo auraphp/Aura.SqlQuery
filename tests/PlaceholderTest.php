@@ -514,6 +514,62 @@ class PlaceholderTest extends TestCase
         $this->assertSame([], $select->getBindValues());
     }
 
+    public function testQuestionMarkInsidePostgresLiteralsIsText()
+    {
+        $factory = new QueryFactory('pgsql');
+
+        $select = $factory->newSelect()->cols(['*'])->from('t')
+            ->where('a = E\'it\\\'s ?\' AND b = $$why?$$ AND c = $q$what?$q$ AND d = ?', [5]);
+        $this->assertStringContainsString(
+            'a = E\'it\\\'s ?\' AND b = $$why?$$ AND c = $q$what?$q$ AND d = :__1__',
+            $select->getStatement()
+        );
+        $this->assertSame(['__1__' => 5], $select->getBindValues());
+
+        // only Postgres reads these as literals; elsewhere the scan stays as
+        // it was
+        $this->expectException(Exception\InvalidArgumentException::class);
+        $this->query_factory->newSelect()->cols(['*'])->from('t')
+            ->where('a = $$why?$$ AND b = ?', [5]);
+    }
+
+    public function testGeneratedNamesFollowTheOrderTheValuesAreGiven()
+    {
+        $sub = $this->query_factory->newSelect()->cols(['id'])->from('u')->where('a = ?', [3]);
+
+        $select = $this->query_factory->newSelect()
+            ->cols(['id'])
+            ->from('t')
+            ->where('id IN (?) AND b > ? AND a IN (?)', [$sub, 20, [3, 4]]);
+
+        $this->assertStringContainsString('b > :__2__ AND a IN (:__3__, :__4__)', $select->getStatement());
+        $this->assertSame(
+            ['__1__' => 3, '__2__' => 20, '__3__' => 3, '__4__' => 4],
+            $select->getBindValues()
+        );
+        $this->assertSame([3], $this->ids($select));
+    }
+
+    public function testManyUnionBranchesBuildQuickly()
+    {
+        // each retained branch is read for its names once, not once per
+        // generated name a reset releases; reading it per name made 100
+        // branches of 100-value lists take seconds
+        $build = function (int $branches): float {
+            $start = hrtime(true);
+            $select = $this->query_factory->newSelect()->cols(['id'])->from('t')
+                ->where('a IN (?)', [range(1, 50)]);
+            for ($i = 1; $i < $branches; $i++) {
+                $select->unionAll()->cols(['id'])->from('t')->where('a IN (?)', [range(1, 50)]);
+            }
+            $select->getStatement();
+            return (hrtime(true) - $start) / 1e9;
+        };
+
+        $build(10);
+        $this->assertLessThan(1.0, $build(200));
+    }
+
     public function testFailedWhereLeavesQueryUnchanged()
     {
         $select = $this->query_factory->newSelect()

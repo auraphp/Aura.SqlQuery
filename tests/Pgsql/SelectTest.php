@@ -38,12 +38,15 @@ class SelectTest extends Common\SelectTest
             'backslash escape' => [['a'], "note = 'it\\'s :a'"],
             'hash is not a comment' => [['a'], 'c1 > 0 # :a'],
 
-            // read no further than this. Both spell a literal Postgres alone
-            // has, and a name kept inside one is a needless collision report
-            // where a reading of them gone wrong would swallow a real
-            // placeholder standing outside.
-            'gap: dollar-quoted string' => [['a'], 'note = $$ :a $$'],
-            'gap: escape string' => [['a'], "note = E'\\':a'"],
+            // the two literals Postgres alone has, read by Pgsql's own text
+            // pattern: a name inside one is text, and a real placeholder
+            // after one is still read
+            'dollar-quoted string' => [[], 'note = $$ :a $$'],
+            'tagged dollar-quoted string' => [[], 'note = $q$ it$s :a $q$'],
+            'dollar-quoted then code' => [['a'], 'note = $$ :b $$ AND a = :a'],
+            'escape string' => [[], "note = E'\\':a'"],
+            'escape string then code' => [['a'], "note = E'it\\'s :b' AND a = :a"],
+            'unclosed dollar quote' => [['a'], 'note = $$ unclosed AND a = :a'],
         ]);
     }
 

@@ -442,7 +442,7 @@ abstract class AbstractQuery
         $renamed = [];
         $values = [];
         foreach ($select->getBindValues() as $name => $value) {
-            if (is_string($name) && preg_match('/^__\d+__$/', $name)) {
+            if ($this->isGeneratedName($name)) {
                 $renamed[$name] = $this->nextInlineName();
                 $name = $renamed[$name];
             }
@@ -624,6 +624,9 @@ abstract class AbstractQuery
      */
     protected function removeBindSources(string $source): static
     {
+        // read only when a generated name is released, and then only once
+        $retained = null;
+
         // drop the record of who claimed the name, but keep the value: the
         // clause resets never removed bound values, and union() depends on
         // that -- it renders the current half to SQL, placeholders and all,
@@ -655,12 +658,11 @@ abstract class AbstractQuery
             // longer spells, which PDO rejects at execute(). SQL that was
             // already rendered -- a UNION branch -- may still spell it, and
             // then it stays.
-            if (
-                is_string($name)
-                && preg_match('/^__\d+__$/', $name)
-                && ! $this->isSpelledInRetainedSql($name)
-            ) {
-                unset($this->bind_values[$name]);
+            if ($this->isGeneratedName($name)) {
+                $retained ??= $this->getRetainedSpelledNames();
+                if (! isset($retained[$name])) {
+                    unset($this->bind_values[$name]);
+                }
             }
         }
         return $this;
@@ -668,17 +670,16 @@ abstract class AbstractQuery
 
     /**
      *
-     * Does SQL this query has already rendered and kept -- a UNION branch --
-     * still spell this placeholder?
+     * Returns the placeholder names spelled by SQL this query has already
+     * rendered and kept -- a UNION branch -- which a clause reset must leave
+     * bound. A query with no such SQL has none.
      *
-     * @param string $name The placeholder name, without the colon.
-     *
-     * @return bool
+     * @return array<string, int> The names, as keys.
      *
      */
-    protected function isSpelledInRetainedSql(string $name): bool
+    protected function getRetainedSpelledNames(): array
     {
-        return false;
+        return [];
     }
 
     /**
@@ -869,50 +870,35 @@ abstract class AbstractQuery
         // takes up no `?`
         $named = [];
         $positional = [];
-        $selects = [];
         $position = 0;
 
+        // one pass, in the order the values were given, so that generated
+        // names are numbered in that order -- a sub-select's own names come
+        // where the sub-select does, not after every other value
         foreach ($bind_values as $key => $val) {
             $slot = is_int($key) ? $position++ : $key;
 
             if ($val instanceof SelectInterface) {
-                // rendered below, once the arrays have their names, so that
-                // the numbering of generated names is the order they are
-                // written in rather than the order of nesting
-                $selects[] = [$slot, $val];
-                continue;
-            }
-
-            if (is_array($val)) {
-                $list = $this->inlineArray($val, $clause);
-                if (is_int($key)) {
-                    $positional[$slot] = $list;
-                } else {
-                    $named[$slot] = $list;
-                }
-                continue;
-            }
-
-            // a value for a `?` is bound under a generated name as well, so
-            // the statement never mixes `?` with named placeholders -- which
-            // plain PDO rejects on MySQL and PostgreSQL -- and two `?` from
-            // separate calls do not both claim the number 0
-            if (is_int($key)) {
+                $text = $this->importSelect($val, $clause);
+            } elseif (is_array($val)) {
+                $text = $this->inlineArray($val, $clause);
+            } elseif (is_int($key)) {
+                // a value for a `?` is bound under a generated name as well,
+                // so the statement never mixes `?` with named placeholders --
+                // which plain PDO rejects on MySQL and PostgreSQL -- and two
+                // `?` from separate calls do not both claim the number 0
                 $name = $this->nextInlineName();
                 $this->bindValueFrom($name, $val, $clause);
-                $positional[$slot] = ":{$name}";
+                $text = ":{$name}";
+            } else {
+                $this->bindValueFrom($key, $val, $clause);
                 continue;
             }
 
-            $this->bindValueFrom($key, $val, $clause);
-        }
-
-        foreach ($selects as [$slot, $select]) {
-            $statement = $this->importSelect($select, $clause);
             if (is_int($slot)) {
-                $positional[$slot] = $statement;
+                $positional[$slot] = $text;
             } else {
-                $named[$slot] = $statement;
+                $named[$slot] = $text;
             }
         }
 
@@ -940,15 +926,15 @@ abstract class AbstractQuery
         $seen = 0;
         $cond = (string) preg_replace_callback(
             "/{$this->getQuotedNamePattern()}|{$this->getTextPattern()}"
-            . '|"(?:[^"\\\\]|\\\\.)*"|`[^`]*`|(?<!:):(\w+)|\?\?|\?/s',
+            . '|"(?:[^"\\\\]|\\\\.)*"|`[^`]*`|(?<!:):(?<name>\w+)|\?\?|\?/s',
             function (array $m) use ($named, $positional, &$seen): string {
                 if ($m[0] === '?') {
                     $slot = $seen++;
                     return $positional[$slot] ?? '?';
                 }
 
-                if (isset($m[1], $named[$m[1]])) {
-                    return $named[$m[1]];
+                if (isset($m['name'], $named[$m['name']])) {
+                    return $named[$m['name']];
                 }
 
                 return $m[0];
@@ -1023,6 +1009,21 @@ abstract class AbstractQuery
     {
         $this->inlineCount++;
         return "__{$this->inlineCount}__";
+    }
+
+    /**
+     *
+     * Is this a name nextInlineName() generated, rather than one a caller
+     * wrote?
+     *
+     * @param int|string $name The placeholder name.
+     *
+     * @return bool
+     *
+     */
+    protected function isGeneratedName(int|string $name): bool
+    {
+        return is_string($name) && preg_match('/^__\d+__$/', $name) === 1;
     }
 
     /**

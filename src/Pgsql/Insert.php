@@ -19,6 +19,8 @@ use Aura\SqlQuery\Common;
  */
 class Insert extends Common\Insert implements ReturningInterface, Common\OnConflictUpdateInterface
 {
+    use TextPatternTrait;
+
     /**
      *
      * A builder for the query.

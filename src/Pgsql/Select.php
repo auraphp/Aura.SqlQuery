@@ -19,5 +19,7 @@ use Aura\SqlQuery\Common;
  */
 class Select extends Common\Select
 {
+    use TextPatternTrait;
+
     use Common\LateralJoinTrait;
 }

@@ -161,14 +161,22 @@ changes below as ordered steps.
   values keeps its `?` for binding by hand, and the values given have to
   match the `?` one for one or InvalidArgumentException is thrown. A doubled
   `??`, PDO's escape for a literal `?`, is not read as a placeholder, and
-  neither is a `?` inside a comment, read as the dialect reads one -- on
-  MySQL `#` begins a comment and `--` does only before whitespace, so
-  `a--?` there is subtraction and a placeholder. resetWhere(),
-  resetHaving(), resetTables() and resetUnions() drop the generated values
-  their clause bound -- for `?` values and lists alike -- unless a rendered
+  neither is a `?` inside a comment or a string literal, read as the
+  dialect reads them -- on MySQL `#` begins a comment and `--` does only
+  before whitespace, so `a--?` there is subtraction and a placeholder, and
+  on PostgreSQL `E'...'` escape strings and `$$...$$` dollar-quoted strings
+  are literals too. resetWhere(), resetHaving(), resetTables(),
+  resetUnions() and resetWith() drop the generated values their clause
+  bound -- for `?` values and lists alike -- unless a rendered
   UNION branch still spells them, since nobody can rebind a generated name
   and a value left behind is a parameter PDO rejects at execute(). Values
   bound under a name you wrote are kept, as before.
+
+  A subclass written against 7.0.0-beta1 that overrode the protected
+  `Select::$text_pattern` property must override `getTextPattern()`
+  instead: the reading moved up to AbstractQuery so that conditions are
+  scanned with it, and the property no longer exists, so an override of it
+  would be ignored without a word.
 
 - [BRK] A table-qualified column gets a placeholder PDO can read: `col('t.a',
   1)` binds `:t_a` rather than `:t.a`, which PDO parsed as `:t` followed by

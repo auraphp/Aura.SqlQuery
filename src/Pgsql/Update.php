@@ -19,6 +19,8 @@ use Aura\SqlQuery\Common;
  */
 class Update extends Common\Update implements ReturningInterface
 {
+    use TextPatternTrait;
+
     /**
      *
      * A builder for the query.
