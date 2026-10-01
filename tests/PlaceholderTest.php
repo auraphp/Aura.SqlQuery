@@ -550,24 +550,30 @@ class PlaceholderTest extends TestCase
         $this->assertSame([3], $this->ids($select));
     }
 
-    public function testManyUnionBranchesBuildQuickly()
+    public function testEachRetainedBranchIsReadOnce()
     {
         // each retained branch is read for its names once, not once per
         // generated name a reset releases; reading it per name made 100
-        // branches of 100-value lists take seconds
-        $build = function (int $branches): float {
-            $start = hrtime(true);
-            $select = $this->query_factory->newSelect()->cols(['id'])->from('t')
-                ->where('a IN (?)', [range(1, 50)]);
-            for ($i = 1; $i < $branches; $i++) {
-                $select->unionAll()->cols(['id'])->from('t')->where('a IN (?)', [range(1, 50)]);
+        // branches of 100-value lists take seconds. Counted rather than
+        // timed, so that a slow machine cannot fail it.
+        $select = new class (new Common\Quoter(), new Common\SelectBuilder()) extends Sqlite\Select {
+            public int $reads = 0;
+
+            protected function getSpelledNames(string $sql): array
+            {
+                $this->reads++;
+                return parent::getSpelledNames($sql);
             }
-            $select->getStatement();
-            return (hrtime(true) - $start) / 1e9;
         };
 
-        $build(10);
-        $this->assertLessThan(1.0, $build(200));
+        $select->cols(['id'])->from('t')->where('a IN (?)', [range(1, 20)]);
+        for ($i = 1; $i < 50; $i++) {
+            $select->unionAll()->cols(['id'])->from('t')->where('a IN (?)', [range(1, 20)]);
+        }
+        $select->getStatement();
+
+        $this->assertSame(49, $select->reads);
+        $this->assertCount(1000, $select->getBindValues());
     }
 
     public function testFailedWhereLeavesQueryUnchanged()
