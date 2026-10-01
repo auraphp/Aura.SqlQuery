@@ -161,7 +161,9 @@ changes below as ordered steps.
   values keeps its `?` for binding by hand, and the values given have to
   match the `?` one for one or InvalidArgumentException is thrown. A doubled
   `??`, PDO's escape for a literal `?`, is not read as a placeholder, and
-  neither is a `?` inside a `--` or `/* */` comment. resetWhere(),
+  neither is a `?` inside a comment, read as the dialect reads one -- on
+  MySQL `#` begins a comment and `--` does only before whitespace, so
+  `a--?` there is subtraction and a placeholder. resetWhere(),
   resetHaving(), resetTables() and resetUnions() drop the generated values
   their clause bound -- for `?` values and lists alike -- unless a rendered
   UNION branch still spells them, since nobody can rebind a generated name

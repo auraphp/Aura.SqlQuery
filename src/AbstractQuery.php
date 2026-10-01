@@ -125,6 +125,30 @@ abstract class AbstractQuery
 
     /**
      *
+     * Regex alternatives matching the SQL that spells no placeholder: string
+     * literals and comments, in the forms this dialect reads them.
+     *
+     * A quote inside a literal is written by doubling it, and a comment runs
+     * to the end of its line or to the close of its block. Dialects that read
+     * more than this -- MySQL, whose backslash escapes the quote after it and
+     * whose hash begins a comment -- say so by overriding this; the reading
+     * here is the standard one, so a backslash is an ordinary character and a
+     * literal ends at the next lone quote whatever precedes it.
+     *
+     * @return string
+     *
+     * @see rebuildCondAndBindValues()
+     *
+     * @see Common\Select::resetAfterRendering()
+     *
+     */
+    protected function getTextPattern(): string
+    {
+        return "'(?:[^']|'')*+'|--[^\n]*|\/\*.*?\*\/";
+    }
+
+    /**
+     *
      * Constructor.
      *
      * @param Common\QuoterInterface $quoter A helper for quoting identifier names.
@@ -171,6 +195,33 @@ abstract class AbstractQuery
      *
      */
     abstract protected function build(): string;
+
+    /**
+     *
+     * A regex alternative matching a quoted identifier, in the quoting this
+     * dialect writes: backticks on MySQL, brackets on SQL Server, double
+     * quotes elsewhere.
+     *
+     * A colon inside one is part of the name and no placeholder can stand
+     * there, so a scan for placeholder names must read past it. The quoting
+     * comes from the quoter rather than being spelled here, so that what is
+     * read back is what the builder wrote; the closing quote doubled is how a
+     * name containing one is written, and the name runs on past it.
+     *
+     * @return string
+     *
+     * @see rebuildCondAndBindValues()
+     *
+     * @see Common\Select::resetAfterRendering()
+     *
+     */
+    protected function getQuotedNamePattern(): string
+    {
+        $prefix = preg_quote($this->getQuoteNamePrefix(), '/');
+        $suffix = preg_quote($this->getQuoteNameSuffix(), '/');
+
+        return "{$prefix}(?:[^{$suffix}]|{$suffix}{$suffix})*+{$suffix}";
+    }
 
     /**
      *
@@ -877,13 +928,19 @@ abstract class AbstractQuery
         // only as a whole name (`:id` is not the start of `:id_2`), and not
         // after a second colon, which is a PostgreSQL cast (`x::int`). A
         // doubled `??` is PDO's escape for a literal `?`, such as the
-        // PostgreSQL JSON operator, and is not a placeholder either. Comments
-        // -- `-- ...` to the end of the line, and `/* ... */` -- are passed
-        // over too, as PDO does, so `a = ? /* why? */` has one placeholder.
+        // PostgreSQL JSON operator, and is not a placeholder either.
+        //
+        // String literals and comments are read the way this dialect reads
+        // them -- getTextPattern() -- since they differ: on MySQL a backslash
+        // escapes a quote and `--` begins a comment only before whitespace,
+        // so `a--?` there is subtraction and a placeholder. Anything in
+        // double quotes or backticks is passed over as well, whichever the
+        // dialect makes of it, since neither an identifier nor a string can
+        // hold a placeholder.
         $seen = 0;
         $cond = (string) preg_replace_callback(
-            '/\'(?:[^\'\\\\]|\\\\.)*\'|"(?:[^"\\\\]|\\\\.)*"|`[^`]*`|--[^\n]*|\/\*.*?\*\/'
-            . '|(?<!:):(\w+)|\?\?|\?/s',
+            "/{$this->getQuotedNamePattern()}|{$this->getTextPattern()}"
+            . '|"(?:[^"\\\\]|\\\\.)*"|`[^`]*`|(?<!:):(\w+)|\?\?|\?/s',
             function (array $m) use ($named, $positional, &$seen): string {
                 if ($m[0] === '?') {
                     $slot = $seen++;

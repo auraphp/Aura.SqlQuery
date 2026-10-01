@@ -44,24 +44,6 @@ class Select extends AbstractQuery implements SelectInterface
      */
     protected array $union = [];
 
-    /**
-     *
-     * Regex alternatives matching the SQL that spells no placeholder: string
-     * literals and comments, in the forms this dialect reads them.
-     *
-     * A quote inside a literal is written by doubling it, and a comment runs
-     * to the end of its line or to the close of its block. Dialects that read
-     * more than this -- MySQL, whose backslash escapes the quote after it and
-     * whose hash begins a comment -- say so by overriding this; the reading
-     * here is the standard one, so a backslash is an ordinary character and a
-     * literal ends at the next lone quote whatever precedes it.
-     *
-     * @var string
-     *
-     * @see resetAfterRendering()
-     *
-     */
-    protected string $text_pattern = "'(?:[^']|'')*+'|--[^\n]*|\/\*.*?\*\/";
 
     /**
      *
@@ -1164,17 +1146,9 @@ class Select extends AbstractQuery implements SelectInterface
         // Each branch is read on its own for the same reason, so that a stray
         // quote in one cannot pair with a quote in the next and swallow the
         // placeholders between them.
-        $find = "/{$this->getQuotedNamePattern()}|{$this->text_pattern}"
-              . "|(?<!:):(\w+)/s";
         $spelled = [];
         foreach ($this->union as $branch) {
-            preg_match_all($find, $branch, $matches);
-            // 'strlen' as a callable string is the idiom for dropping the
-            // empty captures the alternation leaves behind, and reads better
-            // than the closure that would satisfy the callable(string): bool
-            // PHPStan wants; keeping it costs this one line.
-            /** @phpstan-ignore argument.type */
-            $spelled += array_flip(array_filter($matches[1], 'strlen'));
+            $spelled += $this->getSpelledNames($branch);
         }
 
         $this->bind_sources = [];
@@ -1204,31 +1178,6 @@ class Select extends AbstractQuery implements SelectInterface
 
             $this->bind_sources[$name] = 'with';
         }
-    }
-
-    /**
-     *
-     * A regex alternative matching a quoted identifier, in the quoting this
-     * dialect writes: backticks on MySQL, brackets on SQL Server, double
-     * quotes elsewhere.
-     *
-     * A colon inside one is part of the name and no placeholder can stand
-     * there, so a scan for placeholder names must read past it. The quoting
-     * comes from the quoter rather than being spelled here, so that what is
-     * read back is what the builder wrote; the closing quote doubled is how a
-     * name containing one is written, and the name runs on past it.
-     *
-     * @return string
-     *
-     * @see resetAfterRendering()
-     *
-     */
-    protected function getQuotedNamePattern(): string
-    {
-        $prefix = preg_quote($this->getQuoteNamePrefix(), '/');
-        $suffix = preg_quote($this->getQuoteNameSuffix(), '/');
-
-        return "{$prefix}(?:[^{$suffix}]|{$suffix}{$suffix})*+{$suffix}";
     }
 
     /**
@@ -1351,8 +1300,48 @@ class Select extends AbstractQuery implements SelectInterface
      */
     protected function isSpelledInRetainedSql(string $name): bool
     {
-        $retained = implode(PHP_EOL, $this->union) . PHP_EOL . $this->union_tail;
-        return (bool) preg_match('/:' . preg_quote($name, '/') . '(?!\w)/', $retained);
+        // read the way resetAfterRendering() reads a branch, so that a name
+        // inside a string literal or a comment does not keep a value alive
+        $branches = $this->union;
+        if ($this->union_tail !== null) {
+            $branches[] = $this->union_tail;
+        }
+
+        foreach ($branches as $branch) {
+            if (isset($this->getSpelledNames($branch)[$name])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     *
+     * Returns the placeholder names a piece of rendered SQL spells, read the
+     * way this dialect reads it: a name inside a string literal, a comment or
+     * a quoted identifier is text, not a placeholder.
+     *
+     * Each piece is read on its own, so that a stray quote in one cannot pair
+     * with a quote in another and swallow the placeholders between them.
+     *
+     * @param string $sql The rendered SQL.
+     *
+     * @return array<string, int> The names, as keys.
+     *
+     */
+    protected function getSpelledNames(string $sql): array
+    {
+        $find = "/{$this->getQuotedNamePattern()}|{$this->getTextPattern()}"
+              . "|(?<!:):(\w+)/s";
+        preg_match_all($find, $sql, $matches);
+
+        // 'strlen' as a callable string is the idiom for dropping the empty
+        // captures the alternation leaves behind, and reads better than the
+        // closure that would satisfy the callable(string): bool PHPStan
+        // wants; keeping it costs this one line.
+        /** @phpstan-ignore argument.type */
+        return array_flip(array_filter($matches[1], 'strlen'));
     }
 
     /**

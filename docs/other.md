@@ -149,7 +149,9 @@ The values have to match the `?` placeholders one for one; more or fewer throws
 `Aura\SqlQuery\Exception\InvalidArgumentException`. A condition given no values
 at all keeps its `?` as written, for a value bound by hand with `bindValue()`.
 A doubled `??` is PDO's escape for a literal `?`, such as PostgreSQL's JSON
-operator, and is left alone, as is a `?` inside a `--` or `/* */` comment.
+operator, and is left alone, as is a `?` inside a comment. Comments are read
+as the dialect reads them: on MySQL `#` begins one and `--` does only when
+whitespace follows, so `a--?` there is subtraction and a placeholder.
 
 Resetting a clause -- `resetWhere()`, `resetHaving()`, `resetTables()`,
 `resetUnions()` -- drops the generated values it bound, since nobody can rebind

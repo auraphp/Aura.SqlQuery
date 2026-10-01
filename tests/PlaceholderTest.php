@@ -442,6 +442,54 @@ class PlaceholderTest extends TestCase
         $this->assertSame([2, 3, 4], $this->ids($select));
     }
 
+    public function testMysqlDashesBeginACommentOnlyBeforeWhitespace()
+    {
+        $factory = new QueryFactory('mysql');
+
+        // `a--?` is subtraction and a placeholder on MySQL
+        $select = $factory->newSelect()->cols(['*'])->from('t')->where('a--? > 0', [1]);
+        $this->assertStringContainsString('a--:__1__ > 0', $select->getStatement());
+
+        $update = $factory->newUpdate()->table('t')->cols(['b' => 1])->where('a--? > 0', [1]);
+        $this->assertStringContainsString('a--:__1__ > 0', $update->getStatement());
+
+        // `-- ` and `#` are comments there, and hide the `?` inside them
+        $select = $factory->newSelect()->cols(['*'])->from('t')
+            ->where("a = ? -- why?\nAND b = ? # really?\n", [1, 2]);
+        $this->assertStringContainsString('a = :__1__ -- why?', $select->getStatement());
+        $this->assertStringContainsString('AND b = :__2__ # really?', $select->getStatement());
+    }
+
+    public function testStandardDashesNeedNoWhitespace()
+    {
+        // SQLite and PostgreSQL read `--` as a comment whatever follows it,
+        // and `#` as an operator
+        $select = $this->query_factory->newSelect()->cols(['id'])->from('t')
+            ->where("a > ? --why?\n", [3]);
+        $this->assertStringContainsString('a > :__1__ --why?', $select->getStatement());
+        $this->assertSame([4, 5], $this->ids($select));
+
+        $pgsql = (new QueryFactory('pgsql'))->newSelect()->cols(['*'])->from('t')
+            ->where('a # ? = 0', [1]);
+        $this->assertStringContainsString('a # :__1__ = 0', $pgsql->getStatement());
+    }
+
+    public function testNameInsideALiteralOfARenderedBranchDoesNotKeepAValue()
+    {
+        $select = $this->query_factory->newSelect()
+            ->cols(['id'])
+            ->from('t')
+            ->where("':__1__' = ':__1__'");
+
+        $select->union()
+            ->cols(['id'])
+            ->from('u')
+            ->where('id = ?', [5])
+            ->resetWhere();
+
+        $this->assertSame([], $select->getBindValues());
+    }
+
     public function testFailedWhereLeavesQueryUnchanged()
     {
         $select = $this->query_factory->newSelect()
