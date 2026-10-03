@@ -198,9 +198,10 @@ Four particular cases are worth checking your code for:
   reaching the value by number afterwards: `getBindValues()[0]` is gone, and
   `bindValue(0, 7)` adds a value the statement does not use rather than
   replacing 5. To rebind a value later, give it a name --
-  `where('id = :id', ['id' => 5])`, then `bindValue('id', 7)`. A condition
-  given no values keeps its `?` for binding by hand, as before. The values now
-  have to match the `?` one for one; more or fewer throws
+  `where('id = :id', ['id' => 5])`, then `bindValue('id', 7)`. A `?` no
+  value was given for -- in a condition given no values, or only named ones --
+  is kept for binding by hand, as before. Values given for `?` now have to
+  match the `?` one for one; more or fewer throws
   _Exception\InvalidArgumentException_. Values for `?` passed with a closure
   condition go to the `?` its conditions leave without a value, in order, and
   are named the same way: `where(fn ($q) => $q->where('a = ?'), [5])` binds

@@ -145,9 +145,11 @@ WHERE
     a = :__1__ AND b IN (:__2__, :__3__) AND c = :c
 ```
 
-The values have to match the `?` placeholders one for one; more or fewer throws
-`Aura\SqlQuery\Exception\InvalidArgumentException`. A condition given no values
-at all keeps its `?` as written, for a value bound by hand with `bindValue()`.
+Values given for `?` have to match the `?` placeholders one for one; more or
+fewer throws `Aura\SqlQuery\Exception\InvalidArgumentException`. A `?` no value
+was given for -- in a condition given no values, or only named ones, as in
+`where('a = :a AND b = ?', ['a' => 1])` -- is kept as written, for a value
+bound by hand with `bindValue()`, as in 3.x.
 A doubled `??` is PDO's escape for a literal `?`, such as PostgreSQL's JSON
 operator, and is left alone, as is a `?` inside a comment or a string literal.
 Both are read as the dialect reads them: on MySQL `#` begins a comment and `--`
@@ -170,8 +172,8 @@ two queries that each bind a list do not collide over `:__1__`.
 #### Mixing `?` And Named Placeholders
 
 A `?` is kept only where no value was given for it -- one written into
-`cols()`, a raw `from()` or join string, or a condition with no values, for a
-value you bind by hand with `bindValue()`. A query that keeps such a `?` and has
+`cols()`, a raw `from()` or join string, or a condition given no values or only
+named ones, for a value you bind by hand with `bindValue()`. A query that keeps such a `?` and has
 a `:name` anywhere else, including the generated ones, is a statement that
 mixes the two styles, and whether that runs depends on what executes it, not
 on this package:

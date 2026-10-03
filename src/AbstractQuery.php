@@ -936,9 +936,13 @@ abstract class AbstractQuery
         $seen = 0;
         $cond = $this->replacePlaceholders($cond, $named, $positional, $seen);
 
-        // values for `?` have to match the `?` one for one: an extra value
-        // would stay bound to nothing, and a `?` left without one would be
-        // the only positional placeholder in an otherwise named statement
+        // values given for `?` have to match the `?` one for one: an extra
+        // value would stay bound to nothing, and a `?` left without one would
+        // be the only positional placeholder in an otherwise named statement.
+        // A condition given no values for `?` -- none at all, or only named
+        // ones -- keeps its `?` for binding by hand, as 3.x did: plain PDO
+        // cannot run that beside named placeholders, but Aura.Sql's
+        // ExtendedPdo, which rewrites them, can.
         if ($positional && count($positional) !== $seen) {
             throw new Exception\InvalidArgumentException(
                 'The condition has ' . $seen . " '?' placeholder(s), but "

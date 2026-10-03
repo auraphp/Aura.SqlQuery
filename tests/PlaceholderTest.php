@@ -320,6 +320,21 @@ class PlaceholderTest extends TestCase
         $this->assertSame([0 => 3], $select->getBindValues());
     }
 
+    public function testQuestionMarkBesideOnlyNamedValuesIsKeptForBindingByHand()
+    {
+        // as in 3.x: no value was given for the `?`, so it is left for one
+        // bound by hand. Plain PDO cannot run it beside a named placeholder;
+        // Aura.Sql's ExtendedPdo, which rewrites the placeholders, can.
+        $select = $this->query_factory->newSelect()
+            ->cols(['id'])
+            ->from('t')
+            ->where('a = :a AND b = ?', ['a' => 1]);
+        $select->bindValue(0, 10);
+
+        $this->assertStringContainsString('a = :a AND b = ?', $this->flat($select));
+        $this->assertSame(['a' => 1, 0 => 10], $select->getBindValues());
+    }
+
     public function testDoubledQuestionMarkIsNotAPlaceholder()
     {
         $select = (new QueryFactory('pgsql'))->newSelect()

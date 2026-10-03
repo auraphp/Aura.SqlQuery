@@ -157,8 +157,9 @@ changes below as ordered steps.
   return, a statement never mixes `?` with named placeholders, which plain
   PDO rejects on MySQL and PostgreSQL (and which pdo_sqlite ran with the `?`
   unbound), and `?` placeholders from separate calls no longer both claim the
-  number 0, which 3.x rendered against a single value. A condition given no
-  values keeps its `?` for binding by hand, and the values given have to
+  number 0, which 3.x rendered against a single value. A `?` no value
+  was given for -- in a condition given no values, or only named ones -- is
+  kept for binding by hand, as in 3.x, and values given for `?` have to
   match the `?` one for one or InvalidArgumentException is thrown. Values
   for `?` passed with a closure condition fill the `?` its conditions leave
   without a value, in reading order and under names taken before the
