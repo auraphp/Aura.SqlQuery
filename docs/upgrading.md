@@ -201,7 +201,10 @@ Four particular cases are worth checking your code for:
   `where('id = :id', ['id' => 5])`, then `bindValue('id', 7)`. A condition
   given no values keeps its `?` for binding by hand, as before. The values now
   have to match the `?` one for one; more or fewer throws
-  _Exception\InvalidArgumentException_.
+  _Exception\InvalidArgumentException_. Values for `?` passed with a closure
+  condition go to the `?` its conditions leave without a value, in order, and
+  are named the same way: `where(fn ($q) => $q->where('a = ?'), [5])` binds
+  `['__1__' => 5]`, not `[0 => 5]`.
 
 - **Bulk inserts.** Each row's placeholders are renamed `<name>_<row>`, and
   those names are now tracked like any others. A condition binding `:status_0`

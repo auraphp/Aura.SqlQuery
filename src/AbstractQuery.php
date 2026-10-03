@@ -772,8 +772,30 @@ abstract class AbstractQuery
     private function addClauseCond(string $clause, string $andor, string|Closure $cond, array $bind): void
     {
         if ($cond instanceof Closure) {
-            $this->addClauseCondClosure($clause, $andor, $cond);
+            // Values given for `?` with a closure are for the `?` its
+            // conditions leave without a value of their own. They are known
+            // before the closure runs, so their names are taken first -- and
+            // number first, in the order the condition reads -- and written
+            // over those `?` once it has run. Named values are bound by name,
+            // as they always were.
+            $reserved = [];
+            $named = [];
             foreach ($bind as $key => $val) {
+                if (is_int($key)) {
+                    $reserved[$this->nextInlineName()] = $val;
+                } else {
+                    $named[$key] = $val;
+                }
+            }
+
+            $this->addClauseCondClosure(
+                $clause,
+                $andor,
+                $cond,
+                array_map(fn (string $name): string => ":{$name}", array_keys($reserved))
+            );
+
+            foreach ($reserved + $named as $key => $val) {
                 $this->bindValueFrom($key, $val, $clause);
             }
             return;
@@ -802,10 +824,16 @@ abstract class AbstractQuery
      *
      * @param callable $closure The closure that adds to the clause.
      *
+     * @param list<string> $positional Placeholders to write over the `?` the
+     * closure's conditions leave without a value, in order.
+     *
      * @return void
      *
+     * @throws Exception\InvalidArgumentException when the number of those
+     * `?` does not match the placeholders given for them.
+     *
      */
-    protected function addClauseCondClosure(string $clause, string $andor, callable $closure): void
+    protected function addClauseCondClosure(string $clause, string $andor, callable $closure, array $positional = []): void
     {
         // retain the prior set of conditions, and temporarily reset the clause
         // for the closure to work with (otherwise there will be an extraneous
@@ -816,11 +844,11 @@ abstract class AbstractQuery
         // invoke the closure, which will re-populate the $this->$clause
         $closure($this);
 
-        // are there new clause elements? PHPStan does not model the closure
-        // above repopulating the clause, so it still sees the empty array
-        // assigned before the call: this test reads as always true to it, and
-        // everything after it as unreachable.
-        /** @phpstan-ignore booleanNot.alwaysTrue */
+        if ($positional) {
+            $this->fillClosurePlaceholders($clause, $positional);
+        }
+
+        // are there new clause elements?
         if (! $this->$clause) {
             // no: restore the old ones, and done
             $this->$clause = $set;
@@ -829,7 +857,6 @@ abstract class AbstractQuery
 
         // append an opening parenthesis to the prior set of conditions,
         // with AND/OR as needed ...
-        /** @phpstan-ignore deadCode.unreachable */
         if ($set) {
             $set[] = "{$andor} (";
         } else {
@@ -906,6 +933,76 @@ abstract class AbstractQuery
             return $cond;
         }
 
+        $seen = 0;
+        $cond = $this->replacePlaceholders($cond, $named, $positional, $seen);
+
+        // values for `?` have to match the `?` one for one: an extra value
+        // would stay bound to nothing, and a `?` left without one would be
+        // the only positional placeholder in an otherwise named statement
+        if ($positional && count($positional) !== $seen) {
+            throw new Exception\InvalidArgumentException(
+                'The condition has ' . $seen . " '?' placeholder(s), but "
+                . count($positional) . ' value(s) were given for them.'
+            );
+        }
+
+        return $cond;
+    }
+
+    /**
+     *
+     * Writes placeholders over the `?` a closure's conditions left without a
+     * value, read across them all in order, and requires one for one, as a
+     * condition given values does.
+     *
+     * @param string $clause The clause the closure added to, holding only
+     * its conditions while this runs.
+     *
+     * @param list<string> $positional The placeholders, in order.
+     *
+     * @return void
+     *
+     * @throws Exception\InvalidArgumentException when the counts differ.
+     *
+     */
+    protected function fillClosurePlaceholders(string $clause, array $positional): void
+    {
+        $seen = 0;
+        $conds = $this->$clause;
+        foreach ($conds as $index => $added) {
+            $conds[$index] = $this->replacePlaceholders($added, [], $positional, $seen);
+        }
+        $this->$clause = $conds;
+
+        if (count($positional) !== $seen) {
+            throw new Exception\InvalidArgumentException(
+                "The closure's conditions leave {$seen} '?' placeholder(s) "
+                . 'without a value, but ' . count($positional)
+                . ' value(s) were given with it.'
+            );
+        }
+    }
+
+    /**
+     *
+     * Writes replacements over the placeholders of a condition, in one pass.
+     *
+     * @param string $cond The condition.
+     *
+     * @param array<string, string> $named Replacements for named
+     * placeholders, by name.
+     *
+     * @param array<int, string> $positional Replacements for `?`
+     * placeholders, by their order among the `?` placeholders.
+     *
+     * @param int $seen Counts the `?` placeholders read, carried on from
+     * one call to the next when several conditions share the values.
+     *
+     * @return string The condition, rewritten.
+     *
+     */
+    protected function replacePlaceholders(string $cond, array $named, array $positional, int &$seen): string
+    {
         // One pass over the condition, so that nothing written in is read
         // again: a sub-select spelling `:id` of its own, or a list of
         // generated names, is not a placeholder of this condition. String
@@ -923,8 +1020,7 @@ abstract class AbstractQuery
         // double quotes or backticks is passed over as well, whichever the
         // dialect makes of it, since neither an identifier nor a string can
         // hold a placeholder.
-        $seen = 0;
-        $cond = (string) preg_replace_callback(
+        return (string) preg_replace_callback(
             "/{$this->getQuotedNamePattern()}|{$this->getTextPattern()}"
             . '|"(?:[^"\\\\]|\\\\.)*"|`[^`]*`|(?<!:):(?<name>\w+)|\?\?|\?/s',
             function (array $m) use ($named, $positional, &$seen): string {
@@ -941,18 +1037,6 @@ abstract class AbstractQuery
             },
             $cond
         );
-
-        // values for `?` have to match the `?` one for one: an extra value
-        // would stay bound to nothing, and a `?` left without one would be
-        // the only positional placeholder in an otherwise named statement
-        if ($positional && count($positional) !== $seen) {
-            throw new Exception\InvalidArgumentException(
-                'The condition has ' . $seen . " '?' placeholder(s), but "
-                . count($positional) . ' value(s) were given for them.'
-            );
-        }
-
-        return $cond;
     }
 
     /**

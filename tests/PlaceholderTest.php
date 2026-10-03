@@ -43,6 +43,14 @@ class PlaceholderTest extends TestCase
         return array_map('intval', $sth->fetchAll(PDO::FETCH_COLUMN));
     }
 
+    /**
+     * The statement on one line, for asserting on parts that wrap.
+     */
+    protected function flat(QueryInterface $query): string
+    {
+        return (string) preg_replace('/\s+/', ' ', $query->getStatement());
+    }
+
     public function testArraysInOuterQueryAndSubSelectDoNotCollide()
     {
         $sub = $this->query_factory->newSelect()
@@ -574,6 +582,104 @@ class PlaceholderTest extends TestCase
 
         $this->assertSame(49, $select->reads);
         $this->assertCount(1000, $select->getBindValues());
+    }
+
+    public function testClosureValuesFillTheQuestionMarksItLeavesEmpty()
+    {
+        $select = $this->query_factory->newSelect()
+            ->cols(['id'])
+            ->from('t')
+            ->where(function ($select) {
+                $select->where('a > ?')->where('b < ?', [50]);
+            }, [1])
+            ->orderBy(['id']);
+
+        // taken before the closure runs, so the outer value numbers first
+        $this->assertStringContainsString('a > :__1__', $this->flat($select));
+        $this->assertStringContainsString('b < :__2__', $this->flat($select));
+        $this->assertSame(['__2__' => 50, '__1__' => 1], $select->getBindValues());
+        $this->assertSame([2, 3, 4], $this->ids($select));
+    }
+
+    public function testClosureValuesReachNestedClosuresInReadingOrder()
+    {
+        $select = $this->query_factory->newSelect()
+            ->cols(['id'])
+            ->from('t')
+            ->where(function ($select) {
+                $select->where('a > ?')->where(function ($select) {
+                    $select->where('b = ?')->orWhere('b = ?', [50]);
+                });
+            }, [1, 20])
+            ->orderBy(['id']);
+
+        $this->assertStringContainsString('b = :__2__ OR b = :__3__', $this->flat($select));
+        $this->assertSame([2, 5], $this->ids($select));
+    }
+
+    public function testClosureNumbersInPlaceWhereverItStands()
+    {
+        $select = $this->query_factory->newSelect()
+            ->cols(['id'])
+            ->from('t')
+            ->where('a > ?', [1])
+            ->where(function ($select) {
+                $select->where('a < ?')->where('b < ?', [50]);
+            }, [5])
+            ->where('b > ?', [10]);
+
+        $this->assertStringContainsString(
+            'a > :__1__ AND ( a < :__2__ AND b < :__3__ ) AND b > :__4__',
+            $this->flat($select)
+        );
+        $this->assertSame([2, 3, 4], $this->ids($select));
+
+        // inside a closure, the values passed with it number before its own,
+        // so an empty `?` after a valued one reads out of order -- still all
+        // named, and bound correctly
+        $inner = $this->query_factory->newSelect()
+            ->cols(['id'])
+            ->from('t')
+            ->where(function ($select) {
+                $select->where('b < ?', [50])->where('a > ?');
+            }, [1]);
+        $this->assertStringContainsString('b < :__2__ AND a > :__1__', $this->flat($inner));
+        $this->assertSame([2, 3, 4], $this->ids($inner));
+    }
+
+    public function testClosureKeepsNamedValuesAndUnfilledQuestionMarks()
+    {
+        $named = $this->query_factory->newSelect()->cols(['id'])->from('t')
+            ->where(function ($select) {
+                $select->where('a = :a')->orWhere('a = ?');
+            }, ['a' => 1, 3]);
+        $this->assertStringContainsString('a = :a OR a = :__1__', $this->flat($named));
+        $this->assertSame([1, 3], $this->ids($named));
+
+        // no values for `?` given with it: the `?` is left for binding by hand
+        $bare = $this->query_factory->newSelect()->cols(['id'])->from('t')
+            ->where(function ($select) {
+                $select->where('a = ?');
+            });
+        $this->assertStringContainsString('a = ?', $this->flat($bare));
+    }
+
+    public function testClosureValuesMustMatchItsEmptyQuestionMarks()
+    {
+        $select = $this->query_factory->newSelect()->cols(['id'])->from('t');
+
+        try {
+            $select->where(function ($select) {
+                $select->where('a = ?');
+            }, [1, 2]);
+            $this->fail('Expected a count mismatch.');
+        } catch (Exception\InvalidArgumentException $e) {
+            $this->assertStringContainsString("leave 1 '?' placeholder(s) without a value, but 2", $e->getMessage());
+        }
+
+        // and the failed call left nothing behind
+        $this->assertSame([], $select->getBindValues());
+        $this->assertStringNotContainsString('WHERE', $this->flat($select));
     }
 
     public function testFailedWhereLeavesQueryUnchanged()

@@ -205,6 +205,29 @@ $select
 
 The same closure grouping works for `having()` and `orHaving()`.
 
+Values passed with the closure, as the second argument, bind like values passed
+with any condition: named ones by name, and the rest to the `?` placeholders the
+closure's conditions leave without a value of their own, in the order they are
+read. They take their generated names before the closure runs, so they number
+first:
+
+```php
+$select
+    ->where(function ($select) {
+        $select->where('foo > ?')
+            ->where('bar = ?', ['x']);
+    }, [10]);
+// WHERE (
+//     foo > :__1__
+//     AND bar = :__2__
+// )
+// binds ['__2__' => 'x', '__1__' => 10]
+```
+
+As with any condition, the values have to match those `?` one for one, or
+`Aura\SqlQuery\Exception\InvalidArgumentException` is thrown; a closure passed
+no values for `?` leaves them as written, for binding by hand.
+
 If a column name itself contains a dot, quote it yourself and the quoter will
 leave it alone, rather than reading the dot as a table/column separator. Use
 the identifier delimiters of the dialect you are building for: backticks on

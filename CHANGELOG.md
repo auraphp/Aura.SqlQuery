@@ -159,7 +159,11 @@ changes below as ordered steps.
   unbound), and `?` placeholders from separate calls no longer both claim the
   number 0, which 3.x rendered against a single value. A condition given no
   values keeps its `?` for binding by hand, and the values given have to
-  match the `?` one for one or InvalidArgumentException is thrown. A doubled
+  match the `?` one for one or InvalidArgumentException is thrown. Values
+  for `?` passed with a closure condition fill the `?` its conditions leave
+  without a value, in reading order and under names taken before the
+  closure runs: `where(fn ($q) => $q->where('a = ?')->where('b = ?', [6]),
+  [5])` renders `a = :__1__ AND b = :__2__`, where it bound 5 by number. A doubled
   `??`, PDO's escape for a literal `?`, is not read as a placeholder, and
   neither is a `?` inside a comment or a string literal, read as the
   dialect reads them -- on MySQL `#` begins a comment and `--` does only

@@ -731,9 +731,10 @@ class CollisionTest extends TestCase
      * subset its SQL spells out as ':name'. A positional placeholder is the
      * case that shows why: the retained SQL keeps the '?' token and the value
      * is keyed by number, so reading the SQL back cannot recover the name.
-     * A value given with a condition is bound under a generated name, so the
-     * number comes here from bindValue(), and the second claim from the
-     * values passed alongside a closure condition, which are bound as given.
+     * A value given with a condition -- or with a closure condition -- is
+     * bound under a generated name, so a number is only ever bound by hand:
+     * here with bindValue(), and the second claim from a sub-select carrying
+     * a number it was bound by hand, which comes across as it was.
      *
      * Narrowing the claim to the names a branch visibly mentions looks like a
      * tidy-up and passes every other test in this file. It frees this one,
@@ -752,7 +753,7 @@ class CollisionTest extends TestCase
         $this->assertStringContainsString('id = ?', $select->getStatement());
 
         $this->expectException(Exception\LogicException::class);
-        $select->where(function ($select) { $select->where('id = ?'); }, [1 => 6]);
+        $select->where('id IN (:sub)', ['sub' => $this->newSubSelectBindingByHand(1, 6)]);
     }
 
     /**
@@ -770,7 +771,7 @@ class CollisionTest extends TestCase
         $select->union()->cols(['*'])->from('b');
 
         try {
-            $select->where(function ($select) { $select->where('id = ?'); }, [1 => 6]);
+            $select->where('id IN (:sub)', ['sub' => $this->newSubSelectBindingByHand(1, 6)]);
             $this->fail('Expected a collision on the positional placeholder.');
         } catch (Exception\LogicException $e) {
             $message = $e->getMessage();
@@ -781,6 +782,16 @@ class CollisionTest extends TestCase
             // do with `?`, whose number is its offset in the values array
             $this->assertStringContainsString('names instead', $message);
         }
+    }
+
+    /**
+     * A sub-select whose `?` was bound by hand under the given number.
+     */
+    private function newSubSelectBindingByHand(int $number, mixed $value): \Aura\SqlQuery\Common\SelectInterface
+    {
+        $sub = $this->query_factory->newSelect()->cols(['id'])->from('c')->where('x = ?');
+        $sub->bindValue($number, $value);
+        return $sub;
     }
 
     public function testHandBoundPlaceholderOfARenderedBranchMayBeSharedOnTheSameValue()
