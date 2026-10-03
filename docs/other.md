@@ -119,11 +119,13 @@ touch `:id_2`, and in `x::int` the `::int` is a cast rather than a placeholder.
 A `?` or `:name` inside a quoted string or a quoted identifier is part of the
 text and is left alone.
 
-An array bound to a placeholder is written as a list of generated placeholders,
-`:__1__`, `:__2__` and so on, one per value. That works for `?` as well as for
-a named placeholder, and the lists are matched to the `?` placeholders in
-order, counting only the `?` placeholders -- a named value in the same array
-does not take up a position:
+A value given for a `?` is bound under a generated name, `:__1__`, `:__2__` and
+so on, and an array bound to any placeholder is written as a list of them, one
+per value. So a statement never mixes `?` with named placeholders, which plain
+PDO rejects on MySQL and PostgreSQL, and two `?` from separate calls -- a join
+and a `WHERE`, say -- do not both claim the number 0. The values are matched to
+the `?` placeholders in order, counting only the `?` placeholders -- a named
+value in the same array does not take up a position:
 
 ```php
 $select = $queryFactory->newSelect();
@@ -131,7 +133,7 @@ $select = $queryFactory->newSelect();
 $select
     ->cols(['*'])
     ->from('t')
-    ->where('a IN (?) AND b = :b AND c IN (?)', [[1, 2], 'b' => 'x', [3, 4]]);
+    ->where('a = ? AND b IN (?) AND c = :c', [1, [2, 3], 'c' => 'x']);
 ```
 
 ```sql
@@ -140,11 +142,26 @@ SELECT
 FROM
     "t"
 WHERE
-    a IN (:__1__, :__2__) AND b = :b AND c IN (:__3__, :__4__)
+    a = :__1__ AND b IN (:__2__, :__3__) AND c = :c
 ```
 
-A list given for a `?` the condition does not have throws
-`Aura\SqlQuery\Exception\InvalidArgumentException`.
+Values given for `?` have to match the `?` placeholders one for one; more or
+fewer throws `Aura\SqlQuery\Exception\InvalidArgumentException`. A `?` no value
+was given for -- in a condition given no values, or only named ones, as in
+`where('a = :a AND b = ?', ['a' => 1])` -- is kept as written, for a value
+bound by hand with `bindValue()`, as in 3.x.
+A doubled `??` is PDO's escape for a literal `?`, such as PostgreSQL's JSON
+operator, and is left alone, as is a `?` inside a comment or a string literal.
+Both are read as the dialect reads them: on MySQL `#` begins a comment and `--`
+does only when whitespace follows, so `a--?` there is subtraction and a
+placeholder, and on PostgreSQL an `E'...'` escape string or a `$$...$$`
+dollar-quoted string is a literal too.
+
+Resetting a clause -- `resetWhere()`, `resetHaving()`, `resetTables()`,
+`resetUnions()`, `resetWith()` -- drops the generated values it bound, since nobody can rebind
+a generated name and a value left behind would be a parameter the statement no
+longer spells. A value bound under a name you wrote is kept, as it always has
+been, and so is a generated one that a rendered `union()` branch still uses.
 
 The generated names are numbered by the query that holds them. When a query
 comes into another one -- as a sub-select bound to a placeholder, through
@@ -154,11 +171,12 @@ two queries that each bind a list do not collide over `:__1__`.
 
 #### Mixing `?` And Named Placeholders
 
-A list is always written as named placeholders, so a query that keeps a `?`
-anywhere and has a `:name` anywhere else -- including the names generated for a
-list -- is a statement that mixes the two styles. `where('a = ? AND b IN (?)',
-[1, [2, 3]])` is one: it renders `a = ? AND b IN (:__1__, :__2__)`. Whether that
-runs depends on what executes it, not on this package:
+A `?` is kept only where no value was given for it -- one written into
+`cols()`, a raw `from()` or join string, or a condition given no values or only
+named ones, for a value you bind by hand with `bindValue()`. A query that keeps such a `?` and has
+a `:name` anywhere else, including the generated ones, is a statement that
+mixes the two styles, and whether that runs depends on what executes it, not
+on this package:
 
 - PDO's own placeholder parser, which pdo_mysql and pdo_pgsql use, rejects it
   at `prepare()` with `SQLSTATE[HY093]: Invalid parameter number: mixed named
@@ -168,7 +186,8 @@ runs depends on what executes it, not on this package:
 - Aura.Sql's _ExtendedPdo_ rewrites the placeholders before PDO sees them, and
   runs it.
 
-With plain PDO, use named placeholders throughout, or `?` alone with no lists.
+With plain PDO, bind such a value by name instead: write `:name` where the `?`
+was, and `bindValue('name', ...)`.
 
 ### Bulk Insert Rows
 
@@ -266,8 +285,9 @@ never used -- one a `resetWhere()` dropped from the branch before it was
 rendered, say -- is not held, since nothing in that SQL can bind it, and the
 next branch may use it for a value of its own.
 
-Positional placeholders are the exception. `where('id = ?')` keeps the `?`
-token and binds its value by number, so there is no name in the statement to
+Positional placeholders bound by hand are the exception. `where('id = ?')` with
+no values keeps the `?` token, and `bindValue(0, ...)` binds its value by
+number, so there is no name in the statement to
 look for; those are held on the strength of having been bound at all. The
 alternative would be to release a name the rendered SQL is certainly using and
 let a later branch overwrite it, leaving the first branch to run on the second

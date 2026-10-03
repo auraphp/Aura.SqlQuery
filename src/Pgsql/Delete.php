@@ -19,6 +19,8 @@ use Aura\SqlQuery\Common;
  */
 class Delete extends Common\Delete implements ReturningInterface
 {
+    use TextPatternTrait;
+
     /**
      *
      * A builder for the query.

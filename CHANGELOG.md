@@ -133,12 +133,7 @@ changes below as ordered steps.
   by the clause it is rendered into -- fromSubSelect() and joinSubSelect()
   hold theirs until resetTables() -- rather than by whichever of the
   sub-select's own clauses bound them, so resetWhere() on the outer query no
-  longer frees a name the sub-select is still binding. And two `?`
-  placeholders bound by separate where() calls now throw, because both are
-  numbered from the start of their own values array and so ask for the same
-  name; this never worked, since the two conditions rendered against a single
-  bound value and PDO rejected the statement at execute time. Several `?` in
-  one call are unaffected. Fixes #238, #248.
+  longer frees a name the sub-select is still binding. Fixes #238, #248.
 
 - [BRK] The placeholder names a bulk insert generates are now tracked like
   any others. Each row's placeholders are renamed `<name>_<row>`, and those
@@ -152,6 +147,41 @@ changes below as ordered steps.
   named `a_1` alongside `a` is renamed out of the way before the merge.
   Binding by hand with bindValue() is unaffected and now correctly overwrites
   a row's value, where before the banked value won regardless. Fixes #241.
+
+- [BRK] A value given for a `?` placeholder in a condition is bound under a
+  generated name, as a list for one already was: `where('id = ?', [5])`
+  renders `id = :__1__`, and getBindValues() returns `['__1__' => 5]` rather
+  than `[0 => 5]`. Passing getBindValues() to execute() is unaffected. Code
+  that reached the value by number afterwards -- `getBindValues()[0]`, or
+  `bindValue(0, ...)` to replace it -- has to give it a name instead. In
+  return, a statement never mixes `?` with named placeholders, which plain
+  PDO rejects on MySQL and PostgreSQL (and which pdo_sqlite ran with the `?`
+  unbound), and `?` placeholders from separate calls no longer both claim the
+  number 0, which 3.x rendered against a single value. A `?` no value
+  was given for -- in a condition given no values, or only named ones -- is
+  kept for binding by hand, as in 3.x, and values given for `?` have to
+  match the `?` one for one or InvalidArgumentException is thrown. Values
+  for `?` passed with a closure condition fill the `?` its conditions leave
+  without a value, in reading order and under names taken before the
+  closure runs: `where(fn ($q) => $q->where('a = ?')->where('b = ?', [6]),
+  [5])` renders `a = :__1__ AND b = :__2__`, where it bound 5 by number. A doubled
+  `??`, PDO's escape for a literal `?`, is not read as a placeholder, and
+  neither is a `?` inside a comment or a string literal, read as the
+  dialect reads them -- on MySQL `#` begins a comment and `--` does only
+  before whitespace, so `a--?` there is subtraction and a placeholder, and
+  on PostgreSQL `E'...'` escape strings and `$$...$$` dollar-quoted strings
+  are literals too. resetWhere(), resetHaving(), resetTables(),
+  resetUnions() and resetWith() drop the generated values their clause
+  bound -- for `?` values and lists alike -- unless a rendered
+  UNION branch still spells them, since nobody can rebind a generated name
+  and a value left behind is a parameter PDO rejects at execute(). Values
+  bound under a name you wrote are kept, as before.
+
+  A subclass written against 7.0.0-beta1 that overrode the protected
+  `Select::$text_pattern` property must override `getTextPattern()`
+  instead: the reading moved up to AbstractQuery so that conditions are
+  scanned with it, and the property no longer exists, so an override of it
+  would be ignored without a word.
 
 - [BRK] A table-qualified column gets a placeholder PDO can read: `col('t.a',
   1)` binds `:t_a` rather than `:t.a`, which PDO parsed as `:t` followed by
@@ -172,7 +202,7 @@ changes below as ordered steps.
   - a later bulk-insert row with a column the first row does not have
     (InvalidArgumentException, where the column was dropped and its value
     left bound);
-  - a list or sub-select for a `?` placeholder the condition does not have
+  - more or fewer values than a condition has `?` placeholders
     (InvalidArgumentException);
   - a column or alias given to Select::cols() that is not a string
     (InvalidArgumentException);

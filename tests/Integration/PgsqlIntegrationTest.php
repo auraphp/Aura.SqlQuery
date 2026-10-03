@@ -70,6 +70,26 @@ class PgsqlIntegrationTest extends AbstractIntegrationTest
         return "{$col} = ANY(string_to_array({$param}, ','))";
     }
 
+    /**
+     *
+     * A `?` inside an escape string or a dollar-quoted string is text; only
+     * the real placeholder after it takes the value.
+     *
+     */
+    public function testQuestionMarkInsidePostgresLiterals()
+    {
+        $select = $this->query_factory->newSelect()
+            ->cols(["E'it\\'s ?' AS e", '$$why?$$ AS d', '$q$what?$q$ AS t', 'name'])
+            ->from('test_employee')
+            ->where("E'?' <> ? AND $$?$$ <> ? AND name = ?", ['x', 'y', 'Clara']);
+
+        $actual = $this->fetchAll($select);
+        $this->assertSame(
+            [['e' => "it's ?", 'd' => 'why?', 't' => 'what?', 'name' => 'Clara']],
+            $actual
+        );
+    }
+
     public function testInsertReturning()
     {
         $insert = $this->query_factory->newInsert()

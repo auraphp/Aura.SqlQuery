@@ -125,6 +125,30 @@ abstract class AbstractQuery
 
     /**
      *
+     * Regex alternatives matching the SQL that spells no placeholder: string
+     * literals and comments, in the forms this dialect reads them.
+     *
+     * A quote inside a literal is written by doubling it, and a comment runs
+     * to the end of its line or to the close of its block. Dialects that read
+     * more than this -- MySQL, whose backslash escapes the quote after it and
+     * whose hash begins a comment -- say so by overriding this; the reading
+     * here is the standard one, so a backslash is an ordinary character and a
+     * literal ends at the next lone quote whatever precedes it.
+     *
+     * @return string
+     *
+     * @see rebuildCondAndBindValues()
+     *
+     * @see Common\Select::resetAfterRendering()
+     *
+     */
+    protected function getTextPattern(): string
+    {
+        return "'(?:[^']|'')*+'|--[^\n]*|\/\*.*?\*\/";
+    }
+
+    /**
+     *
      * Constructor.
      *
      * @param Common\QuoterInterface $quoter A helper for quoting identifier names.
@@ -171,6 +195,33 @@ abstract class AbstractQuery
      *
      */
     abstract protected function build(): string;
+
+    /**
+     *
+     * A regex alternative matching a quoted identifier, in the quoting this
+     * dialect writes: backticks on MySQL, brackets on SQL Server, double
+     * quotes elsewhere.
+     *
+     * A colon inside one is part of the name and no placeholder can stand
+     * there, so a scan for placeholder names must read past it. The quoting
+     * comes from the quoter rather than being spelled here, so that what is
+     * read back is what the builder wrote; the closing quote doubled is how a
+     * name containing one is written, and the name runs on past it.
+     *
+     * @return string
+     *
+     * @see rebuildCondAndBindValues()
+     *
+     * @see Common\Select::resetAfterRendering()
+     *
+     */
+    protected function getQuotedNamePattern(): string
+    {
+        $prefix = preg_quote($this->getQuoteNamePrefix(), '/');
+        $suffix = preg_quote($this->getQuoteNameSuffix(), '/');
+
+        return "{$prefix}(?:[^{$suffix}]|{$suffix}{$suffix})*+{$suffix}";
+    }
 
     /**
      *
@@ -391,7 +442,7 @@ abstract class AbstractQuery
         $renamed = [];
         $values = [];
         foreach ($select->getBindValues() as $name => $value) {
-            if (is_string($name) && preg_match('/^__\d+__$/', $name)) {
+            if ($this->isGeneratedName($name)) {
                 $renamed[$name] = $this->nextInlineName();
                 $name = $renamed[$name];
             }
@@ -560,7 +611,8 @@ abstract class AbstractQuery
      *
      * Releases the placeholder names a query source claimed, so they may be
      * claimed again. The bound values themselves are kept: the clause resets
-     * have never removed them, and union() depends on that.
+     * have never removed them, and union() depends on that. Generated names
+     * are the exception, dropped unless retained SQL still spells them.
      *
      * A name another clause is sharing passes to that clause rather than
      * being released, since it is still in use.
@@ -572,6 +624,9 @@ abstract class AbstractQuery
      */
     protected function removeBindSources(string $source): static
     {
+        // read only when a generated name is released, and then only once
+        $retained = null;
+
         // drop the record of who claimed the name, but keep the value: the
         // clause resets never removed bound values, and union() depends on
         // that -- it renders the current half to SQL, placeholders and all,
@@ -596,8 +651,35 @@ abstract class AbstractQuery
                 continue;
             }
             unset($this->bind_sources[$name]);
+
+            // A generated name is the exception to keeping the value. Nobody
+            // wrote it, so nobody can rebind or reuse it; the next list or `?`
+            // gets a fresh one. Left behind, it is a parameter the statement no
+            // longer spells, which PDO rejects at execute(). SQL that was
+            // already rendered -- a UNION branch -- may still spell it, and
+            // then it stays.
+            if ($this->isGeneratedName($name)) {
+                $retained ??= $this->getRetainedSpelledNames();
+                if (! isset($retained[$name])) {
+                    unset($this->bind_values[$name]);
+                }
+            }
         }
         return $this;
+    }
+
+    /**
+     *
+     * Returns the placeholder names spelled by SQL this query has already
+     * rendered and kept -- a UNION branch -- which a clause reset must leave
+     * bound. A query with no such SQL has none.
+     *
+     * @return array<string, int> The names, as keys.
+     *
+     */
+    protected function getRetainedSpelledNames(): array
+    {
+        return [];
     }
 
     /**
@@ -690,8 +772,30 @@ abstract class AbstractQuery
     private function addClauseCond(string $clause, string $andor, string|Closure $cond, array $bind): void
     {
         if ($cond instanceof Closure) {
-            $this->addClauseCondClosure($clause, $andor, $cond);
+            // Values given for `?` with a closure are for the `?` its
+            // conditions leave without a value of their own. They are known
+            // before the closure runs, so their names are taken first -- and
+            // number first, in the order the condition reads -- and written
+            // over those `?` once it has run. Named values are bound by name,
+            // as they always were.
+            $reserved = [];
+            $named = [];
             foreach ($bind as $key => $val) {
+                if (is_int($key)) {
+                    $reserved[$this->nextInlineName()] = $val;
+                } else {
+                    $named[$key] = $val;
+                }
+            }
+
+            $this->addClauseCondClosure(
+                $clause,
+                $andor,
+                $cond,
+                array_map(fn (string $name): string => ":{$name}", array_keys($reserved))
+            );
+
+            foreach ($reserved + $named as $key => $val) {
                 $this->bindValueFrom($key, $val, $clause);
             }
             return;
@@ -720,10 +824,16 @@ abstract class AbstractQuery
      *
      * @param callable $closure The closure that adds to the clause.
      *
+     * @param list<string> $positional Placeholders to write over the `?` the
+     * closure's conditions leave without a value, in order.
+     *
      * @return void
      *
+     * @throws Exception\InvalidArgumentException when the number of those
+     * `?` does not match the placeholders given for them.
+     *
      */
-    protected function addClauseCondClosure(string $clause, string $andor, callable $closure): void
+    protected function addClauseCondClosure(string $clause, string $andor, callable $closure, array $positional = []): void
     {
         // retain the prior set of conditions, and temporarily reset the clause
         // for the closure to work with (otherwise there will be an extraneous
@@ -734,11 +844,11 @@ abstract class AbstractQuery
         // invoke the closure, which will re-populate the $this->$clause
         $closure($this);
 
-        // are there new clause elements? PHPStan does not model the closure
-        // above repopulating the clause, so it still sees the empty array
-        // assigned before the call: this test reads as always true to it, and
-        // everything after it as unreachable.
-        /** @phpstan-ignore booleanNot.alwaysTrue */
+        if ($positional) {
+            $this->fillClosurePlaceholders($clause, $positional);
+        }
+
+        // are there new clause elements?
         if (! $this->$clause) {
             // no: restore the old ones, and done
             $this->$clause = $set;
@@ -747,7 +857,6 @@ abstract class AbstractQuery
 
         // append an opening parenthesis to the prior set of conditions,
         // with AND/OR as needed ...
-        /** @phpstan-ignore deadCode.unreachable */
         if ($set) {
             $set[] = "{$andor} (";
         } else {
@@ -788,39 +897,35 @@ abstract class AbstractQuery
         // takes up no `?`
         $named = [];
         $positional = [];
-        $selects = [];
         $position = 0;
 
+        // one pass, in the order the values were given, so that generated
+        // names are numbered in that order -- a sub-select's own names come
+        // where the sub-select does, not after every other value
         foreach ($bind_values as $key => $val) {
             $slot = is_int($key) ? $position++ : $key;
 
             if ($val instanceof SelectInterface) {
-                // rendered below, once the arrays have their names, so that
-                // the numbering of generated names is the order they are
-                // written in rather than the order of nesting
-                $selects[] = [$slot, $val];
-                continue;
-            }
-
-            if (is_array($val)) {
-                $list = $this->inlineArray($val);
-                if (is_int($key)) {
-                    $positional[$slot] = $list;
-                } else {
-                    $named[$slot] = $list;
-                }
-                continue;
-            }
-
-            $this->bindValueFrom($key, $val, $clause);
-        }
-
-        foreach ($selects as [$slot, $select]) {
-            $statement = $this->importSelect($select, $clause);
-            if (is_int($slot)) {
-                $positional[$slot] = $statement;
+                $text = $this->importSelect($val, $clause);
+            } elseif (is_array($val)) {
+                $text = $this->inlineArray($val, $clause);
+            } elseif (is_int($key)) {
+                // a value for a `?` is bound under a generated name as well,
+                // so the statement never mixes `?` with named placeholders --
+                // which plain PDO rejects on MySQL and PostgreSQL -- and two
+                // `?` from separate calls do not both claim the number 0
+                $name = $this->nextInlineName();
+                $this->bindValueFrom($name, $val, $clause);
+                $text = ":{$name}";
             } else {
-                $named[$slot] = $statement;
+                $this->bindValueFrom($key, $val, $clause);
+                continue;
+            }
+
+            if (is_int($slot)) {
+                $positional[$slot] = $text;
+            } else {
+                $named[$slot] = $text;
             }
         }
 
@@ -828,44 +933,114 @@ abstract class AbstractQuery
             return $cond;
         }
 
+        $seen = 0;
+        $cond = $this->replacePlaceholders($cond, $named, $positional, $seen);
+
+        // values given for `?` have to match the `?` one for one: an extra
+        // value would stay bound to nothing, and a `?` left without one would
+        // be the only positional placeholder in an otherwise named statement.
+        // A condition given no values for `?` -- none at all, or only named
+        // ones -- keeps its `?` for binding by hand, as 3.x did: plain PDO
+        // cannot run that beside named placeholders, but Aura.Sql's
+        // ExtendedPdo, which rewrites them, can.
+        if ($positional && count($positional) !== $seen) {
+            throw new Exception\InvalidArgumentException(
+                'The condition has ' . $seen . " '?' placeholder(s), but "
+                . count($positional) . ' value(s) were given for them.'
+            );
+        }
+
+        return $cond;
+    }
+
+    /**
+     *
+     * Writes placeholders over the `?` a closure's conditions left without a
+     * value, read across them all in order, and requires one for one, as a
+     * condition given values does.
+     *
+     * @param string $clause The clause the closure added to, holding only
+     * its conditions while this runs.
+     *
+     * @param list<string> $positional The placeholders, in order.
+     *
+     * @return void
+     *
+     * @throws Exception\InvalidArgumentException when the counts differ.
+     *
+     */
+    protected function fillClosurePlaceholders(string $clause, array $positional): void
+    {
+        $seen = 0;
+        $conds = $this->$clause;
+        foreach ($conds as $index => $added) {
+            $conds[$index] = $this->replacePlaceholders($added, [], $positional, $seen);
+        }
+        $this->$clause = $conds;
+
+        if (count($positional) !== $seen) {
+            throw new Exception\InvalidArgumentException(
+                "The closure's conditions leave {$seen} '?' placeholder(s) "
+                . 'without a value, but ' . count($positional)
+                . ' value(s) were given with it.'
+            );
+        }
+    }
+
+    /**
+     *
+     * Writes replacements over the placeholders of a condition, in one pass.
+     *
+     * @param string $cond The condition.
+     *
+     * @param array<string, string> $named Replacements for named
+     * placeholders, by name.
+     *
+     * @param array<int, string> $positional Replacements for `?`
+     * placeholders, by their order among the `?` placeholders.
+     *
+     * @param int $seen Counts the `?` placeholders read, carried on from
+     * one call to the next when several conditions share the values.
+     *
+     * @return string The condition, rewritten.
+     *
+     */
+    protected function replacePlaceholders(string $cond, array $named, array $positional, int &$seen): string
+    {
         // One pass over the condition, so that nothing written in is read
         // again: a sub-select spelling `:id` of its own, or a list of
         // generated names, is not a placeholder of this condition. String
         // literals and quoted identifiers are passed over whole, so a `?` or
         // a `:name` inside one is left as written. A placeholder is matched
         // only as a whole name (`:id` is not the start of `:id_2`), and not
-        // after a second colon, which is a PostgreSQL cast (`x::int`).
-        $seen = 0;
-        $cond = (string) preg_replace_callback(
-            '/\'(?:[^\'\\\\]|\\\\.)*\'|"(?:[^"\\\\]|\\\\.)*"|`[^`]*`|(?<!:):(\w+)|\?/',
+        // after a second colon, which is a PostgreSQL cast (`x::int`). A
+        // doubled `??` is PDO's escape for a literal `?`, such as the
+        // PostgreSQL JSON operator, and is not a placeholder either.
+        //
+        // String literals and comments are read the way this dialect reads
+        // them -- getTextPattern() -- since they differ: on MySQL a backslash
+        // escapes a quote and `--` begins a comment only before whitespace,
+        // so `a--?` there is subtraction and a placeholder. Anything in
+        // double quotes or backticks is passed over as well, whichever the
+        // dialect makes of it, since neither an identifier nor a string can
+        // hold a placeholder.
+        return (string) preg_replace_callback(
+            "/{$this->getQuotedNamePattern()}|{$this->getTextPattern()}"
+            . '|"(?:[^"\\\\]|\\\\.)*"|`[^`]*`|(?<!:):(?<name>\w+)|\?\?|\?/s',
             function (array $m) use ($named, $positional, &$seen): string {
                 if ($m[0] === '?') {
                     $slot = $seen++;
                     return $positional[$slot] ?? '?';
                 }
 
-                if (isset($m[1], $named[$m[1]])) {
-                    return $named[$m[1]];
+                if (isset($m['name'], $named[$m['name']])) {
+                    return $named[$m['name']];
                 }
 
                 return $m[0];
             },
             $cond
         );
-
-        // a list or sub-select for a `?` the condition does not have would
-        // otherwise vanish from the statement while its values stay bound
-        foreach (array_keys($positional) as $slot) {
-            if ($slot >= $seen) {
-                throw new Exception\InvalidArgumentException(
-                    'The condition has ' . $seen . " '?' placeholder(s), but "
-                    . 'a list or sub-select was given for placeholder number '
-                    . ($slot + 1) . '.'
-                );
-            }
-        }
-
-        return $cond;
     }
 
     /**
@@ -875,15 +1050,18 @@ abstract class AbstractQuery
      *
      * @param array<array-key, mixed> $array The values to bind.
      *
+     * @param string $source The clause the list is written into, which
+     * claims the names -- and whose reset releases them.
+     *
      * @return string The comma-separated placeholder names.
      *
      */
-    protected function inlineArray(array $array): string
+    protected function inlineArray(array $array, string $source = 'cond'): string
     {
         $keys = [];
         foreach ($array as $val) {
             $key = $this->nextInlineName();
-            $this->bindValueFrom($key, $val, 'cond');
+            $this->bindValueFrom($key, $val, $source);
             $keys[] = ":{$key}";
         }
         return implode(', ', $keys);
@@ -919,6 +1097,21 @@ abstract class AbstractQuery
     {
         $this->inlineCount++;
         return "__{$this->inlineCount}__";
+    }
+
+    /**
+     *
+     * Is this a name nextInlineName() generated, rather than one a caller
+     * wrote?
+     *
+     * @param int|string $name The placeholder name.
+     *
+     * @return bool
+     *
+     */
+    protected function isGeneratedName(int|string $name): bool
+    {
+        return is_string($name) && preg_match('/^__\d+__$/', $name) === 1;
     }
 
     /**

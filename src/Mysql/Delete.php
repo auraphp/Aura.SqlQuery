@@ -19,6 +19,8 @@ use Aura\SqlQuery\Common;
  */
 class Delete extends Common\Delete implements Common\OrderByInterface, Common\LimitInterface
 {
+    use TextPatternTrait;
+
     use Common\LimitTrait;
 
     /**

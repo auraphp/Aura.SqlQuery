@@ -347,6 +347,26 @@ abstract class AbstractIntegrationTest extends TestCase
 
     /**
      *
+     * A `?` beside a list and a named placeholder used to render a statement
+     * mixing `?` with named placeholders, which PDO rejects on MySQL and
+     * PostgreSQL. Every value given with a condition is named now.
+     *
+     */
+    public function testSelectQuestionMarkBesideListAndNamedPlaceholder()
+    {
+        $select = $this->query_factory->newSelect()
+            ->cols(['name'])
+            ->from('test_employee')
+            ->where('dept_id = ? AND name IN (?)', [2, ['Clara', 'Donna', 'Anna']])
+            ->where('salary > :min', ['min' => 300])
+            ->orderBy(['seq']);
+
+        $actual = $this->fetchAll($select);
+        $this->assertSame(['Donna'], array_column($actual, 'name'));
+    }
+
+    /**
+     *
      * Naming several tables in one from() is an old-style join, and it has to
      * be a list the database accepts -- the names used to be quoted whole as
      * one identifier, which no server would take. See #160.

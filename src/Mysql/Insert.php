@@ -21,6 +21,8 @@ use Aura\SqlQuery\Exception\LogicException;
  */
 class Insert extends Common\Insert
 {
+    use TextPatternTrait;
+
     /**
      *
      * A builder for the query.

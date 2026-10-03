@@ -19,6 +19,8 @@ use Aura\SqlQuery\Common;
  */
 class Update extends Common\Update implements Common\OrderByInterface, Common\LimitInterface
 {
+    use TextPatternTrait;
+
     use Common\LimitTrait;
 
     /**
