@@ -45,6 +45,10 @@ class QuoterTest extends TestCase
             ],
             // a $ inside an identifier does not open a dollar quote
             'dollar in identifier' => ['a$$b + t.c + c$$d', 'a$$b + "t"."c" + c$$d'],
+            // PostgreSQL reads every byte from 0x80 up as an identifier
+            // character; read as bytes, a Latin-1 one needs no valid UTF-8
+            'dollar after non-ASCII letter' => ['é$$b + t.c + c$$d', 'é$$b + "t"."c" + c$$d'],
+            'dollar after Latin-1 byte' => ["\xE9\$\$b + t.c + c\$\$d", "\xE9\$\$b + \"t\".\"c\" + c\$\$d"],
             // nor does a positional parameter
             'positional parameter' => ['t.c = $1', '"t"."c" = $1'],
         ];
