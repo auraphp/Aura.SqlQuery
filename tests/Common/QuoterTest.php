@@ -109,7 +109,7 @@ class QuoterTest extends TestCase
     /**
      * The same input, through every quoter the package ships. In the input
      * and the expectation, {p} and {s} stand for the dialect's own quote
-     * prefix and suffix, so one case covers all three.
+     * prefix and suffix, so one case covers them all.
      */
     #[DataProvider('provideQuoteNamesIn')]
     public function testQuoteNamesInAcrossDialects(string $input, string $expect)
@@ -117,6 +117,7 @@ class QuoterTest extends TestCase
         $quoters = [
             'common' => new Quoter(),
             'mysql' => new \Aura\SqlQuery\Mysql\Quoter(),
+            'pgsql' => new \Aura\SqlQuery\Pgsql\Quoter(),
             'sqlsrv' => new \Aura\SqlQuery\Sqlsrv\Quoter(),
         ];
 
@@ -173,6 +174,9 @@ class QuoterTest extends TestCase
                 '{p}t{s}.{p}a{s} BETWEEN :lo AND :hi',
             ],
             'single quoted literal' => ["t.c = 'a.b'", "{p}t{s}.{p}c{s} = 'a.b'"],
+            // a string on MySQL, a name already quoted elsewhere: either
+            // way it is left as written, and the name before it is quoted
+            'double quoted text' => ['t.c = "a.b"', '{p}t{s}.{p}c{s} = "a.b"'],
             'escaped single quote' => ["t.c = 'it''s'", "{p}t{s}.{p}c{s} = 'it''s'"],
             'literal beside a name' => [
                 "t.c LIKE '%.%' AND t.d = u.e",
