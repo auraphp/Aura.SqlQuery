@@ -109,7 +109,7 @@ class QuoterTest extends TestCase
     /**
      * The same input, through every quoter the package ships. In the input
      * and the expectation, {p} and {s} stand for the dialect's own quote
-     * prefix and suffix, so one case covers all three.
+     * prefix and suffix, so one case covers them all.
      */
     #[DataProvider('provideQuoteNamesIn')]
     public function testQuoteNamesInAcrossDialects(string $input, string $expect)
@@ -117,6 +117,7 @@ class QuoterTest extends TestCase
         $quoters = [
             'common' => new Quoter(),
             'mysql' => new \Aura\SqlQuery\Mysql\Quoter(),
+            'pgsql' => new \Aura\SqlQuery\Pgsql\Quoter(),
             'sqlsrv' => new \Aura\SqlQuery\Sqlsrv\Quoter(),
         ];
 

@@ -478,6 +478,12 @@ changes below as ordered steps.
   as written, however many dots it has, while real column references beside
   it are quoted as before. Fixes #226.
 
+- [FIX] On PostgreSQL, the quoter leaves a dollar-quoted string, `$$...$$` or
+  `$tag$...$tag$`, as written. A dotted name inside one was quoted as a
+  table.column reference, so `where('a = $$t.c$$')` compared `a` with the
+  string `"t"."c"`, quotes included. A new Pgsql\Quoter does this; the
+  other dialects, which have no dollar quoting, are unchanged. Fixes #274.
+
 - [FIX] The quoter now leaves an identifier the caller already quoted as
   written, instead of splitting it on the dot inside it. A MySQL column
   named `compound.group` has to be written with backticks by hand, and

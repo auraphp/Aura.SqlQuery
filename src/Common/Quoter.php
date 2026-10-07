@@ -153,7 +153,11 @@ class Quoter implements QuoterInterface
             // referenced split; these are the trailing/ending quote
             // portions, and already included in the previous element.
             // this is the same as skipping every third element from zero.
-            if (($key+1) % 3) {
+            if ($key % 3 == 1) {
+                // a whole match of getTextPatternForQuoteNamesIn(), which
+                // is left as written
+                $text .= $val;
+            } elseif ($key % 3 == 0) {
                 $text .= $this->quoteNamesInLoop($val, $key == $last);
             }
         }
@@ -171,6 +175,30 @@ class Quoter implements QuoterInterface
      */
     protected function getListForQuoteNamesIn(string $text): array
     {
+        // branch reset, so that every alternative captures the same two
+        // group numbers; quoteNamesIn() skips every third element on that
+        // basis
+        return preg_split(
+            "/(?|{$this->getTextPatternForQuoteNamesIn()})/",
+            $text,
+            -1,
+            PREG_SPLIT_DELIM_CAPTURE
+        );
+    }
+
+    /**
+     *
+     * Regex alternatives matching the text that quoteNamesIn() leaves as
+     * written: string literals, and identifiers already quoted. Each
+     * alternative captures the whole match as group 1 and something else as
+     * group 2, so that the split in getListForQuoteNamesIn() yields the same
+     * number of elements for each.
+     *
+     * @return string
+     *
+     */
+    protected function getTextPatternForQuoteNamesIn(): string
+    {
         // look for ', ", \', or \" in the string.
         // match closing quotes against the same number of opening quotes.
         $apos = "'";
@@ -183,15 +211,7 @@ class Quoter implements QuoterInterface
         $suffix = preg_quote($this->quote_name_suffix, '/');
         $quoted_name = "{$prefix}[^{$suffix}]*{$suffix}";
 
-        // branch reset, so that either alternative captures the same two
-        // group numbers; quoteNamesIn() skips every third element on that
-        // basis
-        return preg_split(
-            "/(?|(($apos+|$quot+|\\$apos+|\\$quot+).*?\\2)|(($quoted_name)))/",
-            $text,
-            -1,
-            PREG_SPLIT_DELIM_CAPTURE
-        );
+        return "(($apos+|$quot+|\\$apos+|\\$quot+).*?\\2)|(($quoted_name))";
     }
 
     /**
