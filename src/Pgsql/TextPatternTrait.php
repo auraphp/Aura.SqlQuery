@@ -26,7 +26,9 @@ trait TextPatternTrait
      * PostgreSQL has. An escape string, `E'...'`, takes a backslash as an
      * escape, so `E'it\'s ?'` is one literal. A dollar-quoted string,
      * `$$...$$` or `$tag$...$tag$`, ends only at the same tag, with nothing
-     * escaped inside it. A `?` or a `:name` in either is text.
+     * escaped inside it; a `$` that follows an identifier character is part
+     * of that identifier and opens none (#276). A `?` or a `:name` in either
+     * is text.
      *
      * The tag is captured even when empty, so that the closing tag always has
      * a group to match against.
@@ -39,7 +41,7 @@ trait TextPatternTrait
     protected function getTextPattern(): string
     {
         return "(?<!\\w)[Ee]'(?:[^'\\\\]|\\\\.|'')*+'"
-            . '|\$(?<dollar_tag>(?:[A-Za-z_]\w*)?)\$.*?\$\k<dollar_tag>\$|'
+            . '|(?<![\w$])\$(?<dollar_tag>(?:[A-Za-z_]\w*)?)\$.*?\$\k<dollar_tag>\$|'
             . parent::getTextPattern();
     }
 }

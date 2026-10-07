@@ -346,6 +346,21 @@ class PlaceholderTest extends TestCase
         $this->assertSame(['key' => 'x', '__1__' => 1], $select->getBindValues());
     }
 
+    /**
+     * Issue #276: a `$` is an identifier character on PostgreSQL, so `$$`
+     * inside a name opens no dollar-quoted string.
+     */
+    public function testDollarsInAPostgresIdentifierOpenNoString()
+    {
+        $select = (new QueryFactory('pgsql'))->newSelect()
+            ->cols(['id'])
+            ->from('t')
+            ->where('a$$b = ? AND c$$d = ?', [1, 2]);
+
+        $this->assertStringContainsString('a$$b = :__1__ AND c$$d = :__2__', $select->getStatement());
+        $this->assertSame(['__1__' => 1, '__2__' => 2], $select->getBindValues());
+    }
+
     public function testRebindingByNumberDoesNotReachAValueGivenWithTheCondition()
     {
         // the value has a generated name now, so binding number 0 by hand
