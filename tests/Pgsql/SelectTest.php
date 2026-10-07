@@ -50,6 +50,9 @@ class SelectTest extends Common\SelectTest
             // a $ inside an identifier opens no dollar quote (#276)
             'dollar in identifier' => [['a'], 'a$$b = :a AND c$$d = 1'],
             'dollars run in identifier' => [['a'], 'a$$$$b = :a AND c$$d = 1'],
+            // PostgreSQL reads every byte from 0x80 up as an identifier
+            // character, so a non-ASCII letter before $$ is part of the name
+            'dollars after non-ASCII letter' => [['a'], 'é$$b = :a AND c$$d = 1'],
         ]);
     }
 

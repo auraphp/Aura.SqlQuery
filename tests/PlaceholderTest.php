@@ -361,6 +361,25 @@ class PlaceholderTest extends TestCase
         $this->assertSame(['__1__' => 1, '__2__' => 2], $select->getBindValues());
     }
 
+    /**
+     * PostgreSQL reads bytes, and every byte from 0x80 up is an identifier
+     * character, so `é$$b` is one name. Read as bytes, a condition need not
+     * be valid UTF-8: a Latin-1 byte beside it still leaves the scan working.
+     */
+    public function testDollarsAfterANonAsciiLetterOpenNoString()
+    {
+        $select = (new QueryFactory('pgsql'))->newSelect()
+            ->cols(['id'])
+            ->from('t')
+            ->where("\xE9\$\$b = ? AND c\$\$d = ? AND e = 'caf\xE9'", [1, 2]);
+
+        $this->assertStringContainsString(
+            "\xE9\$\$b = :__1__ AND c\$\$d = :__2__ AND e = 'caf\xE9'",
+            $select->getStatement()
+        );
+        $this->assertSame(['__1__' => 1, '__2__' => 2], $select->getBindValues());
+    }
+
     public function testRebindingByNumberDoesNotReachAValueGivenWithTheCondition()
     {
         // the value has a generated name now, so binding number 0 by hand
