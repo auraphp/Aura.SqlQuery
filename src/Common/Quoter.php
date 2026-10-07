@@ -341,15 +341,6 @@ class Quoter implements QuoterInterface
             return $text;
         }
 
-        // issue #183: leave an already-quoted identifier as the caller wrote
-        // it. getListForQuoteNamesIn() splits those out on their own, so the
-        // test is that this element *is* one, not merely that it contains a
-        // quote character: an unbalanced quote is not an identifier, and is
-        // quoted the way it always was.
-        if ($this->isQuotedName($text)) {
-            return $text;
-        }
-
         // issue #177: '#' is a legal identifier character on DB2 / IBM i,
         // in any position; lookarounds instead of \b, because there is no
         // word boundary next to a '#'
