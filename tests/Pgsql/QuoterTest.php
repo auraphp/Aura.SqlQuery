@@ -25,6 +25,7 @@ class QuoterTest extends TestCase
             'compared' => ['a = $$t.c$$', 'a = $$t.c$$'],
             'name after' => ['$$t.c$$ = t.c', '$$t.c$$ = "t"."c"'],
             'tagged' => ['$q$t.c$q$ = t.c', '$q$t.c$q$ = "t"."c"'],
+            'non-ASCII tag' => ['$é$t.c$é$ = t.c', '$é$t.c$é$ = "t"."c"'],
             'empty' => ['$$$$ = t.c', '$$$$ = "t"."c"'],
             'other tag inside' => [
                 '$q$ a.b $$ c.d $r$ e.f $q$ = t.c',
@@ -45,6 +46,7 @@ class QuoterTest extends TestCase
             ],
             // a $ inside an identifier does not open a dollar quote
             'dollar in identifier' => ['a$$b + t.c + c$$d', 'a$$b + "t"."c" + c$$d'],
+            'dollar after non-ASCII' => ['aé$$b + t.c + c$$d', 'aé$$b + "t"."c" + c$$d'],
             // nor does a positional parameter
             'positional parameter' => ['t.c = $1', '"t"."c" = $1'],
         ];
