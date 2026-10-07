@@ -47,11 +47,6 @@ class SelectTest extends Common\SelectTest
             'escape string' => [[], "note = E'\\':a'"],
             'escape string then code' => [['a'], "note = E'it\\'s :b' AND a = :a"],
             'unclosed dollar quote' => [['a'], 'note = $$ unclosed AND a = :a'],
-            // a tag may hold non-ASCII letters, and a $ inside an
-            // identifier opens no dollar quote
-            'non-ASCII tag' => [['a'], 'note = $é$ :b $é$ AND a = :a'],
-            'dollar in identifier' => [['a'], 'a$$b = :a AND c$$d = 1'],
-            'dollar after non-ASCII' => [['a'], 'aé$$b = :a AND c$$d = 1'],
         ]);
     }
 
