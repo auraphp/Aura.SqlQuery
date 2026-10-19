@@ -2,8 +2,8 @@
 
 ## 7.0.0
 
-Changes since 7.0.0-beta1. Read together with the 7.0.0-beta1 entries below
-for everything since 3.x.
+Changes since 7.0.0-beta1. Read together with the 7.0.0-beta1 notes for
+everything since 3.x.
 
 ### Breaking
 
