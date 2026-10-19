@@ -1,6 +1,6 @@
 # CHANGELOG 
 
-## 7.0.0 (unreleased)
+## 7.0.0
 
 The first release of the 7.x line. The version jumps from 3.x to 7.x, so that
 the Aura packages released together share a major version; there is no 4.x,

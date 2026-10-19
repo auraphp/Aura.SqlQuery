@@ -13,9 +13,6 @@ This package is installable and PSR-4 autoloadable via Composer as
 composer require aura/sqlquery
 ```
 
-While 7.0 is in beta, ask for the pre-release explicitly with
-`composer require aura/sqlquery:^7.0@beta`.
-
 Alternatively, [download a release][], or clone this repository, then map
 the `Aura\SqlQuery\` namespace to the package `src/` directory.
 
