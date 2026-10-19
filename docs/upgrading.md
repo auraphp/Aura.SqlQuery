@@ -27,6 +27,11 @@ Work through these in order.
 composer require aura/sqlquery:^7.0
 ```
 
+While 7.0 is in beta, Composer will not pick a pre-release for that constraint
+under the default `stable` minimum stability. Ask for it explicitly with
+`^7.0@beta`, or lower `minimum-stability` in your `composer.json`, and move to
+plain `^7.0` once the stable release is out.
+
 The package still has no runtime dependencies.
 
 ### 2. Add Types To Any Methods You Override

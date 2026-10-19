@@ -1,6 +1,6 @@
 # CHANGELOG 
 
-## 7.0.0
+## 7.0.0 (unreleased)
 
 Changes since 7.0.0-beta1. Read together with the 7.0.0-beta1 notes for
 everything since 3.x.
