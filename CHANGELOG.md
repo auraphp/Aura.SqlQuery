@@ -1,5 +1,14 @@
 # CHANGELOG 
 
+## 7.0.0
+
+The first stable release of the 7.x line, with no changes since
+7.0.0-beta2. The version jumps from 3.x to 7.x, so that the Aura packages
+released together share a major version; there is no 4.x, 5.x or 6.x of
+this package. The 7.0.0-beta1 and 7.0.0-beta2 notes below list everything
+since 3.x, and docs/upgrading.md works through the breaking changes as
+ordered steps.
+
 ## 7.0.0-beta2
 
 Changes since 7.0.0-beta1. Read together with the 7.0.0-beta1 notes for
